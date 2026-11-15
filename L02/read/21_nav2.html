@@ -1,0 +1,153 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>第 21 章 Nav2 动作与规划器</title><style>*{box-sizing:border-box}body{margin:0;background:#eff4f5;color:#17343d;font:17px/1.95 "Segoe UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif}header{background:#163c45;color:#e5f3ef;padding:22px max(20px,calc((100vw - 1080px)/2))}header a{color:#bceadf;margin-right:20px}main{max-width:1140px;margin:28px auto;padding:34px 48px;background:white;border:1px solid #dae5e8;border-radius:12px}h1{font-size:32px;line-height:1.5;color:#174b50}h2{margin-top:42px;font-size:24px;color:#256466;border-bottom:1px solid #dce9e8;padding-bottom:9px}h3{font-size:20px;color:#345b62}a{color:#08777a;text-underline-offset:3px}p,li{overflow-wrap:anywhere}pre{background:#112c38;color:#e3f0ed;padding:20px;border-radius:8px;overflow:auto;font:13px/1.8 Consolas,monospace;white-space:pre;overflow-wrap:normal}code{font-family:Consolas,monospace}p code,li code,td code{background:#edf3f4;padding:2px 4px}table{display:block;overflow:auto;border-collapse:collapse;font-size:15px;margin:22px 0}th,td{border:1px solid #cedfe1;padding:10px;min-width:100px;vertical-align:top}th{background:#e6f2ef}img{max-width:100%;height:auto;margin:22px auto;display:block}blockquote{border-left:4px solid #3c9083;padding:8px 20px;background:#f0f7f4;margin:20px 0}.toc{background:#f3f8f7;padding:12px 25px;font-size:14px}footer{max-width:1100px;margin:24px auto;padding:20px;color:#47666c}button{background:#e7f4ed;color:#245448;border:0;padding:7px 12px;border-radius:5px;cursor:pointer}@media(max-width:700px){body{font-size:16px}main{padding:22px 18px;margin:12px;border-radius:8px}h1{font-size:26px}h2{font-size:22px}header{padding:16px}pre{font-size:12px}}@media print{header,footer,button,.toc{display:none}main{border:0;max-width:none;margin:0;padding:0}pre{background:#eee;color:black;white-space:pre-wrap;overflow-wrap:anywhere}a{color:black}h2{break-after:avoid}img{max-height:230mm}}</style><header><a href="../../index.html">学习首页</a><a href="../index.html">三十章目录</a><a href="20_swaths.html">← 上一章</a><a href="22_controllers.html">下一章 →</a><button onclick="window.print()">打印本章</button></header><main><details class="toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#21-nav2">第 21 章 Nav2 动作与规划器</a><ul>
+<li><a href="#navigatetopose">NavigateToPose 的责任</a></li>
+<li><a href="#followpath">FollowPath 的责任</a></li>
+<li><a href="#_1">规划器 控制器 代价图</a></li>
+<li><a href="#_2">动作调用的真实顺序</a></li>
+<li><a href="#_3">固定生产代码逐段阅读</a><ul>
+<li><a href="#mission_spray_r10py-22-47">mission_spray_r10.py 第 22 至 47 行</a></li>
+<li><a href="#nav2yaml-1-34">nav2.yaml 第 1 至 34 行</a></li>
+</ul>
+</li>
+<li><a href="#_4">代价图未知格与足迹</a></li>
+<li><a href="#_5">可检查的配置阅读</a><ul>
+<li><a href="#_6">本章练习核心代码与实际输出</a></li>
+</ul>
+</li>
+<li><a href="#_7">一个反例</a></li>
+<li><a href="#_8">常见故障与自测</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details><h1 id="21-nav2">第 21 章 Nav2 动作与规划器</h1>
+<p>项目中有到点、巡检、覆盖三类导航用途，主要使用的 ROS 动作是 NavigateToPose 与 FollowPath 两种。不要因为阶段标题写“三类导航动作”，就自行补出第三个已经部署的接口。ComputePathToPose 是规划接口，NavigateThroughPoses 是可选上游能力，但不能据此宣称当前任务已使用。</p>
+<h2 id="navigatetopose">NavigateToPose 的责任</h2>
+<p>调用者给目标位姿，导航行为树组织规划与跟踪。当前到点链路使用 Smac 规划及相应末端适配，路径由当前地图、起点、目标和配置决定。周期重规划可以更新连接，却可能使短末端路径在栅格上跳动，因此需要仔细处理精确目标与格心的差异。</p>
+<p>导航成功由 goal checker 判定，通常有位置和航向容差。喷洒还要求工具位置、静止样本窗口和反馈条件，所以 NavigateToPose SUCCEEDED 后不能立刻增加作业完成量。</p>
+<h2 id="followpath">FollowPath 的责任</h2>
+<p>调用者提供路径，由 controller server 跟踪。它适合保持覆盖条带或巡检路线的几何意图。FollowPath 本身不自动替你完成全局重新规划；任务监督需要决定何时取消、等待、构造替代路径或保存残余。</p>
+<p>路径包含坐标系、时间戳、位置与方向。只给很多 xy 点而不正确处理 yaw、换挡和连续性，阿克曼车可能收到不可执行路径。修改路径后还要检查它是否改变工作段与工具状态。</p>
+<h2 id="_1">规划器 控制器 代价图</h2>
+<p>规划器计算空间路线，控制器周期性给速度，代价图提供可通行与风险表示。global_costmap 与 local_costmap 可能使用不同窗口和分辨率。地图服务、规划器、控制器和 BT navigator 还受生命周期管理。</p>
+<p>SmacPlanner2D 在二维栅格上搜索，中心点或格心离散可能影响末端精度。阿克曼受非完整约束的连接还使用专门几何后端，不应让任意二维折线直接交给阿克曼跟踪。选用成熟库仍需要把车体合同完整传入。</p>
+<h2 id="_2">动作调用的真实顺序</h2>
+<p>等待服务器 ready，发送 goal，检查 accepted，保存 goal handle，取得 result Future，持续 spin 并检查 BT，必要时申请 cancel，确认结果和物理停止，再提交下一段。一个旧 Future 未收尾时创建新控制所有者，容易出现路径竞争或取消误杀新目标。</p>
+<!-- generated-production-start -->
+<h2 id="_3">固定生产代码逐段阅读</h2>
+<p>下面是固定提交中的原样节选。完整文件有离线行号页；片段可能省略上下文，不能单独当成可运行脚本。读完每段后，回到调用者确认它在当前任务中如何使用。</p>
+<h3 id="mission_spray_r10py-22-47">mission_spray_r10.py 第 22 至 47 行</h3>
+<p><a href="../../baseline/l02_views/77674242c5e6-mission_spray_r10.py.html#L22">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/mission_spray_r10.py#L22">固定 Git 提交</a></p>
+<pre><code class="language-python">def main():
+    ap=argparse.ArgumentParser();ap.add_argument('--out',type=Path,required=True);a=ap.parse_args();out=a.out;spec=json.loads((out/'spec.json').read_text());cfg=json.loads((out/'mission.json').read_text());toolcfg=json.loads((out/'scene/tool.json').read_text());cluster=next(x for x in cfg['clusters'] if x['id']==spec['cluster']);allpoints=cluster['points'];points=allpoints[:spec['point_limit']] if spec['point_limit'] else allpoints
+    rclpy.init();n=rclpy.create_node('r07_point_service_task',parameter_overrides=[rclpy.parameter.Parameter('use_sim_time',value=True)]);nav=ActionClient(n,NavigateToPose,'/navigate_to_pose');manager=n.create_client(Trigger,'/lifecycle_manager/is_active');tool=ActionClient(n,ToolTask,'/s10/tool_task');pub=n.create_publisher(String,'/r07/mission',10);hp=n.create_publisher(PoseWithCovarianceStamped,'/s07/rtabmap/initialpose',10)
+    st=dict(t=0.,stop=False,phase='STARTUP',nav_idle=True,complete=False,nav_failed=False,replans=0,deferrals=0,alternative=True,precision_translation_m=None,bt=None,gate=None,loc=None,tool=None,feedback=None,index=0,safety=None);events=[];completed=[];failed=[];revalidations={};active_nav=None;active_tool=None;begin=time.monotonic();hinted=False;replay=None;error=None
+    def log(event,**d):
+        row=dict(t=st['t'],event=event,**d);events.append(row)
+        with (out/'mission_events.jsonl').open('a') as f:f.write(json.dumps(row)+'\n')
+    n.create_subscription(Clock,'/clock',lambda m:st.update(t=m.clock.sec+m.clock.nanosec*1e-9),qos_profile_sensor_data)
+    for topic,key in [('/r06/directive','bt'),('/r07/gate','gate'),('/r07/localization','loc'),('/s10/action/state','tool'),('/s10/tool/feedback','feedback'),('/r07/safety','safety')]:n.create_subscription(String,topic,lambda m,k=key:st.update({k:json.loads(m.data)}),20)
+    def publish():
+        d={k:st[k] for k in ['t','phase','nav_idle','complete','nav_failed','replans','deferrals','alternative','index','precision_translation_m']};d['task_version']=cfg['version'];pub.publish(String(data=json.dumps(d)));tmp=out/'live.tmp';tmp.write_text(json.dumps(dict(d,bt=st['bt'],gate=st['gate'],loc=st['loc'])));tmp.replace(out/'live.json')
+    n.create_timer(.03,publish)
+    follow=ActionClient(n,FollowPath,'/follow_path')
+    local_odom={}
+    def on_odom(m):
+        p=m.pose.pose;q=p.orientation;local_odom.update(t=m.header.stamp.sec+m.header.stamp.nanosec*1e-9,pose=[p.position.x,p.position.y,math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y*q.y+q.z*q.z))])
+    n.create_subscription(Odometry,'/s05/odometry',on_odom,30)
+    planner=ActionClient(n,ComputePathToPose,'/compute_path_to_pose');pathcheck=n.create_client(IsPathValid,'/is_path_valid');prepare=n.create_client(Trigger,'/r10/localization/prepare_revalidation');commit=n.create_client(Trigger,'/r10/localization/commit_revalidation');proofpub=n.create_publisher(String,'/r10/localization/plan_proof',10)
+    def tick(allow_stop=False):
+        nonlocal hinted
+        rclpy.spin_once(n,timeout_sec=.01)
+        if st['t']&gt;8 and not hinted:
+            h=spec['operator_hint'];m=PoseWithCovarianceStamped();m.header.frame_id='map';m.pose.pose.position.x=h[0];m.pose.pose.position.y=h[1];m.pose.pose.orientation.z=math.sin(h[2]/2);m.pose.pose.orientation.w=math.cos(h[2]/2);m.pose.covariance=[1. if i in [0,7,14] else .25 if i in [21,28,35] else 0. for i in range(36)];hp.publish(m);hinted=True;log('COARSE_PUBLIC_PLAN_HINT')
+        if not allow_stop and (st['stop'] or st['t']&gt;spec['sim_seconds'] or time.monotonic()-begin&gt;spec['wall_budget']-30):raise TimeoutError('TASK_BOUND_OR_STOP_REQUEST')
+    def wait(predicate,seconds=20,allow_stop=False):
+        start=st['t'];wall=time.monotonic()
+</code></pre>
+<p>三种客户端分别处理导航到点、短路径和工具动作。类型和名称决定要连接哪个 server，实际动作等待/取消在后续 helper 中实现。先读接口，再读状态转换，不从客户端存在推断每个分支都已执行。</p>
+<h3 id="nav2yaml-1-34">nav2.yaml 第 1 至 34 行</h3>
+<p><a href="../../baseline/l02_views/1f182bcfa0bc-nav2.yaml.html#L1">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/three_tasks/editions/R09/nav2.yaml#L1">固定 Git 提交</a></p>
+<pre><code class="language-yaml">controller_server:
+  ros__parameters:
+    use_sim_time: true
+    controller_frequency: 20.0
+    costmap_update_timeout: 0.5
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.001
+    min_theta_velocity_threshold: 0.001
+    failure_tolerance: 2.0
+    odom_topic: /s05/odometry
+    enable_stamped_cmd_vel: false
+    progress_checker_plugins:
+    - progress
+    goal_checker_plugins:
+    - goal
+    controller_plugins:
+    - RPP
+    progress:
+      plugin: nav2_controller::PoseProgressChecker
+      required_movement_radius: 0.05
+      required_movement_angle: 0.1
+      movement_time_allowance: 20.0
+    goal:
+      plugin: nav2_controller::SimpleGoalChecker
+      xy_goal_tolerance: 0.05
+      yaw_goal_tolerance: 0.08
+      stateful: false
+    DWB:
+      plugin: dwb_core::DWBLocalPlanner
+      debug_trajectory_details: false
+      min_vel_x: 0.0
+      min_vel_y: 0.0
+      max_vel_x: 0.4
+      max_vel_y: 0.0
+</code></pre>
+<p>controller_plugins 当前只列 RPP；goal/progress checker 分别管理到达和进展。下面仍有 DWB 参数块，但未列入当前插件名单，属于保留配置而非同时运行。</p>
+<!-- generated-production-end -->
+
+<h2 id="_4">代价图未知格与足迹</h2>
+<p>未知格、已观测障碍和先验自由格应有明确优先级。实时危险应立即生效，静态先验只能在其授权范围内补充已知信息，不能删除刚观察到的障碍。不同阶段参数也可能不同，读当前 R09/R10 导出配置，而不是照搬早期 S13 的小车半径与速度。</p>
+<p>足迹、footprint_padding 和分辨率共同影响碰撞检查。中心线通过一格间隙，不代表整个车体通过。离线连接需要预留与在线栅格一致的余量，否则在线控制拒绝路径是合理行为。</p>
+<h2 id="_5">可检查的配置阅读</h2>
+<pre><code class="language-bash">cd /home/ceihao/self_learning
+rg -n 'controller_plugins|planner_plugins|plugin:|footprint|resolution|allow_reversing' baseline/l02_source/optimization_v2/three_tasks/editions/R09/nav2.yaml
+python3 examples/l02/labs.py 21
+</code></pre>
+<p>先看 <code>controller_plugins</code> 名单，再看对应参数块。配置里存在 DWB 或 MPPI 字段，不代表它们当前被加载；R09 当前 controller_plugins 指定 RPP。继承配置中的备用块可以保留，但文档不能把备用块列成同时运行的控制器。</p>
+<!-- generated-lab-start -->
+<h3 id="_6">本章练习核心代码与实际输出</h3>
+<p><a href="../../examples/l02/labs.py">完整教学脚本</a> · <a href="../../validation/L02/lab_21.json">本章完整输出</a></p>
+<p>代码只使用 Python 标准库；合成输入与历史记录在输出 kind 中区分。公共 ROOT、read、wrap、connected 等辅助函数在完整脚本中定义。</p>
+<pre><code class="language-python">def lab21():
+    &quot;&quot;&quot;A path may be geometrically close but impossible for the vehicle.&quot;&quot;&quot;
+    poses=[(0.,0.,0.),(.1,0.,math.pi/2)]
+    ds=math.dist(poses[0][:2],poses[1][:2]);dy=abs(wrap(poses[1][2]-poses[0][2]))
+    curvature=dy/ds;limit=.5
+    assert curvature&gt;limit
+    return dict(kind='synthetic endpoint counterexample',curvature_1_per_m=curvature,
+                limit_1_per_m=limit,follow_path_admissible=False,
+                navigate_to_pose_must_plan=True)
+</code></pre>
+<pre><code class="language-text">{
+  &quot;chapter&quot;: &quot;21&quot;,
+  &quot;passed&quot;: true,
+  &quot;result&quot;: {
+    &quot;kind&quot;: &quot;synthetic endpoint counterexample&quot;,
+    &quot;curvature_1_per_m&quot;: 15.707963267948966,
+    &quot;limit_1_per_m&quot;: 0.5,
+    &quot;follow_path_admissible&quot;: false,
+    &quot;navigate_to_pose_must_plan&quot;: true
+  }
+}
+</code></pre>
+<p>本章例子可以在 Windows 使用 <code>py -3</code> 或在 Linux 使用 <code>python3</code> 重跑。它验证局部概念或读取历史证据，不对机器人全任务提供新通过结论。</p>
+<!-- generated-lab-end -->
+
+<h2 id="_7">一个反例</h2>
+<p>练习路径在 0.1 m 内改变 90° 航向，按差分计算曲率极大。两点距离很短，目标也很近，但对有限转弯半径阿克曼车不合法。提高控制频率无法修复这个几何问题，必须改变路径或任务姿态。</p>
+<h2 id="_8">常见故障与自测</h2>
+<p>action server 缺失：查生命周期、namespace、domain；goal accepted 后不动：查门控与 controller 日志；规划成功但跟踪失败：查路径曲率、足迹、实时风险和目标方向；频繁取消：看上层 BT 原因与数据年龄；末端反复重规划：看精确目标与栅格中心差异。</p>
+<p>问：什么时候选择 NavigateToPose？答：目标位姿重要、连接允许由在线规划决定时。什么时候选择 FollowPath？答：已有可执行路径，其几何与任务语义需要保留时。</p>
+<p>练习：为点喷接近、局部精停、覆盖条带、道路巡检各选一个动作，并写出取消后需要保留的任务信息。一个任务可以在不同阶段使用不同动作。</p></main><footer>L02 内容阅读版 · 固定基线 9aff8337 · 原机器人 R10–R12 PARTIAL · L03 完整站点尚待执行</footer></html>

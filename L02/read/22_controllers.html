@@ -1,0 +1,162 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>第 22 章 RPP MPPI DWB 与精停</title><style>*{box-sizing:border-box}body{margin:0;background:#eff4f5;color:#17343d;font:17px/1.95 "Segoe UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif}header{background:#163c45;color:#e5f3ef;padding:22px max(20px,calc((100vw - 1080px)/2))}header a{color:#bceadf;margin-right:20px}main{max-width:1140px;margin:28px auto;padding:34px 48px;background:white;border:1px solid #dae5e8;border-radius:12px}h1{font-size:32px;line-height:1.5;color:#174b50}h2{margin-top:42px;font-size:24px;color:#256466;border-bottom:1px solid #dce9e8;padding-bottom:9px}h3{font-size:20px;color:#345b62}a{color:#08777a;text-underline-offset:3px}p,li{overflow-wrap:anywhere}pre{background:#112c38;color:#e3f0ed;padding:20px;border-radius:8px;overflow:auto;font:13px/1.8 Consolas,monospace;white-space:pre;overflow-wrap:normal}code{font-family:Consolas,monospace}p code,li code,td code{background:#edf3f4;padding:2px 4px}table{display:block;overflow:auto;border-collapse:collapse;font-size:15px;margin:22px 0}th,td{border:1px solid #cedfe1;padding:10px;min-width:100px;vertical-align:top}th{background:#e6f2ef}img{max-width:100%;height:auto;margin:22px auto;display:block}blockquote{border-left:4px solid #3c9083;padding:8px 20px;background:#f0f7f4;margin:20px 0}.toc{background:#f3f8f7;padding:12px 25px;font-size:14px}footer{max-width:1100px;margin:24px auto;padding:20px;color:#47666c}button{background:#e7f4ed;color:#245448;border:0;padding:7px 12px;border-radius:5px;cursor:pointer}@media(max-width:700px){body{font-size:16px}main{padding:22px 18px;margin:12px;border-radius:8px}h1{font-size:26px}h2{font-size:22px}header{padding:16px}pre{font-size:12px}}@media print{header,footer,button,.toc{display:none}main{border:0;max-width:none;margin:0;padding:0}pre{background:#eee;color:black;white-space:pre-wrap;overflow-wrap:anywhere}a{color:black}h2{break-after:avoid}img{max-height:230mm}}</style><header><a href="../../index.html">学习首页</a><a href="../index.html">三十章目录</a><a href="21_nav2.html">← 上一章</a><a href="23_bt.html">下一章 →</a><button onclick="window.print()">打印本章</button></header><main><details class="toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#22-rpp-mppi-dwb">第 22 章 RPP MPPI DWB 与精停</a><ul>
+<li><a href="#pure-pursuit-rpp">Pure Pursuit 与 RPP</a></li>
+<li><a href="#dwb">DWB 的动态窗口</a></li>
+<li><a href="#mppi">MPPI 的预测采样</a></li>
+<li><a href="#_1">精停不是普通导航容差</a></li>
+<li><a href="#_2">固定生产代码逐段阅读</a><ul>
+<li><a href="#precision_progresshpp-1-17">precision_progress.hpp 第 1 至 17 行</a></li>
+<li><a href="#nav2yaml-88-114">nav2.yaml 第 88 至 114 行</a></li>
+</ul>
+</li>
+<li><a href="#_3">停车距离和延迟</a></li>
+<li><a href="#_4">运行练习</a><ul>
+<li><a href="#_5">本章练习核心代码与实际输出</a></li>
+</ul>
+</li>
+<li><a href="#_6">排错与自测</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details><h1 id="22-rpp-mppi-dwb">第 22 章 RPP MPPI DWB 与精停</h1>
+<p>控制器把当前位姿、路径与约束变成速度候选。当前三任务主链路使用 RPP，MPPI/DWB 的配置与早期对照保留。理解它们的思想有助于判断问题该改路径、状态估计还是控制参数。</p>
+<h2 id="pure-pursuit-rpp">Pure Pursuit 与 RPP</h2>
+<p>Pure Pursuit 在车体坐标中选择前视点 (x,y)，用通过该点的圆得到 <code>κ=2y/(x²+y²)</code>，再计算 <code>ω=vκ</code>。前视距离短通常跟得紧，但更敏感；前视距离长更平滑，但可能切角与末端滞后。</p>
+<p>RPP 在几何跟踪之外根据曲率、接近目标和碰撞等条件调节速度。它轻量且容易解释，但不负责凭空生成绕障通路。路径本身不可行时，降低速度只能减慢失败，不能创造转弯空间。</p>
+<p>当前割草 RPP 禁止 rotate_to_heading，允许 reversing；这是当前 R09/R10 配置，早期 S13 的限制不同。阿克曼要倒车时还需要任务执行器按单挡段组织与实测停车，不能只改一个 allow_reversing 布尔值。</p>
+<h2 id="dwb">DWB 的动态窗口</h2>
+<p>DWB 在当前可达速度范围采样 v、ω，按运动模型积分一段轨迹，再由多个 critic 评价障碍、路径、目标和振荡等代价，选出较好的候选。加减速度限制决定短时间能达到哪些速度。</p>
+<p>优点是评价项清楚，适合差速基线；代价是采样分辨率、权重和短视性可能造成量化停滞或局部困境。增加速度样本会增加计算量，不一定解决目标附近的几何或坐标问题。</p>
+<h2 id="mppi">MPPI 的预测采样</h2>
+<p>MPPI 对未来一串控制输入加入随机扰动，滚动预测多条轨迹，用指数代价权重更新控制序列，执行第一段后重新估计。与只选择一个固定速度候选相比，它处理时间序列和多项代价更灵活，也更消耗算力。</p>
+<p>预测时域、时间步、batch 数、温度和 motion model 共同决定行为。模型必须符合差速或阿克曼约束。随机采样还要求多次独立运行比较稳定性，不能用一次成功证明优于 RPP。</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>主要计算</th>
+<th>适合学习的切入点</th>
+<th>主要局限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RPP</td>
+<td>前视几何与速度调节</td>
+<td>曲率、前视点、碰撞检查</td>
+<td>依赖可执行路径</td>
+</tr>
+<tr>
+<td>DWB</td>
+<td>速度网格与轨迹评分</td>
+<td>候选、critic、加速度窗口</td>
+<td>量化与局部停滞</td>
+</tr>
+<tr>
+<td>MPPI</td>
+<td>控制序列随机采样与加权</td>
+<td>预测时域、模型、代价</td>
+<td>算力与参数耦合</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_1">精停不是普通导航容差</h2>
+<p>喷洒需要满足厘米级稳定窗口。普通无进展监督可能要求累计移动 0.10 m，但合法精停只需 0.036 m；沿用同一进展尺度会把有意义的小调整判断为无进展。当前 <code>progressDelta</code> 仅在 VALIDATED_LOCAL_DOCKING 且距离位于明确范围时缩小尺度。</p>
+<p>对 0.036 m 请求，四分之一为 0.009 m；距离超出范围则回退普通值。原超时、紧急优先级和工作准入不因此取消。精停小运动还需要独立合法路径与观测，不是对所有停滞放宽监督。</p>
+<!-- generated-production-start -->
+<h2 id="_2">固定生产代码逐段阅读</h2>
+<p>下面是固定提交中的原样节选。完整文件有离线行号页；片段可能省略上下文，不能单独当成可运行脚本。读完每段后，回到调用者确认它在当前任务中如何使用。</p>
+<h3 id="precision_progresshpp-1-17">precision_progress.hpp 第 1 至 17 行</h3>
+<p><a href="../../baseline/l02_views/3b34eb3bcafc-precision_progress.hpp.html#L1">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/r10_backend/precision_progress.hpp#L1">固定 Git 提交</a></p>
+<pre><code class="language-cpp">#pragma once
+#include &lt;nlohmann/json.hpp&gt;
+#include &lt;algorithm&gt;
+#include &lt;cmath&gt;
+namespace r10 {
+// Match progress scale to an explicitly validated, bounded precision motion.
+// The 10 s timeout, emergency priority and original work admission stay intact.
+inline double progressDelta(const nlohmann::json&amp; cfg,const nlohmann::json&amp; e) {
+  const double coarse=cfg.at(&quot;progress_delta_m&quot;).get&lt;double&gt;();
+  if (!cfg.contains(&quot;precision_progress_policy&quot;) ||
+      e.value(&quot;motion_scope&quot;,std::string())!=&quot;VALIDATED_LOCAL_DOCKING&quot; ||
+      !e.contains(&quot;expected_translation_m&quot;) || !e[&quot;expected_translation_m&quot;].is_number()) return coarse;
+  const double distance=e[&quot;expected_translation_m&quot;].get&lt;double&gt;();
+  if (!std::isfinite(distance) || distance&lt;=.008 || distance&gt;.15) return coarse;
+  return std::min(coarse,std::max(.005,.25*distance));
+}
+}
+</code></pre>
+<p>这个短函数是完整生产判据，可以由教材 C++ 例直接调用。所有合法性检查失败时回退粗尺度，只有受界限保护的局部精停才缩小进展阈值；未修改超时与安全条件。</p>
+<h3 id="nav2yaml-88-114">nav2.yaml 第 88 至 114 行</h3>
+<p><a href="../../baseline/l02_views/1f182bcfa0bc-nav2.yaml.html#L88">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/three_tasks/editions/R09/nav2.yaml#L88">固定 Git 提交</a></p>
+<pre><code class="language-yaml">      transform_tolerance: 0.15
+      min_approach_linear_velocity: 0.02
+      approach_velocity_scaling_dist: 0.5
+      use_collision_detection: true
+      max_allowed_time_to_collision_up_to_carrot: 2.0
+      use_regulated_linear_velocity_scaling: true
+      use_cost_regulated_linear_velocity_scaling: false
+      regulated_linear_scaling_min_radius: 3.0983388881649963
+      regulated_linear_scaling_min_speed: 0.04
+      use_rotate_to_heading: false
+      allow_reversing: true
+      max_angular_accel: 0.5
+      max_robot_pose_search_dist: 8.0
+      rotate_to_heading_angular_vel: 0.35
+      rotate_to_heading_min_angle: 0.45
+      use_fixed_curvature_lookahead: true
+      curvature_lookahead_dist: 0.8
+      interpolate_curvature_after_goal: true
+    MPPI:
+      plugin: s13::MeasuredController
+      implementation: nav2_mppi_controller::MPPIController
+      time_steps: 100
+      model_dt: 0.05
+      batch_size: 750
+      iteration_count: 1
+      vx_std: 0.05
+      vy_std: 0.0
+</code></pre>
+<p>RPP 参数说明前视、接近降速、碰撞检查与反向行驶。use_rotate_to_heading=false 适配阿克曼不能原地旋转；allow_reversing=true 还需外部单挡段和停车流程配合。</p>
+<!-- generated-production-end -->
+
+<h2 id="_3">停车距离和延迟</h2>
+<p>理想恒减速度模型 <code>d=v²/(2a)</code>，如果感知/处理/执行总延迟 τ，还要加 <code>vτ</code>。0.5 m/s、减速度 0.4 m/s²、延迟 0.2 s 时约 0.4125 m。真实地面还受附着与执行器限制，所以这个计算用于理解，不能作为实机安全距离证明。</p>
+<h2 id="_4">运行练习</h2>
+<pre><code class="language-bash">cd /home/ceihao/self_learning
+python3 examples/l02/labs.py 22
+./build/precision_demo
+</code></pre>
+<p>C++ 示例先按第 04 章编译。Python 计算前视点曲率和延迟停车距离；C++ 直接调用固定生产判据。二者都不向机器人发送速度。</p>
+<!-- generated-lab-start -->
+<h3 id="_5">本章练习核心代码与实际输出</h3>
+<p><a href="../../examples/l02/labs.py">完整教学脚本</a> · <a href="../../validation/L02/lab_22.json">本章完整输出</a></p>
+<p>代码只使用 Python 标准库；合成输入与历史记录在输出 kind 中区分。公共 ROOT、read、wrap、connected 等辅助函数在完整脚本中定义。</p>
+<pre><code class="language-python">def lab22():
+    &quot;&quot;&quot;Pure pursuit and actuator speed-curvature limits.&quot;&quot;&quot;
+    x=1.;y=.2;v=.5;curvature=2*y/(x*x+y*y);omega=v*curvature
+    stop_distance=v*v/(2*.4)+v*.2
+    assert math.isfinite(omega) and stop_distance&gt;.3
+    return dict(kind='synthetic control calculation',curvature_1_per_m=curvature,
+                angular_velocity_rad_s=omega,stop_distance_with_delay_m=stop_distance)
+</code></pre>
+<pre><code class="language-text">{
+  &quot;chapter&quot;: &quot;22&quot;,
+  &quot;passed&quot;: true,
+  &quot;result&quot;: {
+    &quot;kind&quot;: &quot;synthetic control calculation&quot;,
+    &quot;curvature_1_per_m&quot;: 0.38461538461538464,
+    &quot;angular_velocity_rad_s&quot;: 0.19230769230769232,
+    &quot;stop_distance_with_delay_m&quot;: 0.4125
+  }
+}
+</code></pre>
+<p>本章例子可以在 Windows 使用 <code>py -3</code> 或在 Linux 使用 <code>python3</code> 重跑。它验证局部概念或读取历史证据，不对机器人全任务提供新通过结论。</p>
+<!-- generated-lab-end -->
+
+<h2 id="_6">排错与自测</h2>
+<p>轨迹切角：查前视距离、路径曲率和速度；低速抖动：查定位修正、短路径、速度量化与时间对齐；车不响应角速度：查阿克曼 v≈0、曲率限制与转向关节；不停绕圈：先证明末端姿态可达；CPU 高：分开测控制器计算与传感器处理。</p>
+<p>问：把控制器从 RPP 换成 MPPI 是否必然解决割草大圈？答：不会改变轴距、足迹和通行边界。先有合法路径，再比较跟踪性能与开销。</p>
+<p>练习：保持前视点方向不变，把距离放大两倍，计算曲率变化；再把速度加倍，看角速度与停车距离怎样变化。说明提速不能只改一个 max_speed。</p></main><footer>L02 内容阅读版 · 固定基线 9aff8337 · 原机器人 R10–R12 PARTIAL · L03 完整站点尚待执行</footer></html>

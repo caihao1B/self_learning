@@ -1,0 +1,70 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>icp_gate.py</title><style>body{margin:25px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;padding:20px;border:1px solid #d6e2e3;font:13px/1.8 Consolas,monospace;overflow:auto}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff0b0}a{color:#086b71}p{overflow-wrap:anywhere}</style><a href="../../L02/index.html">← L02 教材目录</a><h1>icp_gate.py</h1><p>optimization_v2/ws/src/localization_guard/scripts/icp_gate.py</p><p>固定基线 9aff8337b7794f704c5556a973a5220e73f17808 · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/localization_guard/scripts/icp_gate.py">GitHub 原文件</a></p><p>原始文件按字节保留；显示换行不改变行号。快照用于阅读，不直接作为运行入口。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Pair actual RTAB-Map registration quality with pure-lidar odometry.&quot;&quot;&quot;</span>
+<span class="line" id="L2"><a href="#L2">   2</a> import argparse,copy,signal</span>
+<span class="line" id="L3"><a href="#L3">   3</a> from collections import OrderedDict</span>
+<span class="line" id="L4"><a href="#L4">   4</a> import rclpy</span>
+<span class="line" id="L5"><a href="#L5">   5</a> from rclpy.qos import qos_profile_sensor_data</span>
+<span class="line" id="L6"><a href="#L6">   6</a> from nav_msgs.msg import Odometry</span>
+<span class="line" id="L7"><a href="#L7">   7</a> from geometry_msgs.msg import TwistWithCovarianceStamped</span>
+<span class="line" id="L8"><a href="#L8">   8</a> from rtabmap_msgs.msg import OdomInfo</span>
+<span class="line" id="L9"><a href="#L9">   9</a> from std_msgs.msg import String</span>
+<span class="line" id="L10"><a href="#L10">  10</a> from rosgraph_msgs.msg import Clock</span>
+<span class="line" id="L11"><a href="#L11">  11</a> from support import *</span>
+<span class="line" id="L12"><a href="#L12">  12</a> def main():</span>
+<span class="line" id="L13"><a href="#L13">  13</a>     p=argparse.ArgumentParser();p.add_argument(&#x27;--out&#x27;,type=Path,required=True);a=p.parse_args();a.out.mkdir(parents=True,exist_ok=True);f=(a.out/&#x27;quality.jsonl&#x27;).open(&#x27;w&#x27;);rclpy.init();n=rclpy.create_node(&#x27;s05_icp_gate&#x27;);cfg=policy()[&#x27;icp&#x27;];pub=n.create_publisher(Odometry,&#x27;/s05/inputs/icp&#x27;,10);qp=n.create_publisher(String,&#x27;/s05/icp/quality&#x27;,10);pending=OrderedDict();infos=OrderedDict();geometry={};last=[-1.,None]</span>
+<span class="line" id="L14"><a href="#L14">  14</a>     history=[];increments=n.create_publisher(TwistWithCovarianceStamped,&#x27;/s05/inputs/icp_increment&#x27;,10)</span>
+<span class="line" id="L15"><a href="#L15">  15</a>     now=[0.]</span>
+<span class="line" id="L16"><a href="#L16">  16</a>     def clock(m):</span>
+<span class="line" id="L17"><a href="#L17">  17</a>         t=m.clock.sec+m.clock.nanosec*1e-9</span>
+<span class="line" id="L18"><a href="#L18">  18</a>         if t&lt;now[0]:pending.clear();infos.clear();geometry.clear();history.clear();last[:]=[-1.,None]</span>
+<span class="line" id="L19"><a href="#L19">  19</a>         now[0]=t</span>
+<span class="line" id="L20"><a href="#L20">  20</a>     n.create_subscription(Clock,&#x27;/clock&#x27;,clock,qos_profile_sensor_data)</span>
+<span class="line" id="L21"><a href="#L21">  21</a>     def geom(m):</span>
+<span class="line" id="L22"><a href="#L22">  22</a>         d=json.loads(m.data)</span>
+<span class="line" id="L23"><a href="#L23">  23</a>         if d[&#x27;t&#x27;]&lt;=now[0]+.25:geometry.update(d)</span>
+<span class="line" id="L24"><a href="#L24">  24</a>     def emit(t,o,i):</span>
+<span class="line" id="L25"><a href="#L25">  25</a>         if t&gt;now[0]+.25:return</span>
+<span class="line" id="L26"><a href="#L26">  26</a>         p,q=pose(o);cov=np.array(o.pose.covariance).reshape(6,6);dt=t-last[0];step=0.;angle=0.</span>
+<span class="line" id="L27"><a href="#L27">  27</a>         quaternion_valid=np.isfinite(q).all() and np.linalg.norm(q)&gt;.5</span>
+<span class="line" id="L28"><a href="#L28">  28</a>         if last[1] is not None and quaternion_valid:</span>
+<span class="line" id="L29"><a href="#L29">  29</a>             prev,pq=last[1];step=float(np.linalg.norm(p-prev));angle=float((Rotation.from_quat(pq).inv()*Rotation.from_quat(q)).magnitude())</span>
+<span class="line" id="L30"><a href="#L30">  30</a>         valid=quaternion_valid and not i.lost and i.icp_inliers_ratio&gt;=cfg[&#x27;min_inlier_ratio&#x27;] and np.isfinite(cov).all() and 0&lt;=np.max(np.diag(cov))&lt;100 and geometry.get(&#x27;valid&#x27;,False) and abs(t-geometry.get(&#x27;t&#x27;,-100))&lt;.4</span>
+<span class="line" id="L31"><a href="#L31">  31</a>         if last[0]&gt;=0 and (dt&lt;=0 or step&gt;cfg[&#x27;max_translation_step_m&#x27;]*max(1,dt/.1) or angle&gt;cfg[&#x27;max_rotation_step_rad&#x27;]*max(1,dt/.1)):valid=False</span>
+<span class="line" id="L32"><a href="#L32">  32</a>         out=copy.deepcopy(o)</span>
+<span class="line" id="L33"><a href="#L33">  33</a>         for k in range(6):out.pose.covariance[k*7]=max(cfg[&#x27;pose_variance_floor&#x27;] if k&lt;3 else cfg[&#x27;angular_variance_floor&#x27;],float(cov[k,k]))</span>
+<span class="line" id="L34"><a href="#L34">  34</a>         # The pose below is diagnostic; only independently derived window increments enter the filter.</span>
+<span class="line" id="L35"><a href="#L35">  35</a>         consistency_v=None;increment_valid=False</span>
+<span class="line" id="L36"><a href="#L36">  36</a>         if valid:</span>
+<span class="line" id="L37"><a href="#L37">  37</a>             if history and t-history[-1][0]&gt;.6:history.clear()</span>
+<span class="line" id="L38"><a href="#L38">  38</a>             history.append((t,p.copy(),q.copy(),np.diag(cov).copy()))</span>
+<span class="line" id="L39"><a href="#L39">  39</a>             while len(history)&gt;2 and history[1][0]&lt;t-.8:history.pop(0)</span>
+<span class="line" id="L40"><a href="#L40">  40</a>             if t-history[0][0]&gt;=.5:</span>
+<span class="line" id="L41"><a href="#L41">  41</a>                 pt,pp,pq,pc=history[0];span=t-pt</span>
+<span class="line" id="L42"><a href="#L42">  42</a>                 velocity=Rotation.from_quat(q).inv().apply(p-pp)/span</span>
+<span class="line" id="L43"><a href="#L43">  43</a>                 angular=(Rotation.from_quat(pq).inv()*Rotation.from_quat(q)).as_rotvec()/span</span>
+<span class="line" id="L44"><a href="#L44">  44</a>                 variance=np.maximum((pc+np.diag(cov))/span**2,[.0025]*3+[.0004]*3)</span>
+<span class="line" id="L45"><a href="#L45">  45</a>                 inc=TwistWithCovarianceStamped();inc.header=copy.deepcopy(o.header);inc.header.frame_id=&#x27;base_link&#x27;</span>
+<span class="line" id="L46"><a href="#L46">  46</a>                 inc.twist.twist.linear.x,inc.twist.twist.linear.y,inc.twist.twist.linear.z=velocity.tolist()</span>
+<span class="line" id="L47"><a href="#L47">  47</a>                 inc.twist.twist.angular.x,inc.twist.twist.angular.y,inc.twist.twist.angular.z=angular.tolist()</span>
+<span class="line" id="L48"><a href="#L48">  48</a>                 for k in range(6):inc.twist.covariance[7*k]=float(variance[k])</span>
+<span class="line" id="L49"><a href="#L49">  49</a>                 # Conservative bounded-window increment, not absolute pose feedback.</span>
+<span class="line" id="L50"><a href="#L50">  50</a>                 if np.linalg.norm(velocity)&lt;1.2 and np.linalg.norm(angular)&lt;.8:</span>
+<span class="line" id="L51"><a href="#L51">  51</a>                     increments.publish(inc);consistency_v=float(velocity[0]);increment_valid=True</span>
+<span class="line" id="L52"><a href="#L52">  52</a>         row=dict(t=t,valid=bool(valid and increment_valid),pose_valid=bool(valid),increment_valid=increment_valid,lost=i.lost,inlier_ratio=i.icp_inliers_ratio,complexity=i.icp_structural_complexity,distribution=i.icp_structural_distribution,correspondences=i.icp_correspondences,processing_s=i.time_estimation,position=p.tolist(),quaternion=q.tolist(),pose_cov=list(out.pose.covariance),v=consistency_v,w=o.twist.twist.angular.z,raw_twist_v=o.twist.twist.linear.x,step_m=step,step_rad=angle,geometry=geometry.copy())</span>
+<span class="line" id="L53"><a href="#L53">  53</a>         msg=String();msg.data=json.dumps(row);qp.publish(msg);f.write(json.dumps(row)+&#x27;\n&#x27;)</span>
+<span class="line" id="L54"><a href="#L54">  54</a>         if valid:pub.publish(out);last[:]=[t,(p,q)]</span>
+<span class="line" id="L55"><a href="#L55">  55</a>     def drain():</span>
+<span class="line" id="L56"><a href="#L56">  56</a>         for key in list(pending):</span>
+<span class="line" id="L57"><a href="#L57">  57</a>             if key in infos:emit(key,pending.pop(key),infos.pop(key))</span>
+<span class="line" id="L58"><a href="#L58">  58</a>         while len(pending)&gt;8:pending.popitem(last=False)</span>
+<span class="line" id="L59"><a href="#L59">  59</a>         while len(infos)&gt;8:infos.popitem(last=False)</span>
+<span class="line" id="L60"><a href="#L60">  60</a>     def odom(m):pending[round(stamp(m),6)]=m;drain()</span>
+<span class="line" id="L61"><a href="#L61">  61</a>     def info(m):infos[round(stamp(m),6)]=m;drain()</span>
+<span class="line" id="L62"><a href="#L62">  62</a>     def epoch(m):pending.clear();infos.clear();geometry.clear();history.clear();last[:]=[-1.,None]</span>
+<span class="line" id="L63"><a href="#L63">  63</a>     n.create_subscription(String,&#x27;/s05/cloud_quality&#x27;,geom,10);n.create_subscription(Odometry,&#x27;/s05/icp/raw&#x27;,odom,qos_profile_sensor_data);n.create_subscription(OdomInfo,&#x27;/s05/icp/info&#x27;,info,qos_profile_sensor_data);n.create_subscription(String,&#x27;/s05/epoch&#x27;,epoch,10)</span>
+<span class="line" id="L64"><a href="#L64">  64</a>     stop=[False]</span>
+<span class="line" id="L65"><a href="#L65">  65</a>     def end(s,f):stop[0]=True</span>
+<span class="line" id="L66"><a href="#L66">  66</a>     signal.signal(signal.SIGINT,end);signal.signal(signal.SIGTERM,end);(a.out/&#x27;ready&#x27;).write_text(&#x27;pure lidar registration gate&#x27;)</span>
+<span class="line" id="L67"><a href="#L67">  67</a>     try:</span>
+<span class="line" id="L68"><a href="#L68">  68</a>         while not stop[0]:rclpy.spin_once(n,timeout_sec=.02)</span>
+<span class="line" id="L69"><a href="#L69">  69</a>     finally:f.close();n.destroy_node();rclpy.try_shutdown()</span>
+<span class="line" id="L70"><a href="#L70">  70</a> if __name__==&#x27;__main__&#x27;:main()</span></code></pre></html>

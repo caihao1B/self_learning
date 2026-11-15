@@ -1,0 +1,144 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>planning_r03.py</title><style>body{margin:25px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;padding:20px;border:1px solid #d6e2e3;font:13px/1.8 Consolas,monospace;overflow:auto}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff0b0}a{color:#086b71}p{overflow-wrap:anywhere}</style><a href="../../L02/index.html">← L02 教材目录</a><h1>planning_r03.py</h1><p>optimization_v2/ws/src/task_platform/scripts/planning_r03.py</p><p>固定基线 9aff8337b7794f704c5556a973a5220e73f17808 · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/planning_r03.py">GitHub 原文件</a></p><p>原始文件按字节保留；显示换行不改变行号。快照用于阅读，不直接作为运行入口。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Versioned task scope, connected METIS clusters and footprint-checked routes.&quot;&quot;&quot;</span>
+<span class="line" id="L2"><a href="#L2">   2</a> from common import *</span>
+<span class="line" id="L3"><a href="#L3">   3</a> import math,heapq,time,importlib.util,yaml</span>
+<span class="line" id="L4"><a href="#L4">   4</a> import reeds_r03</span>
+<span class="line" id="L5"><a href="#L5">   5</a> import numpy as np</span>
+<span class="line" id="L6"><a href="#L6">   6</a> import shapely</span>
+<span class="line" id="L7"><a href="#L7">   7</a> from shapely.geometry import shape,mapping,Polygon,Point,LineString</span>
+<span class="line" id="L8"><a href="#L8">   8</a> from shapely import union_all,set_precision</span>
+<span class="line" id="L9"><a href="#L9">   9</a> from scipy.interpolate import CubicSpline</span>
+<span class="line" id="L10"><a href="#L10">  10</a> sys.path.insert(0,str(BASE/&#x27;ws/src/coverage_partition/scripts&#x27;))</span>
+<span class="line" id="L11"><a href="#L11">  11</a> from geometry11 import build_graph,polygons</span>
+<span class="line" id="L12"><a href="#L12">  12</a> from partition11 import solve</span>
+<span class="line" id="L13"><a href="#L13">  13</a> sys.path.insert(0,str(BASE/&#x27;ws/src/coverage_planner/scripts&#x27;))</span>
+<span class="line" id="L14"><a href="#L14">  14</a> from common12 import backend</span>
+<span class="line" id="L15"><a href="#L15">  15</a> from spray12 import nearest_2opt</span>
+<span class="line" id="L16"><a href="#L16">  16</a> spec=importlib.util.spec_from_file_location(&#x27;r03_dubins&#x27;,ROOT/&#x27;offline_coverage/motion.py&#x27;);dubins=importlib.util.module_from_spec(spec);spec.loader.exec_module(dubins)</span>
+<span class="line" id="L17"><a href="#L17">  17</a> DS=.10;MARGIN=.10</span>
+<span class="line" id="L18"><a href="#L18">  18</a> </span>
+<span class="line" id="L19"><a href="#L19">  19</a> def curve_line(a,b):</span>
+<span class="line" id="L20"><a href="#L20">  20</a>  a=np.array(a);b=np.array(b);d=b-a;theta=math.atan2(d[1],d[0]);xy=np.linspace(a,b,max(2,math.ceil(np.linalg.norm(d)/DS)+1));return np.c_[xy,np.full(len(xy),theta)].tolist()</span>
+<span class="line" id="L21"><a href="#L21">  21</a> </span>
+<span class="line" id="L22"><a href="#L22">  22</a> def footprint_ok(poses,c,allowed):</span>
+<span class="line" id="L23"><a href="#L23">  23</a>  p=np.asarray(poses);local=np.asarray(c[&#x27;footprint&#x27;]);co=np.cos(p[:,2]);si=np.sin(p[:,2]);x=p[:,0,None]+co[:,None]*local[:,0]-si[:,None]*local[:,1];y=p[:,1,None]+si[:,None]*local[:,0]+co[:,None]*local[:,1]</span>
+<span class="line" id="L24"><a href="#L24">  24</a>  # Sampled swept envelope with numerical margin larger than the half-step.</span>
+<span class="line" id="L25"><a href="#L25">  25</a>  hulls=shapely.polygons(np.stack([x,y],axis=2));return bool(np.all(shapely.covers(allowed.buffer(-MARGIN),hulls)))</span>
+<span class="line" id="L26"><a href="#L26">  26</a> </span>
+<span class="line" id="L27"><a href="#L27">  27</a> def segment(poses,kind,c,tool=False,**extras):</span>
+<span class="line" id="L28"><a href="#L28">  28</a>  a=np.asarray(poses);ds=np.linalg.norm(np.diff(a[:,:2],axis=0),axis=1);dy=np.abs(np.arctan2(np.sin(np.diff(a[:,2])),np.cos(np.diff(a[:,2]))));length=float(ds.sum());speed=(.25 if extras.get(&#x27;direction&#x27;,1)&lt;0 else .5) if c[&#x27;task_id&#x27;]==&#x27;mowing&#x27; else .4</span>
+<span class="line" id="L29"><a href="#L29">  29</a>  return dict(kind=kind,poses=poses,tool_on=tool,length_m=length,nominal_seconds=length/speed+float(dy.sum())/.4+2.,**extras)</span>
+<span class="line" id="L30"><a href="#L30">  30</a> </span>
+<span class="line" id="L31"><a href="#L31">  31</a> def visibility(nodes,safe):</span>
+<span class="line" id="L32"><a href="#L32">  32</a>  corners=[]</span>
+<span class="line" id="L33"><a href="#L33">  33</a>  for poly in polygons(safe):</span>
+<span class="line" id="L34"><a href="#L34">  34</a>   for ring in [poly.exterior,*poly.interiors]:corners.extend(list(ring.coords)[:-1])</span>
+<span class="line" id="L35"><a href="#L35">  35</a>  xy=np.asarray([*nodes,*corners]);adj=[[] for _ in xy];allowed=safe.buffer(1e-8)</span>
+<span class="line" id="L36"><a href="#L36">  36</a>  for i in range(len(xy)):</span>
+<span class="line" id="L37"><a href="#L37">  37</a>   js=np.arange(i+1,len(xy))</span>
+<span class="line" id="L38"><a href="#L38">  38</a>   if not len(js):continue</span>
+<span class="line" id="L39"><a href="#L39">  39</a>   lines=shapely.linestrings(np.stack([np.tile(xy[i],(len(js),1)),xy[js]],axis=1));mask=shapely.covers(allowed,lines)</span>
+<span class="line" id="L40"><a href="#L40">  40</a>   for j in js[mask]:d=float(np.linalg.norm(xy[i]-xy[j]));adj[i].append((int(j),d));adj[j].append((i,d))</span>
+<span class="line" id="L41"><a href="#L41">  41</a>  costs=[];paths={}</span>
+<span class="line" id="L42"><a href="#L42">  42</a>  for i in range(len(nodes)):</span>
+<span class="line" id="L43"><a href="#L43">  43</a>   dist=[math.inf]*len(xy);dist[i]=0;prev={};q=[(0.,i)]</span>
+<span class="line" id="L44"><a href="#L44">  44</a>   while q:</span>
+<span class="line" id="L45"><a href="#L45">  45</a>    d,u=heapq.heappop(q)</span>
+<span class="line" id="L46"><a href="#L46">  46</a>    if d&gt;dist[u]+1e-10:continue</span>
+<span class="line" id="L47"><a href="#L47">  47</a>    for v,w in adj[u]:</span>
+<span class="line" id="L48"><a href="#L48">  48</a>     if d+w&lt;dist[v]-1e-10:dist[v]=d+w;prev[v]=u;heapq.heappush(q,(d+w,v))</span>
+<span class="line" id="L49"><a href="#L49">  49</a>   if not all(math.isfinite(x) for x in dist[:len(nodes)]):raise ValueError(&#x27;DISCONNECTED_SERVICE_PATH&#x27;)</span>
+<span class="line" id="L50"><a href="#L50">  50</a>   costs.append(dist[:len(nodes)])</span>
+<span class="line" id="L51"><a href="#L51">  51</a>   for j in range(len(nodes)):</span>
+<span class="line" id="L52"><a href="#L52">  52</a>    ids=[j]</span>
+<span class="line" id="L53"><a href="#L53">  53</a>    while ids[-1]!=i:ids.append(prev[ids[-1]])</span>
+<span class="line" id="L54"><a href="#L54">  54</a>    paths[i,j]=xy[list(reversed(ids))].tolist()</span>
+<span class="line" id="L55"><a href="#L55">  55</a>  return np.asarray(costs),paths</span>
+<span class="line" id="L56"><a href="#L56">  56</a> </span>
+<span class="line" id="L57"><a href="#L57">  57</a> def spray_plan(meta,g,labels,c,out):</span>
+<span class="line" id="L58"><a href="#L58">  58</a>  safe=meta[&#x27;motion&#x27;].buffer(-max(math.hypot(*p) for p in c[&#x27;footprint&#x27;])-.15,join_style=2);plans=[]</span>
+<span class="line" id="L59"><a href="#L59">  59</a>  for cluster in range(3):</span>
+<span class="line" id="L60"><a href="#L60">  60</a>   points=[p for p in g[&#x27;points&#x27;] if int(labels[p[&#x27;unit&#x27;]])==cluster];nodes=[p[&#x27;xy&#x27;] for p in points]</span>
+<span class="line" id="L61"><a href="#L61">  61</a>   if len(nodes)&lt;2:raise ValueError(&#x27;EMPTY_SERVICE_CLUSTER&#x27;)</span>
+<span class="line" id="L62"><a href="#L62">  62</a>   if not all(safe.covers(Point(p)) for p in nodes):raise ValueError(&#x27;SERVICE_CENTER_NOT_REACHABLE&#x27;)</span>
+<span class="line" id="L63"><a href="#L63">  63</a>   cost,paths=visibility(nodes,safe);baseline,bval=nearest_2opt(cost);ort=backend(dict(mode=&#x27;tsp&#x27;,cost=np.rint(cost*1000).astype(int).tolist()),out,f&#x27;tsp_{cluster}&#x27;)</span>
+<span class="line" id="L64"><a href="#L64">  64</a>   orders=[(&#x27;nn_2opt&#x27;,baseline),(&#x27;ortools&#x27;,ort[&#x27;order&#x27;])];method,order=min(orders,key=lambda x:sum(cost[x[1][i],x[1][(i+1)%len(x[1])]] for i in range(len(x[1]))))</span>
+<span class="line" id="L65"><a href="#L65">  65</a>   segs=[];current=[*nodes[order[0]],0.]</span>
+<span class="line" id="L66"><a href="#L66">  66</a>   for index,point_id in enumerate(order):</span>
+<span class="line" id="L67"><a href="#L67">  67</a>    p=points[point_id];segs.append(segment([list(current)],&#x27;POINT_SERVICE&#x27;,c,True,point_id=p[&#x27;id&#x27;],target=p[&#x27;xy&#x27;],action_seconds=3.));dest=order[(index+1)%len(order)]</span>
+<span class="line" id="L68"><a href="#L68">  68</a>    for a,b in zip(paths[point_id,dest],paths[point_id,dest][1:]):</span>
+<span class="line" id="L69"><a href="#L69">  69</a>     if math.dist(a,b)&lt;1e-8:continue</span>
+<span class="line" id="L70"><a href="#L70">  70</a>     line=curve_line(a,b);target=line[0][2];dy=math.atan2(math.sin(target-current[2]),math.cos(target-current[2]));n=max(2,math.ceil(abs(dy)/.08)+1)</span>
+<span class="line" id="L71"><a href="#L71">  71</a>     turn=[[current[0],current[1],current[2]+z*dy] for z in np.linspace(0,1,n)]</span>
+<span class="line" id="L72"><a href="#L72">  72</a>     if not footprint_ok(turn,c,meta[&#x27;motion&#x27;]) or not footprint_ok(line,c,meta[&#x27;motion&#x27;]):raise ValueError(&#x27;SPRAY_SWEEP_INVALID&#x27;)</span>
+<span class="line" id="L73"><a href="#L73">  73</a>     segs.extend([segment(turn,&#x27;ROTATE&#x27;,c),segment(line,&#x27;TRANSIT&#x27;,c)]);current=line[-1]</span>
+<span class="line" id="L74"><a href="#L74">  74</a>   plans.append(dict(cluster=f&#x27;A{cluster+1}&#x27;,task=&#x27;spray&#x27;,method=method,segments=segs,start=segs[0][&#x27;poses&#x27;][0],end=current,service_points=points,point_count=len(points),planned_point_count=len(order),unplanned_point_ids=[]))</span>
+<span class="line" id="L75"><a href="#L75">  75</a>  return plans</span>
+<span class="line" id="L76"><a href="#L76">  76</a> </span>
+<span class="line" id="L77"><a href="#L77">  77</a> def mowing_plan(meta,g,labels,c,out):</span>
+<span class="line" id="L78"><a href="#L78">  78</a>  domain=meta[&#x27;domain&#x27;];raw=backend(dict(mode=&#x27;swaths&#x27;,work=mapping(domain),motion=mapping(meta[&#x27;motion&#x27;]),spacing=1.40,headland=0),out,&#x27;whole_zone_swaths&#x27;);regions=[union_all([p for i,p in enumerate(g[&#x27;cells&#x27;]) if labels[i]==k]) for k in range(3)];radius=c[&#x27;physical_contract&#x27;][&#x27;nominal_bicycle_radius_m&#x27;]+.10;plans=[];coverage=[]</span>
+<span class="line" id="L79"><a href="#L79">  79</a>  def lines(geom):</span>
+<span class="line" id="L80"><a href="#L80">  80</a>   if geom.is_empty:return []</span>
+<span class="line" id="L81"><a href="#L81">  81</a>   if geom.geom_type==&#x27;LineString&#x27;:return [geom]</span>
+<span class="line" id="L82"><a href="#L82">  82</a>   return [l for part in getattr(geom,&#x27;geoms&#x27;,[]) for l in lines(part)]</span>
+<span class="line" id="L83"><a href="#L83">  83</a>  for cluster,region in enumerate(regions):</span>
+<span class="line" id="L84"><a href="#L84">  84</a>   work=[]</span>
+<span class="line" id="L85"><a href="#L85">  85</a>   for row in raw[&#x27;swaths&#x27;]:</span>
+<span class="line" id="L86"><a href="#L86">  86</a>    for line in lines(LineString([row[&#x27;a&#x27;],row[&#x27;b&#x27;]]).intersection(region)):</span>
+<span class="line" id="L87"><a href="#L87">  87</a>     if line.length&lt;.5:continue</span>
+<span class="line" id="L88"><a href="#L88">  88</a>     a=np.asarray(line.coords[0]);b=np.asarray(line.coords[-1]);options=[]</span>
+<span class="line" id="L89"><a href="#L89">  89</a>     for first,last in [(a,b),(b,a)]:</span>
+<span class="line" id="L90"><a href="#L90">  90</a>      u=(last-first)/np.linalg.norm(last-first);offset=c[&#x27;tool&#x27;][&#x27;mount_xyz&#x27;][0]*u;poses=curve_line(first-offset,last-offset)</span>
+<span class="line" id="L91"><a href="#L91">  91</a>      if footprint_ok(poses,c,meta[&#x27;motion&#x27;]):options.append(segment(poses,&#x27;COVERAGE&#x27;,c,True,row_id=row[&#x27;id&#x27;]))</span>
+<span class="line" id="L92"><a href="#L92">  92</a>     if options:work.append(dict(id=len(work),options=options))</span>
+<span class="line" id="L93"><a href="#L93">  93</a>   if not work:raise ValueError(&#x27;NO_MOWING_SWATHS&#x27;)</span>
+<span class="line" id="L94"><a href="#L94">  94</a>   # The same complete task zone is partitioned; cluster boundaries are accounting only.</span>
+<span class="line" id="L95"><a href="#L95">  95</a>   current=min(work,key=lambda w:tuple(w[&#x27;options&#x27;][0][&#x27;poses&#x27;][0]))[&#x27;options&#x27;][0][&#x27;poses&#x27;][0];start=list(current);segments=[];remaining={w[&#x27;id&#x27;]:w for w in work};unconnected=[]</span>
+<span class="line" id="L96"><a href="#L96">  96</a>   while remaining:</span>
+<span class="line" id="L97"><a href="#L97">  97</a>    choices=sorted([(math.dist(current[:2],o[&#x27;poses&#x27;][0][:2])+radius*abs(dubins.wrap(current[2]-o[&#x27;poses&#x27;][0][2])),wid,o) for wid,item in remaining.items() for o in item[&#x27;options&#x27;]],key=lambda x:(x[0],x[1]))</span>
+<span class="line" id="L98"><a href="#L98">  98</a>    selected=None;valid=[];options=choices[:32]</span>
+<span class="line" id="L99"><a href="#L99">  99</a>    rs=reeds_r03.query(current,[o[&#x27;poses&#x27;][0] for _,wid,o in options],radius,out/f&#x27;rs_{cluster}&#x27;)</span>
+<span class="line" id="L100"><a href="#L100"> 100</a>    for (_,wid,opt),proposal in zip(options,rs):</span>
+<span class="line" id="L101"><a href="#L101"> 101</a>     goal=opt[&#x27;poses&#x27;][0];chunks=reeds_r03.sample(current,proposal[&#x27;primitives&#x27;],DS)</span>
+<span class="line" id="L102"><a href="#L102"> 102</a>     if chunks and (math.dist(chunks[-1][&#x27;poses&#x27;][-1][:2],goal[:2])&gt;1e-6 or abs(dubins.wrap(chunks[-1][&#x27;poses&#x27;][-1][2]-goal[2]))&gt;1e-6):raise ValueError(&#x27;RS_ENDPOINT_ERROR&#x27;)</span>
+<span class="line" id="L103"><a href="#L103"> 103</a>     if all(footprint_ok(ch[&#x27;poses&#x27;],c,meta[&#x27;motion&#x27;]) for ch in chunks):</span>
+<span class="line" id="L104"><a href="#L104"> 104</a>      score=sum(ch[&#x27;length_m&#x27;]/(.25 if ch[&#x27;direction&#x27;]&lt;0 else .5)+4 for ch in chunks)</span>
+<span class="line" id="L105"><a href="#L105"> 105</a>      valid.append((score,wid,opt,chunks))</span>
+<span class="line" id="L106"><a href="#L106"> 106</a>    if valid:</span>
+<span class="line" id="L107"><a href="#L107"> 107</a>     _,wid,opt,chunks=min(valid,key=lambda x:(x[0],x[1]));selected=(wid,opt,chunks)</span>
+<span class="line" id="L108"><a href="#L108"> 108</a>    else:</span>
+<span class="line" id="L109"><a href="#L109"> 109</a>     for _,wid,opt in options:</span>
+<span class="line" id="L110"><a href="#L110"> 110</a>      turn=next((p for p in dubins.dubins(current,opt[&#x27;poses&#x27;][0],radius,DS) if footprint_ok(p[&#x27;poses&#x27;],c,meta[&#x27;motion&#x27;])),None)</span>
+<span class="line" id="L111"><a href="#L111"> 111</a>      if turn is not None:selected=(wid,opt,[dict(poses=turn[&#x27;poses&#x27;],direction=1)]);break</span>
+<span class="line" id="L112"><a href="#L112"> 112</a>    if selected is None:unconnected=list(remaining);break</span>
+<span class="line" id="L113"><a href="#L113"> 113</a>    wid,opt,chunks=selected</span>
+<span class="line" id="L114"><a href="#L114"> 114</a>    for ch in chunks:</span>
+<span class="line" id="L115"><a href="#L115"> 115</a>     segments.append(segment(ch[&#x27;poses&#x27;],&#x27;TURN_TOOL_OFF&#x27;,c,False,turn_radius_m=radius,direction=ch[&#x27;direction&#x27;],stop_before=True,stop_after=True,stop_at_curvature_change=True))</span>
+<span class="line" id="L116"><a href="#L116"> 116</a>    segments.append(opt);current=opt[&#x27;poses&#x27;][-1];del remaining[wid]</span>
+<span class="line" id="L117"><a href="#L117"> 117</a>   cuts=[]</span>
+<span class="line" id="L118"><a href="#L118"> 118</a>   for s in segments:</span>
+<span class="line" id="L119"><a href="#L119"> 119</a>    if s[&#x27;tool_on&#x27;]:</span>
+<span class="line" id="L120"><a href="#L120"> 120</a>     p=np.array(s[&#x27;poses&#x27;]);off=c[&#x27;tool&#x27;][&#x27;mount_xyz&#x27;][0];xy=p[:,:2]+off*np.c_[np.cos(p[:,2]),np.sin(p[:,2])];cuts.append(LineString(xy).buffer(c[&#x27;tool&#x27;][&#x27;effective_width_m&#x27;]/2,cap_style=2))</span>
+<span class="line" id="L121"><a href="#L121"> 121</a>   cut=union_all(cuts).intersection(region);coverage.append(cut)</span>
+<span class="line" id="L122"><a href="#L122"> 122</a>   plans.append(dict(cluster=f&#x27;B{cluster+1}&#x27;,task=&#x27;mowing&#x27;,method=&#x27;Fields2Cover whole-zone swaths + OMPL Reeds-Shepp / Dubins with full-body checks&#x27;,segments=segments,start=start,end=current,all_swaths_connected=not unconnected,unconnected_swath_ids=unconnected,work_area_m2=region.area,planned_cut_m2=cut.area,planned_fraction=cut.area/region.area,planned_residual=mapping(region.difference(cut)),swath_spacing_m=1.4,turn_radius_m=radius,global_swath_angle=raw[&#x27;angle&#x27;]))</span>
+<span class="line" id="L123"><a href="#L123"> 123</a>  return plans,union_all(coverage)</span>
+<span class="line" id="L124"><a href="#L124"> 124</a> </span>
+<span class="line" id="L125"><a href="#L125"> 125</a> def plan_all():</span>
+<span class="line" id="L126"><a href="#L126"> 126</a>  require(&#x27;R02&#x27;);out=edition(&#x27;R03&#x27;);out.mkdir(parents=True,exist_ok=True);sources=read(BASE/&#x27;maps/prior/workspaces.geojson&#x27;)[&#x27;features&#x27;];permanent=union_all([shape(f[&#x27;geometry&#x27;]) for f in read(BASE/&#x27;maps/prior/permanent.geojson&#x27;)[&#x27;features&#x27;]]);results={};partitioned={};excluded={};cfg=yaml.safe_load((BASE/&#x27;config/partition.yaml&#x27;).read_text());cfg.update(cell_size_m=1.5,spray_point_spacing_m=3.,seed=17023,repair_balance_passes=8)</span>
+<span class="line" id="L127"><a href="#L127"> 127</a>  for zone,task,inset,speed in [(&#x27;A&#x27;,&#x27;spray&#x27;,1.0,.4),(&#x27;B&#x27;,&#x27;mowing&#x27;,3.8,.5)]:</span>
+<span class="line" id="L128"><a href="#L128"> 128</a>   full=shape(next(f[&#x27;geometry&#x27;] for f in sources if f[&#x27;properties&#x27;][&#x27;id&#x27;]==zone)).difference(permanent);domain=set_precision(full.buffer(-inset,join_style=2),1e-8)</span>
+<span class="line" id="L129"><a href="#L129"> 129</a>   if domain.geom_type!=&#x27;Polygon&#x27;:raise ValueError(&#x27;TASK_SCOPE_NOT_CONNECTED&#x27;)</span>
+<span class="line" id="L130"><a href="#L130"> 130</a>   meta=dict(zone=zone,variant=&#x27;R03_independent_task&#x27;,domain=domain,workspace=full,motion=full,centre=domain,speed_mps=speed,swath_spacing_m=1.4,service_s=3.,map_id=read(BASE/&#x27;maps/prior/map_metadata.json&#x27;)[&#x27;map_id&#x27;],frame=&#x27;prior_local_enu&#x27;)</span>
+<span class="line" id="L131"><a href="#L131"> 131</a>   g=build_graph(domain,cfg,meta);sol=solve(meta,g,cfg,&#x27;metis&#x27;,17023,out/zone/&#x27;partition&#x27;);labels=np.array(sol[&#x27;labels&#x27;]);c=read(edition(&#x27;R02&#x27;)/&#x27;vehicles&#x27;/f&#x27;{task}.json&#x27;);sol[&#x27;metrics&#x27;][&#x27;optimistic_total_lower_bound_s&#x27;]=(domain.area/(1.4*speed) if zone==&#x27;B&#x27; else len(g[&#x27;points&#x27;])*meta[&#x27;service_s&#x27;]);dump(out/zone/&#x27;partition/partition.json&#x27;,sol);partitioned[zone]=sol;excluded[zone]=dict(original_free_area_m2=full.area,new_task_area_m2=domain.area,reserved_or_excluded_m2=full.difference(domain).area,geometry=mapping(full.difference(domain)),reason=&#x27;explicit boundary buffer&#x27; if zone==&#x27;A&#x27; else &#x27;shared physical headland; not credited as cut work&#x27;)</span>
+<span class="line" id="L132"><a href="#L132"> 132</a>   if task==&#x27;spray&#x27;:plans=spray_plan(meta,g,labels,c,out/zone/&#x27;routes&#x27;)</span>
+<span class="line" id="L133"><a href="#L133"> 133</a>   else:</span>
+<span class="line" id="L134"><a href="#L134"> 134</a>    plans,cut=mowing_plan(meta,g,labels,c,out/zone/&#x27;routes&#x27;);dump(out/zone/&#x27;planned_cut.geojson&#x27;,dict(type=&#x27;Feature&#x27;,geometry=mapping(cut),properties={&#x27;planned_only&#x27;:True}))</span>
+<span class="line" id="L135"><a href="#L135"> 135</a>   for plan in plans:</span>
+<span class="line" id="L136"><a href="#L136"> 136</a>    plan[&#x27;motion_m&#x27;]=sum(s[&#x27;length_m&#x27;] for s in plan[&#x27;segments&#x27;]);plan[&#x27;work_m&#x27;]=sum(s[&#x27;length_m&#x27;] for s in plan[&#x27;segments&#x27;] if s[&#x27;tool_on&#x27;]);plan[&#x27;tool_off_m&#x27;]=plan[&#x27;motion_m&#x27;]-plan[&#x27;work_m&#x27;];plan[&#x27;estimated_seconds&#x27;]=1.25*sum(s[&#x27;nominal_seconds&#x27;]+s.get(&#x27;action_seconds&#x27;,0) for s in plan[&#x27;segments&#x27;])+60</span>
+<span class="line" id="L137"><a href="#L137"> 137</a>    plan[&#x27;budget_s&#x27;]=1800;plan[&#x27;vehicle_hash&#x27;]=c[&#x27;config_hash&#x27;];plan[&#x27;frame&#x27;]=&#x27;prior_local_enu&#x27;;plan[&#x27;execution_allowed&#x27;]=False;plan[&#x27;speed_qualification_pending&#x27;]=&#x27;R04&#x27;;plan[&#x27;localization_qualification_pending&#x27;]=&#x27;R05&#x27;;plan[&#x27;scope&#x27;]=&#x27;independent R03 task; original formal obligations preserved&#x27;;plan[&#x27;version&#x27;]=canonical(plan)</span>
+<span class="line" id="L138"><a href="#L138"> 138</a>   results[task]=plans</span>
+<span class="line" id="L139"><a href="#L139"> 139</a>  # Inspection is one independent curved route, not a compulsory transfer between work jobs.</span>
+<span class="line" id="L140"><a href="#L140"> 140</a>  road=read(BASE/&#x27;maps/prior/connector.geojson&#x27;)[&#x27;features&#x27;];xy=np.asarray(road[1][&#x27;geometry&#x27;][&#x27;coordinates&#x27;]);xy=xy[np.r_[True,np.linalg.norm(np.diff(xy,axis=0),axis=1)&gt;1e-8]];s=np.r_[0,np.cumsum(np.linalg.norm(np.diff(xy,axis=0),axis=1))];spl=CubicSpline(s,xy,axis=0);ss=np.linspace(0,s[-1],math.ceil(s[-1]/DS)+1);d=spl(ss,1);poses=np.c_[spl(ss),np.arctan2(d[:,1],d[:,0])].tolist();c=read(edition(&#x27;R02&#x27;)/&#x27;vehicles/inspection.json&#x27;);allowed=union_all([shape(f[&#x27;geometry&#x27;]) for f in sources]+[shape(road[0][&#x27;geometry&#x27;])]).difference(permanent)</span>
+<span class="line" id="L141"><a href="#L141"> 141</a>  if not footprint_ok(poses,c,allowed):raise ValueError(&#x27;INSPECTION_SWEEP_FAILED&#x27;)</span>
+<span class="line" id="L142"><a href="#L142"> 142</a>  seg=segment(poses,&#x27;INSPECTION&#x27;,c);plan=dict(task=&#x27;inspection&#x27;,cluster=&#x27;road&#x27;,segments=[seg],start=poses[0],end=poses[-1],motion_m=seg[&#x27;length_m&#x27;],estimated_seconds=seg[&#x27;length_m&#x27;]/.6*1.25+60,budget_s=1800,vehicle_hash=c[&#x27;config_hash&#x27;],frame=&#x27;prior_local_enu&#x27;,execution_allowed=False,work_credit=False);plan[&#x27;version&#x27;]=canonical(plan);results[&#x27;inspection&#x27;]=[plan]</span>
+<span class="line" id="L143"><a href="#L143"> 143</a>  manifest=dict(schema=&#x27;R03-INDEPENDENT-TASKS/1&#x27;,map_source=dict(path=&#x27;optimization_v2/assets/worlds/irregular_farm.sdf&#x27;,sha256=sha(BASE/&#x27;assets/worlds/irregular_farm.sdf&#x27;)),task_plans=results,scope_changes=excluded,partitions={z:dict(verification=v[&#x27;verification&#x27;],metrics=v[&#x27;metrics&#x27;],assignment_sha256=v[&#x27;assignment_sha256&#x27;]) for z,v in partitioned.items()},formal_inputs_unchanged=True,execution_allowed=False,unknown_low_obstacles_used=False,hidden_truth_used=False)</span>
+<span class="line" id="L144"><a href="#L144"> 144</a>  manifest[&#x27;version&#x27;]=canonical(manifest);dump(out/&#x27;mission.json&#x27;,manifest);return manifest</span></code></pre></html>

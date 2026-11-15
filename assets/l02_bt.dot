@@ -1,0 +1,7 @@
+digraph G {
+graph [bgcolor="#f7fafb",pad="0.3",nodesep="0.4",ranksep="0.5",fontname="Noto Sans CJK SC"];
+node [shape=box,style="rounded,filled",fillcolor="#e6f3ef",color="#478276",fontname="Noto Sans CJK SC",fontsize=15,margin=".2,.15"];
+edge [color="#5d8189",fontname="Noto Sans CJK SC",fontsize=12];rankdir=TB;
+e[label="新鲜观测 + 版本 + 任务 + 预算"];safety[label="紧急 / 错版本 / 过期 → STOP"];loc[label="定位不合格 → WAIT"];latch[label="人工锁存 → HUMAN"];obstacle[label="障碍候选资格\nWAIT / FOLLOW / DETOUR / REPLAN / DEFER"];choice[label="动作 + 原因 + 未选候选"];mission[label="任务状态机与 ROS action"];gate[label="独立底盘 / 工具门控"];
+e->safety->loc->latch->obstacle->choice->mission->gate;
+}

@@ -1,0 +1,33 @@
+{
+  "chapter": "07",
+  "passed": true,
+  "result": {
+    "kind": "teaching gate, not production policy",
+    "cases": [
+      {
+        "failed": null,
+        "drive_allowed": true
+      },
+      {
+        "failed": "version",
+        "drive_allowed": false
+      },
+      {
+        "failed": "localization",
+        "drive_allowed": false
+      },
+      {
+        "failed": "perception",
+        "drive_allowed": false
+      },
+      {
+        "failed": "command_fresh",
+        "drive_allowed": false
+      },
+      {
+        "failed": "tool_safe",
+        "drive_allowed": false
+      }
+    ]
+  }
+}

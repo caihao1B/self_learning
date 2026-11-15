@@ -1,0 +1,186 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>第 26 章 环境搭建与资源迁移</title><style>*{box-sizing:border-box}body{margin:0;background:#eff4f5;color:#17343d;font:17px/1.95 "Segoe UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif}header{background:#163c45;color:#e5f3ef;padding:22px max(20px,calc((100vw - 1080px)/2))}header a{color:#bceadf;margin-right:20px}main{max-width:1140px;margin:28px auto;padding:34px 48px;background:white;border:1px solid #dae5e8;border-radius:12px}h1{font-size:32px;line-height:1.5;color:#174b50}h2{margin-top:42px;font-size:24px;color:#256466;border-bottom:1px solid #dce9e8;padding-bottom:9px}h3{font-size:20px;color:#345b62}a{color:#08777a;text-underline-offset:3px}p,li{overflow-wrap:anywhere}pre{background:#112c38;color:#e3f0ed;padding:20px;border-radius:8px;overflow:auto;font:13px/1.8 Consolas,monospace;white-space:pre;overflow-wrap:normal}code{font-family:Consolas,monospace}p code,li code,td code{background:#edf3f4;padding:2px 4px}table{display:block;overflow:auto;border-collapse:collapse;font-size:15px;margin:22px 0}th,td{border:1px solid #cedfe1;padding:10px;min-width:100px;vertical-align:top}th{background:#e6f2ef}img{max-width:100%;height:auto;margin:22px auto;display:block}blockquote{border-left:4px solid #3c9083;padding:8px 20px;background:#f0f7f4;margin:20px 0}.toc{background:#f3f8f7;padding:12px 25px;font-size:14px}footer{max-width:1100px;margin:24px auto;padding:20px;color:#47666c}button{background:#e7f4ed;color:#245448;border:0;padding:7px 12px;border-radius:5px;cursor:pointer}@media(max-width:700px){body{font-size:16px}main{padding:22px 18px;margin:12px;border-radius:8px}h1{font-size:26px}h2{font-size:22px}header{padding:16px}pre{font-size:12px}}@media print{header,footer,button,.toc{display:none}main{border:0;max-width:none;margin:0;padding:0}pre{background:#eee;color:black;white-space:pre-wrap;overflow-wrap:anywhere}a{color:black}h2{break-after:avoid}img{max-height:230mm}}</style><header><a href="../../index.html">学习首页</a><a href="../index.html">三十章目录</a><a href="25_ledger.html">← 上一章</a><a href="27_operations.html">下一章 →</a><button onclick="window.print()">打印本章</button></header><main><details class="toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#26">第 26 章 环境搭建与资源迁移</a><ul>
+<li><a href="#_1">当前学习基线的环境</a></li>
+<li><a href="#_2">第一级 只读教材</a></li>
+<li><a href="#linux">第二级 Linux 教学工具</a></li>
+<li><a href="#ros">第三级 新机器 ROS 基础环境</a></li>
+<li><a href="#_3">第四级 机器人依赖与构建</a></li>
+<li><a href="#_4">固定生产代码逐段阅读</a><ul>
+<li><a href="#cmakeliststxt-1-18">CMakeLists.txt 第 1 至 18 行</a></li>
+<li><a href="#envsh-1-18">env.sh 第 1 至 18 行</a></li>
+</ul>
+</li>
+<li><a href="#python">Python 科学计算环境</a></li>
+<li><a href="#_5">第五级 地图 参考云与本地资产</a></li>
+<li><a href="#_6">教学验证与故障</a><ul>
+<li><a href="#_7">本章练习核心代码与实际输出</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</details><h1 id="26">第 26 章 环境搭建与资源迁移</h1>
+<p>阅读教材、运行教学例子、启动机器人是三个不同的环境层次。Windows 浏览器可以离线读全部正文与代码；Python 标准库可以跑三十个离线练习；真实仿真还需要 Ubuntu、ROS、Gazebo、编译产物和本地地图。源码仓库不是完整运行环境镜像。</p>
+<h2 id="_1">当前学习基线的环境</h2>
+<p>作者机记录为 Ubuntu 24.04.5、x86_64、Python 3.12.3、ROS 2 Jazzy、Gazebo Harmonic。主要组件包括 robot_localization 3.8.3、RTAB 组件 0.23.13、BehaviorTree.CPP 4.10.0、Nav2 controller 1.3.13、Fields2Cover 2.1.1、OR-Tools vendor 9.9.1、METIS 5.1.0、nlohmann/json 3.11.3。完整 Debian 修订号保存在基线 manifest。</p>
+<p>一个元包 <code>ros-jazzy-rtabmap-ros</code> 未安装，不代表所有 RTAB 组件缺失：当前 rtabmap、rtabmap-odom、rtabmap-slam 分别存在。检查依赖应读真正使用的组件，而不是只检测一个名字。</p>
+<h2 id="_2">第一级 只读教材</h2>
+<p>在 GitHub 下载 ZIP，完整解压后打开根目录 <code>index.html</code>，再进入 L02 目录。不要只移动一个 HTML 文件，因为图片、代码与证据使用相对路径。没有网络时正文和本地素材可读，外部官方资料和 GitHub 链接需要联网。</p>
+<p>Windows 若安装了 Python 3，可在仓库根目录打开 PowerShell：</p>
+<pre><code class="language-powershell">py -3 --version
+py -3 examples\l02\labs.py all
+</code></pre>
+<p>没有 py 启动器时，用实际安装的 <code>python</code> 命令，先通过 <code>python --version</code> 确认不是别的工具。教材不要求 Windows 安装完整 ROS，也不把 WSL 图形仿真视作已验收路径。</p>
+<h2 id="linux">第二级 Linux 教学工具</h2>
+<p>以下安装命令供用户在自己的 Ubuntu 上执行，本轮教材检查不运行系统安装：</p>
+<pre><code class="language-bash">sudo apt update
+sudo apt install python3 python3-venv build-essential libeigen3-dev nlohmann-json3-dev git ripgrep
+</code></pre>
+<p>apt 管理系统包，update 更新索引而非升级所有软件；install 安装指定包；sudo 仅提升该命令权限，密码只在本机终端输入，不写进脚本或仓库。build-essential 提供常用编译工具，Eigen3 提供第 14 章变换检查需要的矩阵头文件，nlohmann-json3-dev 提供 C++ JSON 头文件。</p>
+<p>只运行 Python 离线练习不需要 pip。编译 C++ 示例见第 04 章。重建教材 HTML 才需要独立虚拟环境和 Markdown 库：</p>
+<pre><code class="language-bash">python3 -m venv .build_venv
+.build_venv/bin/python -m pip install -r requirements-build.txt
+.build_venv/bin/python tools/build_l02.py
+</code></pre>
+<p>这套环境只服务教材构建，与机器人 scene 环境分开。不要用 sudo pip 向系统 Python 混装科学计算包。</p>
+<h2 id="ros">第三级 新机器 ROS 基础环境</h2>
+<p>先执行 <code>cat /etc/os-release</code>、<code>uname -m</code>、<code>locale</code>，确认 Ubuntu 24.04、架构与 UTF-8。Jazzy 官方安装说明明确支持 Noble。官方源码入口为 <a href="https://github.com/ros2/ros2_documentation/blob/jazzy/source/Installation/Ubuntu-Install-Debs.rst">Jazzy 安装说明</a> 和 <a href="https://github.com/ros2/ros2_documentation/blob/jazzy/source/Installation/_Apt-Repositories.rst">软件源配置</a>。软件源配置方式会随维护更新，历史硬编码 key 命令不应永远照搬。</p>
+<p>以下是与该官方流程一致的软件源准备方式；先阅读下载来源，再安装：</p>
+<pre><code class="language-bash">sudo apt install software-properties-common curl
+sudo add-apt-repository universe
+robot_ros_source_version=&quot;$(curl -fsSL https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | python3 -c 'import json,sys; print(json.load(sys.stdin)[&quot;tag_name&quot;])')&quot;
+robot_ubuntu_codename=&quot;$(. /etc/os-release; printf '%s' &quot;$VERSION_CODENAME&quot;)&quot;
+curl -fL -o /tmp/robot-ros2-apt-source.deb &quot;https://github.com/ros-infrastructure/ros-apt-source/releases/download/${robot_ros_source_version}/ros2-apt-source_${robot_ros_source_version}.${robot_ubuntu_codename}_all.deb&quot;
+sudo dpkg -i /tmp/robot-ros2-apt-source.deb
+sudo apt update
+sudo apt install ros-jazzy-desktop ros-dev-tools
+source /opt/ros/jazzy/setup.bash
+</code></pre>
+<p>命令替换取得 release 标签和系统代号，双引号保护 URL 参数。每条下载命令失败就先处理错误，不继续安装旧的同名临时文件。这里安装的是当前可取得的 Jazzy 包；若要逐版本复现，必须核对基线修订号与可用快照源，不能把“同为 Jazzy”写成二进制完全相同。</p>
+<p>基础通信测试使用两个终端，分别 source 后运行 <code>ros2 run demo_nodes_cpp talker</code> 和 <code>ros2 run demo_nodes_py listener</code>，看到对应消息后 Ctrl+C 停止各自进程。这只验证基础 C++/Python 通信，不验证机器人地图和任务。</p>
+<h2 id="_3">第四级 机器人依赖与构建</h2>
+<p>在已配置 ROS 软件源的新机器，可先检查包候选：</p>
+<pre><code class="language-bash">apt-cache policy ros-jazzy-ros-gz ros-jazzy-navigation2 ros-jazzy-nav2-bringup
+apt-cache policy ros-jazzy-robot-localization ros-jazzy-rtabmap-odom ros-jazzy-rtabmap-slam
+apt-cache policy ros-jazzy-fields2cover ros-jazzy-ortools-vendor libmetis-dev
+</code></pre>
+<p>存在候选后按所需组件安装，并与 package.xml/CMakeLists 及 manifest 对照。<code>ros-jazzy-ros-gz</code> 使用 Jazzy 对应的 Gazebo 集成；不要把 Gazebo Classic 的旧插件包当 Harmonic 替代。历史 install_s01/s05/s06 脚本包含精确包版本和本机代理端口 10808，迁移机未必有该版本或代理，因此先读脚本而非盲跑。</p>
+<pre><code class="language-bash">sudo apt install ros-jazzy-ros-gz ros-jazzy-navigation2 ros-jazzy-nav2-bringup \
+  ros-jazzy-robot-localization ros-jazzy-rtabmap-odom ros-jazzy-rtabmap-slam \
+  ros-jazzy-behaviortree-cpp ros-jazzy-fields2cover ros-jazzy-ortools-vendor \
+  libmetis-dev libompl-dev libeigen3-dev nlohmann-json3-dev
+</code></pre>
+<p>上面是核心依赖集合，不能替代全工程依赖解析。对独立迁移工作区执行 rosdep 可补充 package.xml 声明的系统依赖；手工 vendor、派生构建和本地资产仍需额外核查。</p>
+<pre><code class="language-bash">source /opt/ros/jazzy/setup.bash
+cd /home/你的用户名/独立迁移目录/optimization_v2/ws
+rosdep install --from-paths src --ignore-src -r -y --rosdistro jazzy
+colcon build --symlink-install --parallel-workers 2
+source install/local_setup.bash
+</code></pre>
+<p>这段目录是必须替换的迁移示例，不要在当前已绑定原工程执行全量重建。新机器尚未初始化 rosdep 时，在 install 命令之前运行一次 <code>sudo rosdep init</code>，再以普通用户运行 <code>rosdep update</code>；已有 sources list 时不重复初始化。<code>--ignore-src</code> 不安装工作区已经有源码的包；<code>--parallel-workers 2</code> 控制并行任务，不能保证每个编译器仅两个线程。colcon 完成也不自动重建 three_tasks 中所有确定性派生版本。</p>
+<!-- generated-production-start -->
+<h2 id="_4">固定生产代码逐段阅读</h2>
+<p>下面是固定提交中的原样节选。完整文件有离线行号页；片段可能省略上下文，不能单独当成可运行脚本。读完每段后，回到调用者确认它在当前任务中如何使用。</p>
+<h3 id="cmakeliststxt-1-18">CMakeLists.txt 第 1 至 18 行</h3>
+<p><a href="../../baseline/l02_views/be5b19db60e8-CMakeLists.txt.html#L1">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/CMakeLists.txt#L1">固定 Git 提交</a></p>
+<pre><code class="language-text">cmake_minimum_required(VERSION 3.16)
+project(task_platform)
+set(CMAKE_CXX_STANDARD 17)
+add_compile_options(-Wall -Wextra -Wpedantic)
+find_package(ament_cmake REQUIRED)
+set(Protobuf_PROTOC_EXECUTABLE /usr/bin/protoc CACHE FILEPATH &quot;Gazebo ABI&quot; FORCE)
+find_package(Protobuf MODULE REQUIRED)
+find_package(gz_sim_vendor REQUIRED)
+find_package(gz_plugin_vendor REQUIRED)
+find_package(gz_transport_vendor REQUIRED)
+find_package(gz-sim8 REQUIRED)
+find_package(gz-plugin2 REQUIRED COMPONENTS register)
+find_package(gz-transport13 REQUIRED)
+find_package(nlohmann_json REQUIRED)
+add_library(r02_drive SHARED src/VehicleDrive.cc)
+target_link_libraries(r02_drive gz-sim8::gz-sim8 gz-plugin2::gz-plugin2 gz-transport13::gz-transport13 nlohmann_json::nlohmann_json)
+install(TARGETS r02_drive DESTINATION lib)
+ament_package()
+</code></pre>
+<p>find_package 解析编译依赖，add_library 构造 Gazebo 共享插件，target_link_libraries 链接真实库，install 决定运行时位置。Python pip 不能替代这里的系统 ABI 与 CMake 包。</p>
+<h3 id="envsh-1-18">env.sh 第 1 至 18 行</h3>
+<p><a href="../../baseline/l02_views/1903d4317881-env.sh.html#L1">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/env.sh#L1">固定 Git 提交</a></p>
+<pre><code class="language-bash">#!/usr/bin/env bash
+# Deliberately rebuild the ROS overlay environment; never source another workspace.
+_V2_ROOT=&quot;$(cd -- &quot;$(dirname -- &quot;${BASH_SOURCE[0]}&quot;)&quot; &amp;&amp; pwd -P)&quot;
+case $- in *u*) _v2_nounset=1; set +u ;; *) _v2_nounset=0 ;; esac
+unset AMENT_PREFIX_PATH CMAKE_PREFIX_PATH COLCON_PREFIX_PATH PYTHONPATH LD_LIBRARY_PATH
+unset VIRTUAL_ENV CONDA_PREFIX ROS_DISTRO ROS_VERSION ROS_PYTHON_VERSION ROS_LOCALHOST_ONLY
+unset GZ_SIM_RESOURCE_PATH GZ_SIM_SYSTEM_PLUGIN_PATH SDF_PATH RMW_IMPLEMENTATION
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+source /opt/ros/jazzy/setup.bash || return $?
+if [[ -f &quot;$_V2_ROOT/ws/install/project_baseline/share/project_baseline/local_setup.bash&quot; ]]; then
+  source &quot;$_V2_ROOT/ws/install/local_setup.bash&quot; || return $?
+fi
+export ROS_DOMAIN_ID=119 ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST ROS_STATIC_PEERS=''
+export GZ_PARTITION=robot_optimization_v2
+export DINO_PROJECT_ROOT=&quot;$(dirname &quot;$_V2_ROOT&quot;)&quot;
+export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 PYTHONDONTWRITEBYTECODE=1
+if (( _v2_nounset )); then set -u; fi
+unset _V2_ROOT _v2_nounset
+</code></pre>
+<p>环境脚本重置 overlay 并加载 Jazzy，运行它不安装地图、虚拟环境或编译库。新机器需要分别准备这几层；当前机 source 后的 check 也只验证回执绑定范围。</p>
+<!-- generated-production-end -->
+
+<h2 id="python">Python 科学计算环境</h2>
+<p>当前 scene 环境的重要版本包括 NumPy 1.26.4、SciPy 1.11.4、Shapely 2.1.2、PyYAML 6.0.1、Pillow 10.2.0、imageio-ffmpeg 0.8.1。ROS Python 包来自系统 Jazzy，场景脚本还用到图像、几何、视频等依赖。不要将这些部分列表当完整锁文件。</p>
+<p>新迁移目录中可用 <code>python3 -m venv --system-site-packages optimization_v2/venvs/scene</code> 访问系统 ROS Python，再按固定资源与依赖清单安装项目需要的包。用该解释器执行 <code>-m pip</code>，并检查 <code>sys.executable</code>、模块版本及导入位置。直接复制 venv 往往含绝对路径，不是可靠跨机器迁移方式。</p>
+<h2 id="_5">第五级 地图 参考云与本地资产</h2>
+<p>原冻结 <code>map.db</code> 大小为 150085632 字节，SHA-256 为 <code>b4d1a2d508ad9dc17205f77ba34ffb8a8e662e2f0f27a8f94119e7147df4bb82</code>。它未包含在本次学习仓库或普通源码提交中。区域观测云、地图资产、运行器派生绑定和相关构建物也要按资源清单迁移或重建。</p>
+<p>从 Git 克隆机器人源码时可检出固定提交，但该源码快照本身不足以直接启动。不要删除本机资产，也不要用空文件或随便另一张地图填补。新机器全部部署尚需单独验收，教材给出的是可检查流程及现存资源边界。</p>
+<pre><code class="language-bash">cd /home/ceihao/robot_project
+sha256sum optimization_v2/maps/frozen/map.db
+source optimization_v2/env.sh
+bash optimization_v2/three_tasks/advance.sh R08 check
+bash optimization_v2/three_tasks/advance.sh R09 check
+</code></pre>
+<h2 id="_6">教学验证与故障</h2>
+<p><code>python3 examples/l02/labs.py 26</code> 核对学习包内固定快照哈希，不检查没有打包的大数据库。安装失败先区分软件源、包版本、代理、系统 ABI、Python 解释器与资源缺失；不能用扩大权限或 sudo pip 一次性掩盖。</p>
+<!-- generated-lab-start -->
+<h3 id="_7">本章练习核心代码与实际输出</h3>
+<p><a href="../../examples/l02/labs.py">完整教学脚本</a> · <a href="../../validation/L02/lab_26.json">本章完整输出</a></p>
+<p>代码只使用 Python 标准库；合成输入与历史记录在输出 kind 中区分。公共 ROOT、read、wrap、connected 等辅助函数在完整脚本中定义。</p>
+<pre><code class="language-python">def lab26():
+    &quot;&quot;&quot;Check shipped immutable material without installing dependencies.&quot;&quot;&quot;
+    counts=[]
+    for name in ['baseline/manifest.json','baseline/l02_manifest.json']:
+        m=read(name);checked=0
+        for e in m['entries']:
+            if not e.get('local'):continue
+            data=(ROOT/e['local']).read_bytes()
+            assert hashlib.sha256(data).hexdigest()==e['sha256'],e['path']
+            checked+=1
+        counts.append(dict(manifest=name,checked=checked,commit=m['commit']))
+    return dict(kind='actual snapshot verification',manifests=counts)
+</code></pre>
+<pre><code class="language-text">{
+  &quot;chapter&quot;: &quot;26&quot;,
+  &quot;passed&quot;: true,
+  &quot;result&quot;: {
+    &quot;kind&quot;: &quot;actual snapshot verification&quot;,
+    &quot;manifests&quot;: [
+      {
+        &quot;manifest&quot;: &quot;baseline/manifest.json&quot;,
+        &quot;checked&quot;: 63,
+        &quot;commit&quot;: &quot;9aff8337b7794f704c5556a973a5220e73f17808&quot;
+      },
+      {
+        &quot;manifest&quot;: &quot;baseline/l02_manifest.json&quot;,
+        &quot;checked&quot;: 50,
+        &quot;commit&quot;: &quot;9aff8337b7794f704c5556a973a5220e73f17808&quot;
+      }
+    ]
+  }
+}
+</code></pre>
+<p>本章例子可以在 Windows 使用 <code>py -3</code> 或在 Linux 使用 <code>python3</code> 重跑。它验证局部概念或读取历史证据，不对机器人全任务提供新通过结论。</p>
+<!-- generated-lab-end -->
+
+<p>自测：Git 克隆、apt 安装、pip 安装、colcon 构建、地图迁移分别产生什么？答案是源码、系统依赖、解释器包、构建产物、数据资产。五项缺一都可能造成启动失败，且各自有不同版本检查。</p></main><footer>L02 内容阅读版 · 固定基线 9aff8337 · 原机器人 R10–R12 PARTIAL · L03 完整站点尚待执行</footer></html>

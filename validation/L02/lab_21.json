@@ -1,0 +1,11 @@
+{
+  "chapter": "21",
+  "passed": true,
+  "result": {
+    "kind": "synthetic endpoint counterexample",
+    "curvature_1_per_m": 15.707963267948966,
+    "limit_1_per_m": 0.5,
+    "follow_path_admissible": false,
+    "navigate_to_pose_must_plan": true
+  }
+}

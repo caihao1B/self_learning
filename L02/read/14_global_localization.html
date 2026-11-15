@@ -1,0 +1,175 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>第 14 章 全局定位与 GNSS 偏移监督</title><style>*{box-sizing:border-box}body{margin:0;background:#eff4f5;color:#17343d;font:17px/1.95 "Segoe UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif}header{background:#163c45;color:#e5f3ef;padding:22px max(20px,calc((100vw - 1080px)/2))}header a{color:#bceadf;margin-right:20px}main{max-width:1140px;margin:28px auto;padding:34px 48px;background:white;border:1px solid #dae5e8;border-radius:12px}h1{font-size:32px;line-height:1.5;color:#174b50}h2{margin-top:42px;font-size:24px;color:#256466;border-bottom:1px solid #dce9e8;padding-bottom:9px}h3{font-size:20px;color:#345b62}a{color:#08777a;text-underline-offset:3px}p,li{overflow-wrap:anywhere}pre{background:#112c38;color:#e3f0ed;padding:20px;border-radius:8px;overflow:auto;font:13px/1.8 Consolas,monospace;white-space:pre;overflow-wrap:normal}code{font-family:Consolas,monospace}p code,li code,td code{background:#edf3f4;padding:2px 4px}table{display:block;overflow:auto;border-collapse:collapse;font-size:15px;margin:22px 0}th,td{border:1px solid #cedfe1;padding:10px;min-width:100px;vertical-align:top}th{background:#e6f2ef}img{max-width:100%;height:auto;margin:22px auto;display:block}blockquote{border-left:4px solid #3c9083;padding:8px 20px;background:#f0f7f4;margin:20px 0}.toc{background:#f3f8f7;padding:12px 25px;font-size:14px}footer{max-width:1100px;margin:24px auto;padding:20px;color:#47666c}button{background:#e7f4ed;color:#245448;border:0;padding:7px 12px;border-radius:5px;cursor:pointer}@media(max-width:700px){body{font-size:16px}main{padding:22px 18px;margin:12px;border-radius:8px}h1{font-size:26px}h2{font-size:22px}header{padding:16px}pre{font-size:12px}}@media print{header,footer,button,.toc{display:none}main{border:0;max-width:none;margin:0;padding:0}pre{background:#eee;color:black;white-space:pre-wrap;overflow-wrap:anywhere}a{color:black}h2{break-after:avoid}img{max-height:230mm}}</style><header><a href="../../index.html">学习首页</a><a href="../index.html">三十章目录</a><a href="13_slam.html">← 上一章</a><a href="15_terrain.html">下一章 →</a><button onclick="window.print()">打印本章</button></header><main><details class="toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#14-gnss">第 14 章 全局定位与 GNSS 偏移监督</a><ul>
+<li><a href="#_1">区域配准的输入与输出</a></li>
+<li><a href="#gnss">GNSS 如何变成地图中的点</a></li>
+<li><a href="#nis">创新和 NIS</a></li>
+<li><a href="#_2">修正抖动与滤波</a></li>
+<li><a href="#_3">固定生产代码逐段阅读</a><ul>
+<li><a href="#regional_r08py-42-83">regional_r08.py 第 42 至 83 行</a></li>
+<li><a href="#correction_filterhpp-1-22">correction_filter.hpp 第 1 至 22 行</a></li>
+</ul>
+</li>
+<li><a href="#linux-c">在 Linux 编译真实 C++ 判据</a></li>
+<li><a href="#_4">停车重验证为什么分阶段</a></li>
+<li><a href="#_5">一个数值例子</a><ul>
+<li><a href="#_6">本章练习核心代码与实际输出</a></li>
+</ul>
+</li>
+<li><a href="#_7">手工观察与排查顺序</a></li>
+<li><a href="#_8">自测</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details><h1 id="14-gnss">第 14 章 全局定位与 GNSS 偏移监督</h1>
+<p>局部 odom 连续不等于全局地图位置正确。当前系统通过区域观测云匹配提出地图位姿，再用 GNSS、质量、时效性与跳变检查决定是否接受。定位失败会直接影响停车和作业准入，因此它也是完整 A1 未通过的重要观察点。</p>
+<h2 id="_1">区域配准的输入与输出</h2>
+<p>输入是当前点云、同一时刻附近的局部里程计、固定参考云、初始提示和 GNSS。输出不仅是 pose，还有 valid、reason、采集时间、配准残差、重叠、候选分歧和 GNSS 创新。</p>
+<p>首次配准使用粗初值并尝试多个小航向扰动，随后由上一全局位姿和局部里程计增量预测新的初值。多个候选彼此不一致时拒绝“模糊初始匹配”。跟踪阶段若配准相对预测的修正过大，也拒绝直接应用。</p>
+<p>留出几何验证把部分观测用于独立检验配准，减少只在优化用样本上自我满意。它不是与外部世界完全独立的真值验证，仍可能受地图重复结构和共同误差影响，因此还需要 GNSS 与质量监督。</p>
+<h2 id="gnss">GNSS 如何变成地图中的点</h2>
+<p>经纬高先通过大地坐标转换到局部 ENU，即 East、North、Up。局部 datum 和 site_origin 决定地图基准。然后比较天线位置与预测天线位置：<code>p_ant=p_base+R(yaw)*lever</code>。杆臂 lever 在车体坐标中，必须随航向旋转。</p>
+<p>当前代码选择接近点云时间的 fix，并要求相应状态与时间窗口。若车移动时使用不同时刻 GNSS，差值包含真实运动，就可能被当成定位偏差。</p>
+<h2 id="nis">创新和 NIS</h2>
+<p>创新 r 是 GNSS 观测减预测。合成协方差 S 包含 GNSS 与地图位姿不确定性。归一化创新平方 <code>NIS=rᵀS⁻¹r</code> 衡量误差相对不确定性有多大。实际区域代码同时要求平面残差不超过 0.15 m、NIS 不超过 9.21，并检查协方差正定性。9.21 对应二维卡方约 99% 分位的常用统计门限；实际非高斯与相关误差会限制这种解释。</p>
+<p>只用 NIS 会有一个风险：把协方差随意调大就能降低 NIS。绝对残差门限提供额外约束，但同样需要真实校准。教材不通过改门限让旧失败消失。</p>
+<h2 id="_2">修正抖动与滤波</h2>
+<p>当前区域前端对 map→odom 修正使用短窗口中位统计；R10 C++ 还提供指数修正滤波，<code>alpha=1−exp(−dt/tau)</code>，平移插值，旋转用四元数 slerp。dt 小时用 <code>-expm1(-dt/tau)</code> 改善数值精度。</p>
+<p>滤波只作用于全局修正，局部 odom 保留高频运动。更重要的是原始创新、跳变、时效性和计划约束先检查，再平滑。若先滤波再检查，错误的大跳变可能被拆成许多小步而逐渐混进系统。</p>
+<!-- generated-production-start -->
+<h2 id="_3">固定生产代码逐段阅读</h2>
+<p>下面是固定提交中的原样节选。完整文件有离线行号页；片段可能省略上下文，不能单独当成可运行脚本。读完每段后，回到调用者确认它在当前任务中如何使用。</p>
+<h3 id="regional_r08py-42-83">regional_r08.py 第 42 至 83 行</h3>
+<p><a href="../../baseline/l02_views/9f8bd7d48674-regional_r08.py.html#L42">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/regional_r08.py#L42">固定 Git 提交</a></p>
+<pre><code class="language-python">   received,m=clouds[0];t=stamp(m);o=min(odoms,key=lambda x:abs(stamp(x)-t))
+   if abs(stamp(o)-t)&gt;.03 and wall-received&lt;.3:continue
+   clouds.popleft()
+   if state['t']-t&gt;1.0 or abs(stamp(o)-t)&gt;.03 or t&lt;state['hint_t']:continue
+   q=o.pose.pose;local=np.array([q.position.x,q.position.y,yaw(q.orientation)]);previous=state['previous'];coarse=previous is None
+   if coarse:seed=state['hint']
+   else:
+    pp,oo=previous;heading=pp[2]-oo[2];seed=[*(np.array(pp[:2])+math14.rotation(heading)@(local[:2]-oo[:2])),local[2]+heading]
+   raw=point_cloud2.read_points_numpy(m,field_names=['x','y','z'],skip_nans=True).reshape(-1,3);start=time.monotonic();matches=[reference.align(raw,[*seed[:2],seed[2]+d],coarse=coarse) for d in (np.linspace(-.15,.15,7) if coarse else [0.])];good=[x for x in matches if x['valid']];valid=bool(good) and state['contract_valid'];reason='HELD_OUT_SURFACE_MATCH' if valid else 'MAP_MATCH_REJECTED'
+   if good:
+    spread=max(math.dist(good[0]['pose'][:2],x['pose'][:2]) for x in good);angle=max(abs(math.atan2(math.sin(x['pose'][2]-good[0]['pose'][2]),math.cos(x['pose'][2]-good[0]['pose'][2]))) for x in good)
+    if spread&gt;.08 or angle&gt;.015:valid=False;reason='AMBIGUOUS_INITIAL_MATCH'
+    best=min(good,key=lambda x:x['p95_m']);p=best['pose'];h=p[2]
+    if not coarse and (best['translation_from_seed_m']&gt;.15 or best['yaw_from_seed_rad']&gt;.035):valid=False;reason='TRACKING_CORRECTION_BOUND'
+    residual=None;nis=None;fix=min(fixes,key=lambda f:abs(stamp(f)-t)) if fixes else None;cov=np.eye(6)*.01;cov[0,0]=cov[1,1]=.05**2+atlas['datum_translation_sigma_m']**2;cov[5,5]=.004**2
+    if fix is not None and abs(stamp(fix)-t)&lt;.6 and fix.status.status==2:
+     enu=geo.to_enu([fix.latitude,fix.longitude,fix.altitude],atlas['datum_llh'])-np.array(atlas['site_origin']);antenna=np.array(p[:2])+math14.rotation(h)@np.array(rig['gnss']['xyz'][:2]);delta=enu[:2]-antenna;C=np.array(fix.position_covariance).reshape(3,3)[:2,:2]+cov[:2,:2];residual=float(np.linalg.norm(delta));nis=float(delta@np.linalg.solve(C,delta));gnss_ok=residual&lt;=.15 and nis&lt;=9.21 and np.linalg.eigvalsh(C).min()&gt;0
+    else:gnss_ok=False
+    if not gnss_ok:valid=False;reason='GNSS_MAP_INNOVATION_OR_FRESHNESS'
+    evidence=dict(t=t,received_t=state['t'],valid=bool(valid),reason=reason,pose=[*p[:2],0.,0.,0.,math.sin(h/2),math.cos(h/2)],covariance=cov.reshape(-1).tolist(),surface_points=best['heldout_points'],raw_surface_points=best['raw_surface_points'],mapped_candidate_points=best['mapped_candidate_points'],mapped_fraction=best['mapped_fraction'],overlap_scope=best['overlap_scope'],surface_overlap=best['overlap'],surface_p95_m=best['p95_m'],multistart_spread_m=spread,gnss_innovation_m=residual,gnss_nis=nis,initialization=coarse,processing_wall_s=time.monotonic()-start)
+    if valid:
+     state['previous']=(p,local)
+     cyaw=math.atan2(math.sin(h-local[2]),math.cos(h-local[2]));shift=np.array(p[:2])-math14.rotation(cyaw)@local[:2];corrections.append((t,shift,cyaw))
+     while corrections and t-corrections[0][0]&gt;1.5:corrections.popleft()
+     shifts=np.array([v[1] for v in corrections]);angles=np.unwrap([v[2] for v in corrections]);mh=float(np.median(angles));ms=np.median(shifts,axis=0);smooth=ms+math14.rotation(mh)@local[:2];syaw=local[2]+mh
+     evidence['raw_pose']=evidence['pose'];evidence['pose']=[*smooth,0.,0.,0.,math.sin(syaw/2),math.cos(syaw/2)];scatter=np.median(np.abs(shifts-ms),axis=0)*1.4826;cov[0,0]+=scatter[0]**2;cov[1,1]+=scatter[1]**2;evidence['covariance']=cov.reshape(-1).tolist();evidence['temporal_filter']=dict(method='median map-to-odom correction',samples=len(corrections),span_s=t-corrections[0][0],robust_scatter_m=scatter.tolist(),original_capture_stamp=t)
+
+     if not state['bootstrap']:
+      stable,metrics=stable_corrections(corrections)
+      if stable:
+       if state['stable_since'] is None:state['stable_since']=t
+       state['bootstrap']=t-state['stable_since']&gt;=1.0
+      else:state['stable_since']=None
+      evidence['startup_stability']=dict(metrics,admitted=state['bootstrap'],stable_since=state['stable_since'])
+      if not state['bootstrap']:evidence.update(valid=False,reason='STARTUP_CORRECTION_STABILITY_PENDING')
+    elif not state['bootstrap']:state['stable_since']=None
+
+   else:evidence=dict(t=t,valid=False,reason=reason,matches=matches,processing_wall_s=time.monotonic()-start)
+   evidence.update(map_id=atlas['map_id'],map_revision=atlas['revision'],rig_revision=rig['revision'],quality_source='S14/S17 sensor-derived frozen cloud; RTAB local ICP + wheel/IMU; held-out map matching; independent GNSS supervisor',backend='regional_surface_map',truth_used=False)
+   pub.publish(String(data=json.dumps(evidence)));log.write(json.dumps(evidence)+'\n');log.flush();dump(a.out/'live.json',evidence);processed+=1
+ finally:log.close();dump(a.out/'result.json',dict(processed=processed,contract_valid=state['contract_valid']));n.destroy_node();rclpy.try_shutdown()
+if __name__=='__main__':main()
+</code></pre>
+<p>点云按采集时间配 odom，粗初始化多航向尝试，候选分歧和跟踪修正超限会拒绝。GNSS 部分先变换到 ENU，加入旋转杆臂，再计算 residual 与 NIS；valid 是这些条件的交集。</p>
+<h3 id="correction_filterhpp-1-22">correction_filter.hpp 第 1 至 22 行</h3>
+<p><a href="../../baseline/l02_views/28263236ad4c-correction_filter.hpp.html#L1">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/r10_backend/correction_filter.hpp#L1">固定 Git 提交</a></p>
+<pre><code class="language-cpp">#pragma once
+#include &lt;Eigen/Geometry&gt;
+#include &lt;cmath&gt;
+#include &lt;stdexcept&gt;
+
+namespace r10 {
+// Filter only the map-&gt;odom correction. Local odometry retains its full rate.
+// Caller must check RAW innovation, jumps, freshness and plan holds first.
+inline Eigen::Isometry3d smoothCorrection(const Eigen::Isometry3d &amp;previous,
+                                         const Eigen::Isometry3d &amp;observed,
+                                         double dt, double tau) {
+  if (!previous.matrix().allFinite() || !observed.matrix().allFinite() ||
+      !std::isfinite(dt) || !std::isfinite(tau) || tau &lt;= 0.)
+    throw std::invalid_argument(&quot;invalid correction filter input&quot;);
+  if (dt &lt;= 0.) return previous;
+  const double alpha = -std::expm1(-dt / tau);
+  Eigen::Isometry3d result = Eigen::Isometry3d::Identity();
+  result.translation() = previous.translation() + alpha * (observed.translation() - previous.translation());
+  result.linear() = Eigen::Quaterniond(previous.linear()).slerp(alpha, Eigen::Quaterniond(observed.linear())).normalized().toRotationMatrix();
+  return result;
+}
+}
+</code></pre>
+<p>Eigen::Isometry3d 同时保存旋转和平移，allFinite 拒绝坏矩阵。alpha 用 expm1 提高小 dt 数值稳定性，旋转用四元数 slerp 再归一。调用者必须在此之前检查原始异常。</p>
+<!-- generated-production-end -->
+
+<h2 id="linux-c">在 Linux 编译真实 C++ 判据</h2>
+<p>读完 Python 的区域配准，再看 C++ 的小函数，有助于理解语言分工：Python 负责数据组织与状态流程，Eigen 在 C++ 中提供固定尺寸变换运算。<code>const ... &amp;previous</code> 用常量引用传入已有变换，避免不必要的复制，也禁止函数通过此参数改写输入；返回的 <code>result</code> 是新的变换。<code>inline</code> 允许这个头文件定义被多个编译单元包含，并不保证编译器一定进行指令内联。</p>
+<p>下面从学习仓库根目录编译 <a href="../../examples/l02/native_checks.cpp">真实判据检查程序</a>。需要本机已经具有 g++、Eigen3 和 nlohmann/json 头文件，缺少依赖时先读第 26 章；这组命令本身不会安装系统包。</p>
+<pre><code class="language-bash">cd /home/ceihao/self_learning
+mkdir -p build
+g++ -std=c++17 -Wall -Wextra -pedantic -I/usr/include/eigen3 examples/l02/native_checks.cpp -o build/l02_native_checks
+./build/l02_native_checks
+</code></pre>
+<p>换电脑时只修改第一行的学习仓库位置。<code>-I</code> 添加头文件查找目录，<code>-o</code> 指定生成程序，<code>./</code> 表示执行当前目录下的程序而不依赖 PATH 搜索。程序直接包含固定快照里的精停、修正滤波和自车点分类头文件，检查九个输入/输出条件；没有重新写一个近似函数代替原实现。</p>
+<p>实际输出含 <code>PASS 9 direct production-helper checks</code> 和 <code>filter_translation_x=0.0951626 m</code>。后者来自前次修正 0 m、观测 1 m、dt=0.1 s、tau=1 s，故 alpha≈0.09516。它证明这几个纯函数在这些输入上的行为符合检查预期，不证明定位质量、ROS 节点生命周期或完整任务通过。</p>
+<h2 id="_4">停车重验证为什么分阶段</h2>
+<p>定位失效时，先停工具、取消导航、确认车体静止，再收集足够新鲜且一致的候选。prepare 阶段保存将要接受的证据，commit 阶段确认关联版本与状态仍满足条件后应用。这样避免检查通过与真正恢复之间状态已改变。</p>
+<p>恢复不能无限循环。原完整 A1 的结果因 LOCALIZATION_REVALIDATION_BOUND 停止，说明有界恢复条件被触发；不能仅凭这个名字宣布根因已完全确定。可能涉及观测几何、GNSS 创新、时间、初值或全局抖动，应结合当时的原始拒绝证据区分。</p>
+<h2 id="_5">一个数值例子</h2>
+<p>车体在 (10,20) m，航向 90°，天线前置 0.5 m，则天线预测是 (10,20.5)。GNSS 观测 (10.03,20.52)，实际创新只有 (0.03,0.02)；忽略杆臂会看到约 0.52 m 的错误偏差。执行 <code>python3 examples/l02/labs.py 14</code> 可核对 NIS。</p>
+<!-- generated-lab-start -->
+<h3 id="_6">本章练习核心代码与实际输出</h3>
+<p><a href="../../examples/l02/labs.py">完整教学脚本</a> · <a href="../../validation/L02/lab_14.json">本章完整输出</a></p>
+<p>代码只使用 Python 标准库；合成输入与历史记录在输出 kind 中区分。公共 ROOT、read、wrap、connected 等辅助函数在完整脚本中定义。</p>
+<pre><code class="language-python">def lab14():
+    &quot;&quot;&quot;Antenna lever arm and a diagonal two-dimensional innovation test.&quot;&quot;&quot;
+    body=(10.,20.); lever=(.5,0.); yaw=math.pi/2
+    antenna=(body[0]+math.cos(yaw)*lever[0],body[1]+math.sin(yaw)*lever[0])
+    fix=(10.03,20.52); residual=(fix[0]-antenna[0],fix[1]-antenna[1])
+    variance=.02**2+.05**2; nis=sum(x*x/variance for x in residual)
+    assert nis&lt;9.21
+    return dict(kind='synthetic pose with production-style gate',antenna_m=antenna,
+                residual_m=residual,NIS=nis,threshold_2d=9.21,
+                omitted_arm_residual_m=math.dist(fix,body))
+</code></pre>
+<pre><code class="language-text">{
+  &quot;chapter&quot;: &quot;14&quot;,
+  &quot;passed&quot;: true,
+  &quot;result&quot;: {
+    &quot;kind&quot;: &quot;synthetic pose with production-style gate&quot;,
+    &quot;antenna_m&quot;: [
+      10.0,
+      20.5
+    ],
+    &quot;residual_m&quot;: [
+      0.02999999999999936,
+      0.019999999999999574
+    ],
+    &quot;NIS&quot;: 0.4482758620689463,
+    &quot;threshold_2d&quot;: 9.21,
+    &quot;omitted_arm_residual_m&quot;: 0.5208646657242162
+  }
+}
+</code></pre>
+<p>本章例子可以在 Windows 使用 <code>py -3</code> 或在 Linux 使用 <code>python3</code> 重跑。它验证局部概念或读取历史证据，不对机器人全任务提供新通过结论。</p>
+<!-- generated-lab-end -->
+
+<h2 id="_7">手工观察与排查顺序</h2>
+<p>先在 GUI 看 raw pose、filtered correction、GNSS innovation、NIS、accepted/rejected reason 与数据年龄，再对照任务精停窗口。只看车体动画可能看不到厘米级全局抖动。若图像稳定而定位仍 WAIT，需要查看是哪一个准入条件未满足。</p>
+<p>检查顺序是坐标与杆臂、采集时间、fix 状态与协方差、匹配候选质量、原始修正跳变、滤波输出、恢复状态机。不要第一步就增加允许创新或放宽作业位置误差。</p>
+<h2 id="_8">自测</h2>
+<p>问：同一个 GNSS 已强制拉动全局位置，再用它验证该位置，是否独立？答：独立性降低，应记录数据来源和相关性，不能将同一信息重复当证据。</p>
+<p>问：静止单天线 GNSS 能否直接修正 yaw？答：一个位置点不能充分约束航向，需要运动基线、双天线或其他方向信息。</p>
+<p>练习：分别改变教学例子的杆臂、协方差和采集时差，解释哪一个改变几何、哪一个改变统计权重、哪一个产生运动相关误差。</p></main><footer>L02 内容阅读版 · 固定基线 9aff8337 · 原机器人 R10–R12 PARTIAL · L03 完整站点尚待执行</footer></html>

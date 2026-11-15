@@ -1,0 +1,16 @@
+{
+  "chapter": "09",
+  "passed": true,
+  "result": {
+    "kind": "synthetic layer example",
+    "status": {
+      "0": "UNKNOWN_OBSERVATION",
+      "1": "UNKNOWN_OBSERVATION",
+      "2": "BLOCKED_PRIOR",
+      "3": "BLOCKED_OBSERVED",
+      "4": "UNKNOWN_OBSERVATION",
+      "5": "UNKNOWN_OBSERVATION"
+    },
+    "lesson": "Permitted prior does not imply currently observed free."
+  }
+}

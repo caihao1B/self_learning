@@ -1,0 +1,12 @@
+{
+  "chapter": "02",
+  "passed": true,
+  "result": {
+    "absolute": true,
+    "file_name": "笔记.txt",
+    "relative": "笔记.txt",
+    "suffix": ".txt",
+    "exists_during_lab": true,
+    "temporary_cleanup": true
+  }
+}

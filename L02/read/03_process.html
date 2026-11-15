@@ -1,0 +1,192 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>第 03 章 程序怎样运行</title><style>*{box-sizing:border-box}body{margin:0;background:#eff4f5;color:#17343d;font:17px/1.95 "Segoe UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif}header{background:#163c45;color:#e5f3ef;padding:22px max(20px,calc((100vw - 1080px)/2))}header a{color:#bceadf;margin-right:20px}main{max-width:1140px;margin:28px auto;padding:34px 48px;background:white;border:1px solid #dae5e8;border-radius:12px}h1{font-size:32px;line-height:1.5;color:#174b50}h2{margin-top:42px;font-size:24px;color:#256466;border-bottom:1px solid #dce9e8;padding-bottom:9px}h3{font-size:20px;color:#345b62}a{color:#08777a;text-underline-offset:3px}p,li{overflow-wrap:anywhere}pre{background:#112c38;color:#e3f0ed;padding:20px;border-radius:8px;overflow:auto;font:13px/1.8 Consolas,monospace;white-space:pre;overflow-wrap:normal}code{font-family:Consolas,monospace}p code,li code,td code{background:#edf3f4;padding:2px 4px}table{display:block;overflow:auto;border-collapse:collapse;font-size:15px;margin:22px 0}th,td{border:1px solid #cedfe1;padding:10px;min-width:100px;vertical-align:top}th{background:#e6f2ef}img{max-width:100%;height:auto;margin:22px auto;display:block}blockquote{border-left:4px solid #3c9083;padding:8px 20px;background:#f0f7f4;margin:20px 0}.toc{background:#f3f8f7;padding:12px 25px;font-size:14px}footer{max-width:1100px;margin:24px auto;padding:20px;color:#47666c}button{background:#e7f4ed;color:#245448;border:0;padding:7px 12px;border-radius:5px;cursor:pointer}@media(max-width:700px){body{font-size:16px}main{padding:22px 18px;margin:12px;border-radius:8px}h1{font-size:26px}h2{font-size:22px}header{padding:16px}pre{font-size:12px}}@media print{header,footer,button,.toc{display:none}main{border:0;max-width:none;margin:0;padding:0}pre{background:#eee;color:black;white-space:pre-wrap;overflow-wrap:anywhere}a{color:black}h2{break-after:avoid}img{max-height:230mm}}</style><header><a href="../../index.html">学习首页</a><a href="../index.html">三十章目录</a><a href="02_linux.html">← 上一章</a><a href="04_languages.html">下一章 →</a><button onclick="window.print()">打印本章</button></header><main><details class="toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#03">第 03 章 程序怎样运行</a><ul>
+<li><a href="#_1">从文件到进程</a></li>
+<li><a href="#source-shell">source 与新 shell</a></li>
+<li><a href="#subprocess">为什么使用 subprocess 的参数列表</a></li>
+<li><a href="#_2">固定生产代码逐段阅读</a><ul>
+<li><a href="#runtime_spray_r10py-9-78">runtime_spray_r10.py 第 9 至 78 行</a></li>
+<li><a href="#envsh-1-18">env.sh 第 1 至 18 行</a></li>
+</ul>
+</li>
+<li><a href="#_3">三种时间不要混用</a></li>
+<li><a href="#_4">退出码和信号</a></li>
+<li><a href="#_5">日志为何要分开保存</a></li>
+<li><a href="#_6">离线练习</a><ul>
+<li><a href="#_7">本章练习核心代码与实际输出</a></li>
+</ul>
+</li>
+<li><a href="#_8">常见故障与答案</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details><h1 id="03">第 03 章 程序怎样运行</h1>
+<p>源码是静态文件，进程是操作系统正在执行的程序实例。机器人系统同时运行 Gazebo、传感器适配、定位、Nav2、任务执行器、工具服务器和 GUI。理解进程、环境和退出，是避免“窗口关了但机器人仍运行”的基础。</p>
+<h2 id="_1">从文件到进程</h2>
+<p>运行 <code>python3 script.py</code> 时，操作系统启动 Python 解释器，解释器读脚本并执行。运行 C++ 程序前需要编译与链接：编译把源码转成目标代码，链接把目标代码和库组成可执行程序。共享库通常在启动或运行时加载，因此“编译成功”和“运行能找到库”是两个检查。</p>
+<p>每个进程有 PID、父进程、当前目录、环境变量、文件描述符和退出状态。同一脚本可以启动两次，形成不同 PID；一个 ROS 进程也可能承载多个节点。节点名不能替代进程身份。</p>
+<h2 id="source-shell">source 与新 shell</h2>
+<p><code>source env.sh</code> 在当前 Bash 中执行环境脚本。里面的 <code>export</code> 会影响之后启动的子进程。<code>bash env.sh</code> 在新的 Bash 进程中执行，它退出后通常不会把变量修改带回父 shell。因此打开新终端后需要重新加载环境。</p>
+<pre><code class="language-bash">cd /home/ceihao/robot_project
+source optimization_v2/env.sh
+printf '%s\n' &quot;$ROS_DISTRO&quot; &quot;$ROS_DOMAIN_ID&quot;
+command -v ros2
+</code></pre>
+<p>这是当前机器的环境检查，预期 ROS 发行版为 Jazzy、在线域为项目配置的 119。实际脚本还加载工作区 overlay、库路径和相关限制。不能把旧虚拟机 overlay 与现在的环境任意叠加，否则同名包可能来自不同构建目录。</p>
+<p><code>PATH</code> 控制 shell 查找可执行程序；<code>PYTHONPATH</code> 影响 Python 模块搜索；动态库路径影响链接库查找。它们用途不同，不能通过把所有目录都塞进 PATH 解决所有 ImportError。</p>
+<h2 id="subprocess">为什么使用 subprocess 的参数列表</h2>
+<p>Python <code>subprocess.Popen</code> 启动子进程后立即返回句柄，<code>subprocess.run</code> 通常等待完成后返回结果。参数用列表传递，例如 <code>['python3', 'worker.py', '--out', output]</code>，各项边界明确，不需要再经过 shell 分词。</p>
+<p>如果设置 <code>shell=True</code>，字符串中的重定向、变量和命令替换可能被 shell 执行。项目路径或参数来自外部输入时，随意拼接字符串还会带来错误执行风险。教材示例均优先使用列表。</p>
+<p>实际运行器指定 <code>cwd</code>、<code>env</code>、日志文件和 <code>start_new_session=True</code>。<code>env</code> 是继承环境的副本加上本任务变量；<code>cwd</code> 是该子进程的工作目录；日志文件承接输出；独立会话便于运行器只收尾自己启动的进程。</p>
+<!-- generated-production-start -->
+<h2 id="_2">固定生产代码逐段阅读</h2>
+<p>下面是固定提交中的原样节选。完整文件有离线行号页；片段可能省略上下文，不能单独当成可运行脚本。读完每段后，回到调用者确认它在当前任务中如何使用。</p>
+<h3 id="runtime_spray_r10py-9-78">runtime_spray_r10.py 第 9 至 78 行</h3>
+<p><a href="../../baseline/l02_views/eba540ae6f6e-runtime_spray_r10.py.html#L9">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/runtime_spray_r10.py#L9">固定 Git 提交</a></p>
+<pre><code class="language-python">def run(task=&quot;spray&quot;,seconds=240,rtf=.4,cluster=&quot;A1&quot;,point_limit=3,case=&quot;nominal&quot;):
+ require('R09');lock=lock_session();out=APP/'results/R10'/(task+'_'+stamp());out.mkdir(parents=True);session=out.name;start=time.monotonic();c=compose(out/'scene',task,session,rtf=rtf,cluster=cluster);adapt=overlay(task,out/'overlay');binding=read(edition('R05')/task/'binding.json');source=read(BASE/'maps/frozen/manifest.json')
+ spec=dict(task=task,session=session,sim_seconds=seconds,wall_budget=max(600,int(seconds/min(rtf,.25))+90),cluster=cluster,point_limit=point_limit,case=case,operator_hint=read(out/'scene/fixture.json')['coarse_operator_map_hint'],localization_backend=binding['localization_backend'],rig_revision=binding['rig_revision'],binding_revision=binding['revision']);spec['online_probe_sha256']=sha(PKG/'scripts/mission_spray_r10.py');spec['runtime_sha256']=sha(Path(__file__));bound=list((PKG/'scripts').glob('*_r07.py'))+list((PKG/'scripts').glob('*_r08.py'))+[PKG/'scripts'/name for name in ['runtime_spray_r10.py', 'mission_spray_r10.py', 'scene_spray_r10.py', 'control_spray_r10.py', 'docking_r10.py', 'local_dock_r10.py', 'progress_spray_r10.py', 'approach_handoff_r10.py', 'revalidation_spray_r10.py', 'reference_spray_r10.py', 'risk_spray_r10.py', 'ledger_spray_r10.py', 'ledger_mowing_r10.py', 'runtime_binding_r10.py', 'prepare_r12.py', 'analyze_spray_r10.py', 'common.py']]+list((edition('R10')/'spray').rglob('*'))+list((PKG/'r08_backend').glob('*'))+list((PKG/'r08_nav').glob('*'))+[APP/'build/r08/r08_global_manager',APP/'build/r08_nav_install/lib/libr08_observed_prior.so']+list((PKG/'r07_nav').glob('*'))+[APP/'build/r09/r09_tool_action_server',APP/'build/r09_source/tool_action_server.cpp',APP/'build/r09_source/ToolActuator.cc',APP/'build/r09/libs10_tool_r09.so',PKG/'scripts/tool_build_r09.py',APP/'build/r08/r08_terrain',APP/'build/r08/r08_supervisor',APP/'build/r07_nav_install/lib/libr07_exact_goal.so',BASE/'ws/src/work_ledger/scripts/ledger_core.py'];bound += [PKG/'scripts/global_filter_r10.py',PKG/'r10_backend/correction_filter.hpp',PKG/'r10_backend/stopped_revalidation.inc',APP/'build/r10_global_source/global_manager.cpp',APP/'build/r10_spray_global/r10_global_manager'];bound += [PKG/'scripts/bridge_r10.py',PKG/'r10_backend/tool_bridge.cpp',APP/'build/r10_bridge/r10_tool_bridge'];bound += [PKG/'scripts/spray_global_r10.py',APP/'build/r10_spray_global_source/global_manager.cpp',APP/'build/r10_spray_global_source/stopped_revalidation.inc'];bound += [PKG/'scripts/precision_supervisor_r10.py',PKG/'r10_backend/precision_progress.hpp',APP/'build/r10_spray_bt/r10_spray_supervisor',APP/'build/r10_spray_bt_source/policy.hpp',APP/'build/r10_spray_bt_source/supervisor.cpp'];spec['implementation_bindings']={str(p.relative_to(ROOT)):sha(p) for p in bound if p.is_file()};dump(out/'spec.json',spec);dump(out/'request.json',dict(map_id=source['map_id'],rig_binding_revision=binding['revision'],localization_backend=binding['localization_backend'],rig_revision=binding['rig_revision']))
+ cfg=read((edition('R10')/'spray')/'mission.json');dump(out/'mission.json',cfg);bt=read(edition('R06')/'spray.json');bt.update(session=session,task_version=cfg['version'],rig_revision=cfg['rig']['revision'],precision_progress_policy=cfg['precision_progress_policy']);dump(out/'bt.json',bt)
+ from rig_r08 import bind_adapter
+ bind_adapter(adapt,cfg);spec.update(rig_revision=cfg['rig']['revision'],base_calibration_revision=binding['rig_revision']);dump(out/'spec.json',spec)
+ env=os.environ.copy();env.update(ROS_DOMAIN_ID='119',GZ_PARTITION='r10_'+session,R05_BINDING=str(edition('R05')/task/'binding.json'),R05_ADAPTER=str(adapt),OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1');configure_transport(env,out);env['GZ_SIM_SYSTEM_PLUGIN_PATH']=':'.join([str(APP/'build/r09'),str(APP/'build/platform'),*[str(BASE/'ws/install'/p/'lib') for p in ['sensor_sim_adapter','chassis_bridge','scenario_world','tool_sim']],env.get('GZ_SIM_SYSTEM_PLUGIN_PATH','')]);env['AMENT_PREFIX_PATH']=str(APP/'build/r08_nav_install')+':'+str(APP/'build/r07_nav_install')+':'+env.get('AMENT_PREFIX_PATH','');env['LD_LIBRARY_PATH']=str(APP/'build/r08_nav_install/lib')+':'+str(APP/'build/r07_nav_install/lib')+':'+env.get('LD_LIBRARY_PATH','');raw=env.copy();raw['ROS_DOMAIN_ID']='121';ev=env.copy();ev['ROS_DOMAIN_ID']='120';children=[];records=[];logs=[];forced=[];error=None;server=None;slam=None;retired=set();auxiliary=set();nav_started=False;nav_shutdown=None;fault_sent=False
+ def launch(role,args,e=env,aux=False):
+  log=(out/(role+'.log')).open('w');logs.append(log);p=subprocess.Popen(args,env=environment(role,transport_environment(role,e),out),cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,start_new_session=True);children.append(p);
+  if aux:auxiliary.add(p)
+  records.append(dict(role=role,pid=p.pid,args=args,domain=e['ROS_DOMAIN_ID'],partition=e['GZ_PARTITION'],dds_profile=transport_environment(role,e).get('FASTRTPS_DEFAULT_PROFILES_FILE','DEFAULT')));return p
+ def gz(args):return subprocess.run(['gz',*args],env=env,capture_output=True,text=True,timeout=7)
+ def start_slam(name):return launch(name,[str(BASE/'venvs/scene/bin/python'),str(PKG/'scripts/regional_r08.py'),'--out',str(out/('quality_restarted' if name.endswith('restarted') else 'quality')),'--request',str(out/'request.json')])
+ s05=BASE/'ws/src/localization_guard/scripts';bridge='/opt/ros/jazzy/lib/ros_gz_bridge/parameter_bridge'
+ try:
+  server=launch('server',['gz','sim','--force-version','8','-s','--seed','41',str(out/'scene/world.sdf')]);deadline=time.monotonic()+45
+  while time.monotonic()&lt;deadline:
+   if server.poll() is not None:raise RuntimeError('SERVER_FAILED')
+   if '/world/irregular_farm/control' in gz(['service','-l']).stdout:break
+   time.sleep(.2)
+  else:raise TimeoutError('WORLD_STARTUP')
+  launch('online_bridge',[bridge,'/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock','/s03/encoders@std_msgs/msg/String[gz.msgs.StringMsg','/s03/actuator/request@std_msgs/msg/String]gz.msgs.StringMsg',*['/r07/near_'+u['name']+'/points@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked' for u in cfg['near_sensor']['units']]])
+  launch('tool_bridge',[str(APP/'build/r10_bridge/r10_tool_bridge')])
+  launch('raw_bridge',[bridge,'/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock','/s04/raw/lidar/points@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked','/s04/raw/left@sensor_msgs/msg/Image[gz.msgs.Image','/s04/raw/right@sensor_msgs/msg/Image[gz.msgs.Image','/s04/raw/imu@sensor_msgs/msg/Imu[gz.msgs.IMU','/s04/raw/gnss@sensor_msgs/msg/NavSatFix[gz.msgs.NavSat','/s04/raw/joints@std_msgs/msg/String[gz.msgs.StringMsg'],raw)
+  launch('evaluation_bridge',[bridge,'/s03/evaluation/pose@std_msgs/msg/String[gz.msgs.StringMsg','/s03/evaluation/contacts@ros_gz_interfaces/msg/Contacts[gz.msgs.Contacts','/s10/evaluation/effect@std_msgs/msg/String[gz.msgs.StringMsg'],ev);launch('evaluator',['/usr/bin/python3',str(BASE/'ws/src/chassis_bridge/scripts/evaluator.py'),'--out',str(out/'evaluation')],ev)
+  for mode in ['motion','vision']:launch('generator_'+mode,['/usr/bin/python3',str(adapt/'adapter.py'),'--vehicle',str(out/'scene/vehicle.json'),'--out',str(out/('generation_'+mode)),'--seed','41','--profile','nominal','--streams',mode],raw)
+  launch('fanout',['/usr/bin/python3',str(PKG/'scripts/near_r08.py'),'--out',str(out/'near')]);launch('cloud',['/usr/bin/python3',str(adapt/'cloud_filter.py'),'--out',str(out/'cloud')])
+  launch('icp',['/opt/ros/jazzy/lib/rtabmap_odom/icp_odometry','--ros-args','-r','__node:=s05_icp','-r','__ns:=/s05/icp','--params-file',str(out/'scene/icp.yaml'),'-r','scan_cloud:=/s05/icp/cloud','-r','scan:=/s05/unused_scan','-r','odom:=/s05/icp/raw','-r','odom_info:=/s05/icp/info','-r','/tf:=/s05/internal/icp_tf','--log-level','warn'])
+  for role,script in [('icp_gate','icp_gate.py'),('inputs','input_adapter.py'),('odom_output','odom_output.py')]:launch(role,['/usr/bin/python3',str(adapt/script if role in ['icp_gate','inputs'] else s05/script),'--out',str(out/role)])
+  for name,topic in [('fused','/s05/raw/fused'),('wheel_imu','/s05/raw/wheel_imu')]:launch(name,['/opt/ros/jazzy/lib/robot_localization/ekf_node','--ros-args','-r','__node:=s05_'+name,'-r','__ns:=/s05/'+name,'--params-file',str(out/('scene/'+name+'.yaml')),'-r','odometry/filtered:='+topic,'--log-level','warn','-r','/tf:=/s05/internal/'+name+'_tf'])
+  launch('icp_motion_guess',['/usr/bin/python3',str(PKG/'scripts/guess_r07.py'),'--out',str(out/'icp_motion_guess')])
+  launch('mapping_inputs',['/usr/bin/python3',str(PKG/'scripts/map_inputs_r08.py'),'--out',str(out/'mapping_inputs')]);slam=start_slam('slam_initial');
+  launch('global_sources',[str(BASE/'venvs/scene/bin/python'),str(PKG/'scripts/sources_r07.py'),'--out',str(out/'global_sources'),'--config',str(out/'mission.json')])
+  launch('global_manager',[str(APP/'build/r10_spray_global/r10_global_manager'),'--ros-args','-p','use_sim_time:=true','-p','policy_file:='+str((edition('R10')/'spray')/'manager.json')])
+  launch('reference',['/usr/bin/python3',str(PKG/'scripts/reference_spray_r10.py'),'--out',str(out/'reference'),'--config',str(out/'mission.json')])
+  launch('terrain',[str(APP/'build/r08/r08_terrain'),'--ros-args','-p','use_sim_time:=true','-p','config_file:='+str((edition('R10')/'spray')/'terrain.json')])
+  launch('risk',[str(BASE/'venvs/scene/bin/python'),str(PKG/'scripts/risk_spray_r10.py'),'--out',str(out/'risk'),'--config',str(out/'mission.json')])
+  launch('control',['/usr/bin/python3',str(PKG/'scripts/control_spray_r10.py'),'--out',str(out/'control'),'--config',str(out/'mission.json'),'--session',session])
+  launch('bt',[str(APP/'build/r10_spray_bt/r10_spray_supervisor'),'--ros-args','-p','use_sim_time:=true','-p','config_file:='+str(out/'bt.json'),'-p','tree_file:='+str(edition('R06')/'common.xml'),'-p','log_file:='+str(out/'decisions.jsonl')])
+  launch('tool_observer',['/usr/bin/python3',str(PKG/'scripts/tool_observer_r07.py'),'--out',str(out/'tool_observer'),'--config',str(out/'scene/tool.json')])
+  launch('ledger',[str(BASE/'venvs/scene/bin/python'),str(PKG/'scripts/ledger_spray_r10.py'),'--out',str(out/'ledger'),'--config',str(out/'scene/tool.json')])
+  launch('tool_server',[str(APP/'build/r09/r09_tool_action_server'),'--ros-args','-p','config_file:='+str(out/'scene/tool.json')])
+  launch('tool_evaluator',[str(BASE/'venvs/scene/bin/python'),str(BASE/'ws/src/tool_sim/scripts/evaluator10.py'),'--out',str(out/'tool_evaluation'),'--config',str(out/'scene/tool.json')],ev)
+  for package,name in [('nav2_map_server','map_server'),('nav2_controller','controller_server'),('nav2_planner','planner_server'),('nav2_bt_navigator','bt_navigator'),('nav2_lifecycle_manager','lifecycle_manager')]:
+   launch(name,['/opt/ros/jazzy/lib/'+package+'/'+name,'--ros-args','-r','__node:='+name,'--params-file',str((edition('R10')/'spray')/'nav2.yaml'),'-r','cmd_vel:=/r07/nav_cmd_vel','--log-level','warn'])
+  observer=launch('observer',[str(BASE/'venvs/scene/bin/python'),str(PKG/'scripts/mission_spray_r10.py'),'--out',str(out)])
+  ready=['generation_motion/ready','generation_vision/ready','cloud/ready','icp_gate/ready','inputs/ready','odom_output/ready','icp_motion_guess/ready','mapping_inputs/ready','quality/ready','observer_ready','evaluation/ready','near/ready','reference/ready','global_sources/ready','risk/ready','control/ready','tool_observer/ready','ledger/ready','tool_evaluation/ready'];deadline=time.monotonic()+40
+  while time.monotonic()&lt;deadline:
+   if any(p.poll() is not None for p in children):raise RuntimeError('NODE_STARTUP_FAILED')
+   if all((out/p).exists() for p in ready):break
+   time.sleep(.15)
+  else:raise TimeoutError('NODES_NOT_READY')
+  time.sleep(1.5);r=gz(['service','-s','/world/irregular_farm/control','--reqtype','gz.msgs.WorldControl','--reptype','gz.msgs.Boolean','--timeout','3000','--req','pause: false'])
+  if r.returncode or 'true' not in r.stdout:raise RuntimeError('UNPAUSE_FAILED')
+  restarted=False
+  while time.monotonic()-start&lt;spec['wall_budget']:
+   if observer.poll() is not None:
+    if observer.returncode:raise RuntimeError('OBSERVER_NOT_COMPLETE')
+    break
+   if any(p.poll() is not None for p in children if p not in retired and p not in auxiliary):raise RuntimeError('ESSENTIAL_NODE_EXITED')
+   if case=='tool_jam' and not fault_sent and (out/'live.json').exists():
+    try:task_live=read(out/'live.json')
+    except (ValueError,OSError):task_live={}
+    if task_live.get('phase')=='WORKING' and task_live.get('index')==1:
+     fault=dict(mode='JAM',until=task_live['t']+3.);answer=gz(['topic','-t','/s10/tool/fault','-m','gz.msgs.StringMsg','-p','data: '+json.dumps(json.dumps(fault))]);dump(out/'fault_injection.json',dict(t=task_live['t'],fault=fault,exit=answer.returncode,scope='declared simulator actuator fault; no pose injection'));fault_sent=True
+   reference=out/'reference/live.json'
+   if not nav_started and reference.exists():
+    try:ready_ref=read(reference)
+    except (ValueError,OSError):ready_ref={}
+    if ready_ref.get('valid') and ready_ref.get('t',0)&gt;12:
+</code></pre>
+<p>run 是进程编排入口。先生成本次输出与绑定，再准备 env 和日志，后续通过子进程句柄持续检查并统一收尾。节选只展示函数开头；完整源码中寻找 Popen、finally、SIGINT 与 wait，区分启动成功和任务成功。</p>
+<h3 id="envsh-1-18">env.sh 第 1 至 18 行</h3>
+<p><a href="../../baseline/l02_views/1903d4317881-env.sh.html#L1">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/env.sh#L1">固定 Git 提交</a></p>
+<pre><code class="language-bash">#!/usr/bin/env bash
+# Deliberately rebuild the ROS overlay environment; never source another workspace.
+_V2_ROOT=&quot;$(cd -- &quot;$(dirname -- &quot;${BASH_SOURCE[0]}&quot;)&quot; &amp;&amp; pwd -P)&quot;
+case $- in *u*) _v2_nounset=1; set +u ;; *) _v2_nounset=0 ;; esac
+unset AMENT_PREFIX_PATH CMAKE_PREFIX_PATH COLCON_PREFIX_PATH PYTHONPATH LD_LIBRARY_PATH
+unset VIRTUAL_ENV CONDA_PREFIX ROS_DISTRO ROS_VERSION ROS_PYTHON_VERSION ROS_LOCALHOST_ONLY
+unset GZ_SIM_RESOURCE_PATH GZ_SIM_SYSTEM_PLUGIN_PATH SDF_PATH RMW_IMPLEMENTATION
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+source /opt/ros/jazzy/setup.bash || return $?
+if [[ -f &quot;$_V2_ROOT/ws/install/project_baseline/share/project_baseline/local_setup.bash&quot; ]]; then
+  source &quot;$_V2_ROOT/ws/install/local_setup.bash&quot; || return $?
+fi
+export ROS_DOMAIN_ID=119 ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST ROS_STATIC_PEERS=''
+export GZ_PARTITION=robot_optimization_v2
+export DINO_PROJECT_ROOT=&quot;$(dirname &quot;$_V2_ROOT&quot;)&quot;
+export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 PYTHONDONTWRITEBYTECODE=1
+if (( _v2_nounset )); then set -u; fi
+unset _V2_ROOT _v2_nounset
+</code></pre>
+<p>unset 清理会冲突的旧 overlay，随后 source Jazzy 和当前工作区。这里只设置子进程环境，不安装软件。ROS_DOMAIN_ID 与 GZ_PARTITION 分属 ROS 和 Gazebo 通信域，不应混为一个变量。</p>
+<!-- generated-production-end -->
+
+<h2 id="_3">三种时间不要混用</h2>
+<p>墙钟时间描述现实持续多久；单调时间 <code>time.monotonic()</code> 适合计算进程超时，因为它不受普通系统时间校准影响；仿真时间来自 <code>/clock</code>，可以变慢、暂停甚至重置。日志的北京时间或 UTC 是事件标签，不能与仿真时间直接相减。</p>
+<p>若仿真完成 100 秒，用了现实 250 秒，平均 RTF=100/250=0.4。任务的预算可能还有 200 仿真秒，运行器却已经接近现实超时，两个约束都要检查。Gazebo 暂停时 <code>/clock</code> 不再前进，但进程墙钟看门狗仍可能触发。</p>
+<h2 id="_4">退出码和信号</h2>
+<p>0 常用于成功，非零由程序定义。项目阶段检查的 2 表示未满足通过条件；它可能是 PARTIAL，而不是 Python 语法错误。Unix 信号是另一条控制通道：Ctrl+C 通常向前台进程组发送 SIGINT。程序可以接住信号，设置停止标志，再在 <code>finally</code> 中取消动作、关闭工具、确认停车、释放资源。</p>
+<p>SIGTERM 常用于请求终止，SIGKILL 则无法被程序捕获，不会执行正常清理。因此不能把“杀掉进程”当成“工具已经物理停止”。运行器需要先尝试合作退出，超时才升级处理，并把强制退出单独记账。</p>
+<pre><code class="language-bash">ps -eo pid,ppid,stat,etime,args
+</code></pre>
+<p>这条命令查看进程。<code>pid</code> 是进程号，<code>ppid</code> 是父进程号，<code>stat</code> 是状态，<code>etime</code> 是已经运行的时间，<code>args</code> 是启动参数。它是观察命令，不会停止任何进程。不要复制一个历史 PID 执行 kill；PID 可以被系统重新分配。</p>
+<h2 id="_5">日志为何要分开保存</h2>
+<p>任务事件回答“发生了什么”，标准错误回答“程序为什么失败”，运行器结果回答“各进程怎样退出”。三者不能互相替代。一个任务可能已保存完整反馈，却在 Gazebo 清理时出现 −11；也可能所有进程正常退出，但任务因预算不足保存 PARTIAL。</p>
+<p>JSONL 每行是一条事件，便于流式追加；完整 JSON 适合快照。项目常先写临时文件再 <code>replace</code>，使读者看到旧完整文件或新完整文件，减少读到半截 JSON 的机会。原子替换不自动等于断电后已落盘，持久化强度还取决于同步和文件系统。</p>
+<h2 id="_6">离线练习</h2>
+<pre><code class="language-bash">cd /home/ceihao/self_learning
+python3 examples/l02/labs.py 03
+</code></pre>
+<p>例子把 <code>ROBOT_LESSON=parent</code> 放入子进程环境，子进程打印它并把自己的值改为 child。返回后父进程副本仍为 parent。这样可以实际看到环境的继承方向。<code>capture_output=True</code> 将输出保存在结果对象，<code>timeout=5</code> 限制现实等待时间。</p>
+<!-- generated-lab-start -->
+<h3 id="_7">本章练习核心代码与实际输出</h3>
+<p><a href="../../examples/l02/labs.py">完整教学脚本</a> · <a href="../../validation/L02/lab_03.json">本章完整输出</a></p>
+<p>代码只使用 Python 标准库；合成输入与历史记录在输出 kind 中区分。公共 ROOT、read、wrap、connected 等辅助函数在完整脚本中定义。</p>
+<pre><code class="language-python">def lab03():
+    &quot;&quot;&quot;A child receives a copy of its parent's exported environment.&quot;&quot;&quot;
+    env = os.environ.copy(); env['ROBOT_LESSON'] = 'parent'
+    code = &quot;import os; print(os.environ['ROBOT_LESSON']); os.environ['ROBOT_LESSON']='child'&quot;
+    run = subprocess.run([sys.executable, '-c', code], env=env,
+                         capture_output=True, text=True, timeout=5)
+    assert run.returncode == 0 and env['ROBOT_LESSON'] == 'parent'
+    return dict(child_stdout=run.stdout.strip(), parent_copy=env['ROBOT_LESSON'],
+                exit_code=run.returncode, shell_interpolation=False)
+</code></pre>
+<pre><code class="language-text">{
+  &quot;chapter&quot;: &quot;03&quot;,
+  &quot;passed&quot;: true,
+  &quot;result&quot;: {
+    &quot;child_stdout&quot;: &quot;parent&quot;,
+    &quot;parent_copy&quot;: &quot;parent&quot;,
+    &quot;exit_code&quot;: 0,
+    &quot;shell_interpolation&quot;: false
+  }
+}
+</code></pre>
+<p>本章例子可以在 Windows 使用 <code>py -3</code> 或在 Linux 使用 <code>python3</code> 重跑。它验证局部概念或读取历史证据，不对机器人全任务提供新通过结论。</p>
+<!-- generated-lab-end -->
+
+<h2 id="_8">常见故障与答案</h2>
+<p>新终端找不到 <code>ros2</code>：检查有没有 source，以及 <code>command -v ros2</code> 指向哪里。Python 模块不存在：检查执行的是系统解释器还是 scene 虚拟环境。程序结束但端口占用：确认服务 PID、归属和退出记录，不要系统范围 <code>killall python3</code>。</p>
+<p>问：为什么 <code>exec</code> 常放在启动脚本末尾？答：它用目标程序替换当前 shell 进程，减少额外父层，但它不自动管理目标程序后续创建的所有子进程。</p>
+<p>问：Ctrl+C 后多久可以关终端？答：以运行器收尾日志、最终结果、车体及工具停止确认作为依据；不要仅凭命令行重新出现推断所有物理状态。</p>
+<p>练习：给一个历史运行画出“启动、任务结束、工具停止、进程退出”的四个时间点。若找不到某项证据，标明缺失，不用另一个时间代替。</p></main><footer>L02 内容阅读版 · 固定基线 9aff8337 · 原机器人 R10–R12 PARTIAL · L03 完整站点尚待执行</footer></html>

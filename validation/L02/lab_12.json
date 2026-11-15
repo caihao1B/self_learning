@@ -1,0 +1,12 @@
+{
+  "chapter": "12",
+  "passed": true,
+  "result": {
+    "predicted_m": 1.0,
+    "measured_m": 1.2,
+    "K": 0.7999999999999999,
+    "corrected_m": 1.16,
+    "posterior_variance_m2": 0.008000000000000004,
+    "NIS": 0.7999999999999996
+  }
+}

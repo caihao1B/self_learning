@@ -1,0 +1,51 @@
+{
+  "chapter": "05",
+  "passed": true,
+  "result": {
+    "kind": "synthetic protocol, not ROS action test",
+    "trace": [
+      {
+        "t": 0,
+        "event": "GOAL_SENT",
+        "accepted": false,
+        "terminal": null,
+        "stopped": false
+      },
+      {
+        "t": 1,
+        "event": "ACCEPTED",
+        "accepted": true,
+        "terminal": null,
+        "stopped": false
+      },
+      {
+        "t": 2,
+        "event": "FEEDBACK",
+        "accepted": true,
+        "terminal": null,
+        "stopped": false
+      },
+      {
+        "t": 3,
+        "event": "CANCEL_REQUEST",
+        "accepted": true,
+        "terminal": null,
+        "stopped": false
+      },
+      {
+        "t": 4,
+        "event": "CANCELED",
+        "accepted": true,
+        "terminal": "CANCELED",
+        "stopped": false
+      },
+      {
+        "t": 5,
+        "event": "STOP_CONFIRMED",
+        "accepted": true,
+        "terminal": "CANCELED",
+        "stopped": true
+      }
+    ]
+  }
+}

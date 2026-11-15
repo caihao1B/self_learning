@@ -1,0 +1,13 @@
+{
+  "chapter": "28",
+  "passed": true,
+  "result": {
+    "kind": "synthetic GUI semantics",
+    "badges": [
+      "VALID",
+      "STALE",
+      "REJECTED",
+      "FUTURE_STAMP"
+    ]
+  }
+}

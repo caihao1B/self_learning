@@ -1,0 +1,27 @@
+schema: S13-CONTROL/1
+revision: s13.1
+seed: 41
+control_frequency_hz: 20.0
+speed_mps: 0.12
+minimum_radius_m: 2.11
+acceleration_mps2: 0.5
+deceleration_mps2: 0.8
+yaw_acceleration_radps2: 0.8
+stop_deadline_sim_s: 2.0
+stopped_v_mps: 0.01
+stopped_w_radps: 0.02
+maximum_position_error_m: 0.30
+maximum_heading_error_rad: 0.15
+point_goal_error_m: 0.08
+tracking_p95_target_m: 0.10
+compute_p95_target_ms: 40.0
+lease_age_sim_s: 0.20
+lease_age_wall_s: 0.35
+raw_command_age_sim_s: 0.20
+clock_age_wall_s: 0.20
+steering_entry_error_rad: 0.025
+steering_deadline_sim_s: 3.0
+defaults: {diff: DWB, ackermann: RPP}
+comparisons: {diff: [DWB, MPPI], ackermann: [RPP, MPPI]}
+work_credit: false
+scope: Navigation controller qualification; no S14 task or S10 work completion claim

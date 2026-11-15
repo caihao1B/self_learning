@@ -1,0 +1,83 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>L02 交付与检查结果</title><style>*{box-sizing:border-box}body{margin:0;background:#eff4f5;color:#17343d;font:17px/1.95 "Segoe UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif}header{background:#163c45;color:#e5f3ef;padding:22px max(20px,calc((100vw - 1080px)/2))}header a{color:#bceadf;margin-right:20px}main{max-width:1140px;margin:28px auto;padding:34px 48px;background:white;border:1px solid #dae5e8;border-radius:12px}h1{font-size:32px;line-height:1.5;color:#174b50}h2{margin-top:42px;font-size:24px;color:#256466;border-bottom:1px solid #dce9e8;padding-bottom:9px}h3{font-size:20px;color:#345b62}a{color:#08777a;text-underline-offset:3px}p,li{overflow-wrap:anywhere}pre{background:#112c38;color:#e3f0ed;padding:20px;border-radius:8px;overflow:auto;font:13px/1.8 Consolas,monospace;white-space:pre;overflow-wrap:normal}code{font-family:Consolas,monospace}p code,li code,td code{background:#edf3f4;padding:2px 4px}table{display:block;overflow:auto;border-collapse:collapse;font-size:15px;margin:22px 0}th,td{border:1px solid #cedfe1;padding:10px;min-width:100px;vertical-align:top}th{background:#e6f2ef}img{max-width:100%;height:auto;margin:22px auto;display:block}blockquote{border-left:4px solid #3c9083;padding:8px 20px;background:#f0f7f4;margin:20px 0}.toc{background:#f3f8f7;padding:12px 25px;font-size:14px}footer{max-width:1100px;margin:24px auto;padding:20px;color:#47666c}button{background:#e7f4ed;color:#245448;border:0;padding:7px 12px;border-radius:5px;cursor:pointer}@media(max-width:700px){body{font-size:16px}main{padding:22px 18px;margin:12px;border-radius:8px}h1{font-size:26px}h2{font-size:22px}header{padding:16px}pre{font-size:12px}}@media print{header,footer,button,.toc{display:none}main{border:0;max-width:none;margin:0;padding:0}pre{background:#eee;color:black;white-space:pre-wrap;overflow-wrap:anywhere}a{color:black}h2{break-after:avoid}img{max-height:230mm}}</style><header><a href="../../index.html">学习首页</a><a href="../index.html">三十章目录</a><button onclick="window.print()">打印本章</button></header><main><h1 id="l02">L02 交付与检查结果</h1>
+<p><strong>L02：PASS（教材内容、离线练习与阅读版检查范围）。可以进入 L03，本轮没有执行 L03。</strong> 检查日期为北京时间 2026-11-15。固定机器人基线仍为 <code>9aff8337b7794f704c5556a973a5220e73f17808</code>。</p>
+<h2 id="_1">本轮交付</h2>
+<ul>
+<li>按 L01 目录完成三十章，包含问题背景、算法原理、固定生产代码、编程语言解释、命令与操作、练习、常见故障和自测。第 08 章保留 L01 的详细三点闭环样章并加入本轮源码/练习导航。</li>
+<li>56 段原样生产源码，38 个新增离线带行号源码页；与原 L01 快照合计核对 113 项精选资料。附完整来源路径、固定提交及哈希。</li>
+<li>三十个标准库 Python 练习，明确区分合成输入和真实历史结果；两个 C++ 可执行教学检查程序，直接包含固定快照的实际头文件。</li>
+<li>学习路线、术语/依赖/命令索引、环境迁移说明、三任务启动与 GUI 操作卡、故障分类与诊断方法。</li>
+<li>34 个 L02 阅读页面，包括目录、三十章和三个附录；保留 L01 阅读入口。图文与源码本地可读，无 CDN 依赖。新增六张算法/流程图。</li>
+</ul>
+<p>正文及内嵌源码、练习输出合计约 25.4 万字符，其中作者讲解等正文约 8.0 万字符。这里是字符统计，不是中文字数或独创文字数；实际逐章统计见 <a href="../catalog.json">catalog.json</a>。</p>
+<h2 id="_2">实际完成的检查</h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>结果</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>机器人源码固定性</td>
+<td>821 / 821 一致</td>
+<td>只读比较 Git blob，没有修改机器人源码</td>
+</tr>
+<tr>
+<td>精选快照</td>
+<td>113 项摘要一致</td>
+<td>同时核对 L01 与 L02 的固定来源</td>
+</tr>
+<tr>
+<td>三十章结构与源码</td>
+<td>30 章、56 段通过</td>
+<td>节选逐字节匹配对应源文件与行号</td>
+</tr>
+<tr>
+<td>Python 离线练习</td>
+<td>30 / 30 运行成功</td>
+<td>局部教学或历史分析，不是机器人仿真</td>
+</tr>
+<tr>
+<td>原精停 C++ 示例</td>
+<td>编译、运行通过</td>
+<td>普通/精停/超范围输出符合预期</td>
+</tr>
+<tr>
+<td>新增 C++ 直接函数检查</td>
+<td>9 / 9 通过</td>
+<td>范围/有限性、修正滤波、自车点分类</td>
+</tr>
+<tr>
+<td>Bash 命令块</td>
+<td>47 块语法通过</td>
+<td>只运行 bash -n，没有执行安装和仿真命令</td>
+</tr>
+<tr>
+<td>本地 HTML/锚点</td>
+<td>73 页、四千余项引用通过</td>
+<td>含 L02、源码页与根入口，详情见机器回执</td>
+</tr>
+<tr>
+<td>浏览器逐章检查</td>
+<td>30 章共 210 项通过</td>
+<td>Linux Chrome、file URL、图片、正文、代码与导航</td>
+</tr>
+<tr>
+<td>共享阅读检查</td>
+<td>7 项通过</td>
+<td>目录、窄屏、打印、源码页与无脚本异常</td>
+</tr>
+</tbody>
+</table>
+<p>详细回执：<a href="../../validation/L02/package_check.json">内容与程序检查</a>、<a href="../../validation/L02/browser_check.json">浏览器检查</a>、<a href="../../validation/L02/robot_source_check.json">821 项源码核查</a>、<a href="../../validation/L02/build.json">构建统计</a>、<a href="../../validation/L02/native_cpp.txt">C++ 实际输出</a>。检查脚本与使用方法见 <a href="../../tools/README.md">tools/README.md</a>。</p>
+<p>浏览器还保存了 <a href="../../validation/L02/contents_desktop.png">目录截图</a>、<a href="../../validation/L02/chapter_14_desktop.png">定位章节截图</a>与<a href="../../validation/L02/code_mobile.png">窄屏代码截图</a>。长代码在屏幕内独立横向滚动，打印时换行；没有把代码改写成图片。</p>
+<h2 id="_3">状态边界保持不变</h2>
+<p>R08/R09 保留 PASS；R10/R11/R12 保留 PARTIAL；原正式 S17/S18 仍为 PARTIAL。当前完整 A1 保存结果为 28/56，安全执行 B1 保存结果为 19/47；没有用教材练习、短演示、录像成功或允许残余替换这些原验收结论。历史状态来源见 <a href="../../L01/00_baseline.md">L01 事实边界</a> 和 <a href="../../validation/stage_checks.json">历史阶段检查</a>。</p>
+<p>本轮未运行机器人仿真、六十次矩阵或系统依赖安装，也未改变固定机器人源码与原验收门限。软件源命令供读者按自己的机器执行；它们的语法检查不等于新机器搭建已通过。</p>
+<p>Windows 原生浏览器体验仍为 <strong>PENDING_USER</strong>；本轮实际完成的是 Linux Chrome 的本地页面、桌面/窄屏和打印样式检查。大型地图数据库、参考云、完整环境与长视频并非都包含在学习仓库，不能宣称下载教材即可完整启动机器人。</p>
+<h2 id="_4">手工阅读与学习检查</h2>
+<p>Windows：下载完整仓库 ZIP，解压后打开根目录 <code>index.html</code>，进入 L02。先读第 01–06 章，再结合第 08 章观察完整闭环；需要上机时读第 26–29 章。可按 Ctrl+F 在本章查词。跨章搜索、完整站点发布与更多阅读交互由 L03 完成。</p>
+<p>Linux：在学习仓库根目录执行 <code>python3 examples/l02/labs.py all</code>，应看到三十条 passed=true 输出。C++ 的编译步骤见第 04、14 章。真实机器人操作见第 27 章；先检查资源与历史绑定，再选择一个有界案例。</p>
+<p>进入 L03 的条件已经具备：三十章正文和固定引用齐全，离线练习通过，读取入口可用。L03 应继续保留这些事实边界，完成学习站导航、跨章检索、代码阅读体验、素材组织与在线/离线发布验收；本轮不代替用户完成 Windows 原生人工确认。</p></main><footer>L02 内容阅读版 · 固定基线 9aff8337 · 原机器人 R10–R12 PARTIAL · L03 完整站点尚待执行</footer></html>

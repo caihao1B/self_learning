@@ -1,0 +1,11 @@
+{
+  "chapter": "20",
+  "passed": true,
+  "result": {
+    "kind": "parallel-strip teaching union, not polygon solver",
+    "confirmed_area_m2": 14.0,
+    "original_area_m2": 100.0,
+    "remaining_m2": 86.0,
+    "coverage_fraction": 0.14
+  }
+}

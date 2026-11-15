@@ -1,0 +1,18 @@
+{
+  "chapter": "30",
+  "passed": true,
+  "result": {
+    "kind": "teaching dependency graph",
+    "changed": "vehicle",
+    "recheck": [
+      "controller",
+      "full_trial",
+      "localization",
+      "plan",
+      "sensor_extrinsics",
+      "short_trial",
+      "task_version",
+      "vehicle"
+    ]
+  }
+}

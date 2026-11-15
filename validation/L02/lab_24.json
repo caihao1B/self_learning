@@ -1,0 +1,25 @@
+{
+  "chapter": "24",
+  "passed": true,
+  "result": {
+    "kind": "synthetic state machine",
+    "trace": [
+      {
+        "event": "CANCEL_REQUEST",
+        "new_goal_allowed": false
+      },
+      {
+        "event": "CANCEL_ACK",
+        "new_goal_allowed": false
+      },
+      {
+        "event": "MEASURED_STOP",
+        "new_goal_allowed": true
+      },
+      {
+        "event": "NEW_GOAL",
+        "new_goal_allowed": true
+      }
+    ]
+  }
+}

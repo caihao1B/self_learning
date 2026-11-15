@@ -1,0 +1,18 @@
+{
+  "chapter": "14",
+  "passed": true,
+  "result": {
+    "kind": "synthetic pose with production-style gate",
+    "antenna_m": [
+      10.0,
+      20.5
+    ],
+    "residual_m": [
+      0.02999999999999936,
+      0.019999999999999574
+    ],
+    "NIS": 0.4482758620689463,
+    "threshold_2d": 9.21,
+    "omitted_arm_residual_m": 0.5208646657242162
+  }
+}

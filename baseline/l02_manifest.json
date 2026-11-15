@@ -1,0 +1,1204 @@
+{
+  "commit": "9aff8337b7794f704c5556a973a5220e73f17808",
+  "tree": "0e71e12fbf3bfa67295abd9cec071c6edc9bd531",
+  "entries": [
+    {
+      "path": "optimization_v2/ws/src/scenario_world/scripts/generate_scene.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/scenario_world/scripts/generate_scene.py",
+      "sha256": "d71792794a9f3f686a3cef7bdd7e3c704cccaf978c1f92b6a8dda263f739168c",
+      "git_blob": "c023623d7746bc2d77fa67be08a9703bf059bd61",
+      "bytes": 12937,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/scenario_world/scripts/generate_scene.py",
+      "symbols": [
+        {
+          "name": "dump",
+          "line": 14,
+          "end": 15
+        },
+        {
+          "name": "feature",
+          "line": 16,
+          "end": 16
+        },
+        {
+          "name": "collection",
+          "line": 17,
+          "end": 17
+        },
+        {
+          "name": "geometries",
+          "line": 18,
+          "end": 33
+        },
+        {
+          "name": "write_mesh",
+          "line": 34,
+          "end": 41
+        },
+        {
+          "name": "mesh_polygon",
+          "line": 42,
+          "end": 50
+        },
+        {
+          "name": "text",
+          "line": 51,
+          "end": 51
+        },
+        {
+          "name": "geom",
+          "line": 52,
+          "end": 57
+        },
+        {
+          "name": "part",
+          "line": 58,
+          "end": 64
+        },
+        {
+          "name": "model",
+          "line": 65,
+          "end": 71
+        },
+        {
+          "name": "target",
+          "line": 72,
+          "end": 73
+        },
+        {
+          "name": "generate",
+          "line": 74,
+          "end": 150
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/sensor_sim_adapter/scripts/adapter.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/sensor_sim_adapter/scripts/adapter.py",
+      "sha256": "14de986abb943fb6f16d800335c634450b6d6d9ddde204f7cad38a299a3a99cb",
+      "git_blob": "a09315a46708e818c8f86e3a93c579ee386dd22c",
+      "bytes": 12088,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/sensor_sim_adapter/scripts/adapter.py",
+      "symbols": [
+        {
+          "name": "Adapter",
+          "line": 22,
+          "end": 107
+        },
+        {
+          "name": "main",
+          "line": 108,
+          "end": 115
+        },
+        {
+          "name": "__init__",
+          "line": 23,
+          "end": 41
+        },
+        {
+          "name": "clock",
+          "line": 42,
+          "end": 46
+        },
+        {
+          "name": "audit",
+          "line": 47,
+          "end": 47
+        },
+        {
+          "name": "enqueue",
+          "line": 48,
+          "end": 51
+        },
+        {
+          "name": "flush",
+          "line": 52,
+          "end": 59
+        },
+        {
+          "name": "cloud",
+          "line": 60,
+          "end": 71
+        },
+        {
+          "name": "camera",
+          "line": 72,
+          "end": 79
+        },
+        {
+          "name": "imu",
+          "line": 80,
+          "end": 88
+        },
+        {
+          "name": "wheel",
+          "line": 89,
+          "end": 95
+        },
+        {
+          "name": "gnss",
+          "line": 96,
+          "end": 104
+        },
+        {
+          "name": "finish",
+          "line": 105,
+          "end": 107
+        },
+        {
+          "name": "end",
+          "line": 111,
+          "end": 111
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/sensor_sim_adapter/scripts/common.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/sensor_sim_adapter/scripts/common.py",
+      "sha256": "19f41820cbb490f88d97bfdbc1bd38eafa3b00799518e0bbc0827c0d0c540601",
+      "git_blob": "55637f67745e285d7b665a2a3fd502859a20a5b2",
+      "bytes": 1967,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/sensor_sim_adapter/scripts/common.py",
+      "symbols": [
+        {
+          "name": "read",
+          "line": 7,
+          "end": 7
+        },
+        {
+          "name": "dump",
+          "line": 8,
+          "end": 9
+        },
+        {
+          "name": "settings",
+          "line": 10,
+          "end": 10
+        },
+        {
+          "name": "stamp",
+          "line": 11,
+          "end": 11
+        },
+        {
+          "name": "set_stamp",
+          "line": 12,
+          "end": 12
+        },
+        {
+          "name": "phase",
+          "line": 13,
+          "end": 13
+        },
+        {
+          "name": "ecef",
+          "line": 14,
+          "end": 16
+        },
+        {
+          "name": "geodetic",
+          "line": 17,
+          "end": 21
+        },
+        {
+          "name": "enu_rotation",
+          "line": 22,
+          "end": 23
+        },
+        {
+          "name": "to_enu",
+          "line": 24,
+          "end": 24
+        },
+        {
+          "name": "from_enu",
+          "line": 25,
+          "end": 25
+        },
+        {
+          "name": "config_hash",
+          "line": 26,
+          "end": 26
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/localization_guard/scripts/icp_gate.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/localization_guard/scripts/icp_gate.py",
+      "sha256": "4eb16d3d48129626015adc0e8dbeda1450cece2c2b4f7bf6595ebf53c377a9ae",
+      "git_blob": "f4138c966e7e436a8f49d8c0398c4bab5184b45d",
+      "bytes": 5348,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/localization_guard/scripts/icp_gate.py",
+      "symbols": [
+        {
+          "name": "main",
+          "line": 12,
+          "end": 69
+        },
+        {
+          "name": "clock",
+          "line": 16,
+          "end": 19
+        },
+        {
+          "name": "geom",
+          "line": 21,
+          "end": 23
+        },
+        {
+          "name": "emit",
+          "line": 24,
+          "end": 54
+        },
+        {
+          "name": "drain",
+          "line": 55,
+          "end": 59
+        },
+        {
+          "name": "odom",
+          "line": 60,
+          "end": 60
+        },
+        {
+          "name": "info",
+          "line": 61,
+          "end": 61
+        },
+        {
+          "name": "epoch",
+          "line": 62,
+          "end": 62
+        },
+        {
+          "name": "end",
+          "line": 65,
+          "end": 65
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/localization_guard/scripts/cloud_filter.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/localization_guard/scripts/cloud_filter.py",
+      "sha256": "d6e426d12021d19359f213ad6b4da9b8df43dc39380628ad87a77dad28b64e22",
+      "git_blob": "15deaec1c89394f3b9a167f9ace8bcc0176a9ab0",
+      "bytes": 3013,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/localization_guard/scripts/cloud_filter.py",
+      "symbols": [
+        {
+          "name": "geometry",
+          "line": 11,
+          "end": 14
+        },
+        {
+          "name": "main",
+          "line": 15,
+          "end": 36
+        },
+        {
+          "name": "cloud",
+          "line": 18,
+          "end": 30
+        },
+        {
+          "name": "end",
+          "line": 32,
+          "end": 32
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/localization_guard/scripts/input_adapter.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/localization_guard/scripts/input_adapter.py",
+      "sha256": "53f91b5326f1d6d540af20e6be8bc1941618f6cd3cb30e5d0f8233a28ed596ec",
+      "git_blob": "b2fcd7700954be58274a72c6323fea3ee918965c",
+      "bytes": 8056,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/localization_guard/scripts/input_adapter.py",
+      "symbols": [
+        {
+          "name": "Inputs",
+          "line": 12,
+          "end": 74
+        },
+        {
+          "name": "main",
+          "line": 75,
+          "end": 81
+        },
+        {
+          "name": "__init__",
+          "line": 13,
+          "end": 19
+        },
+        {
+          "name": "reset_state",
+          "line": 20,
+          "end": 21
+        },
+        {
+          "name": "reset",
+          "line": 22,
+          "end": 28
+        },
+        {
+          "name": "request_reset",
+          "line": 29,
+          "end": 29
+        },
+        {
+          "name": "clock",
+          "line": 30,
+          "end": 33
+        },
+        {
+          "name": "icp",
+          "line": 34,
+          "end": 34
+        },
+        {
+          "name": "imu",
+          "line": 35,
+          "end": 49
+        },
+        {
+          "name": "wheel",
+          "line": 50,
+          "end": 74
+        },
+        {
+          "name": "end",
+          "line": 77,
+          "end": 77
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/map_manager/scripts/mapping_export.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/map_manager/scripts/mapping_export.py",
+      "sha256": "ef62d587b8b74cfa5db53ce72c9b9debd92bfe4c552733ba98152dc084c996a3",
+      "git_blob": "32ec540e1cba2f26953c9dfa6e3ac83c59c7d393",
+      "bytes": 3059,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/map_manager/scripts/mapping_export.py",
+      "symbols": [
+        {
+          "name": "command",
+          "line": 4,
+          "end": 9
+        },
+        {
+          "name": "safe",
+          "line": 10,
+          "end": 15
+        },
+        {
+          "name": "verify_manifest",
+          "line": 16,
+          "end": 21
+        },
+        {
+          "name": "export",
+          "line": 22,
+          "end": 38
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/map_manager/src/graph_probe.cpp",
+      "local": "baseline/l02_source/optimization_v2/ws/src/map_manager/src/graph_probe.cpp",
+      "sha256": "e53d49fd97bff132a48f639883bd268a73aa70df4e02f94f082e4036edf43eef",
+      "git_blob": "4fae88bfd6c80372a0c603575fcfa31c162832f0",
+      "bytes": 5479,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/map_manager/src/graph_probe.cpp"
+    },
+    {
+      "path": "optimization_v2/ws/src/gnss_supervisor/src/gnss_supervisor.cpp",
+      "local": "baseline/l02_source/optimization_v2/ws/src/gnss_supervisor/src/gnss_supervisor.cpp",
+      "sha256": "e4d1fad6cabd9555e17c35fb8b92cea9608f004fcb4261a7bfadc17fde9b1e5f",
+      "git_blob": "4824567af56cdb311cc3fa6a5c9b5e4c7ccb3b62",
+      "bytes": 12238,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/gnss_supervisor/src/gnss_supervisor.cpp"
+    },
+    {
+      "path": "optimization_v2/ws/src/terrain_perception/include/terrain_perception/risk.hpp",
+      "local": "baseline/l02_source/optimization_v2/ws/src/terrain_perception/include/terrain_perception/risk.hpp",
+      "sha256": "889bd78cfe78655ce578e408ec00286082078b13db546fdbf484e3fb267fb8d5",
+      "git_blob": "85f81f96c80c42b78ea792466e211c3c9fb87f5f",
+      "bytes": 827,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/terrain_perception/include/terrain_perception/risk.hpp"
+    },
+    {
+      "path": "optimization_v2/ws/src/terrain_perception/src/terrain_node.cpp",
+      "local": "baseline/l02_source/optimization_v2/ws/src/terrain_perception/src/terrain_node.cpp",
+      "sha256": "abbb0138f87cfa1d6ba903d3da8623e38a2315b46b5150dbf912da3901c872f9",
+      "git_blob": "09b4cef796c4b642adcf1a5bc0bd3bb29a31df92",
+      "bytes": 11360,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/terrain_perception/src/terrain_node.cpp"
+    },
+    {
+      "path": "optimization_v2/ws/src/object_fusion/scripts/tracker.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/object_fusion/scripts/tracker.py",
+      "sha256": "6501f9350ae5059c57177a54d7ccd7f969bc034b063817453316e10cdca7abfd",
+      "git_blob": "bed4845950971e68c5839e28f0b9cc72089e50eb",
+      "bytes": 2828,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/object_fusion/scripts/tracker.py",
+      "symbols": [
+        {
+          "name": "Tracker",
+          "line": 4,
+          "end": 36
+        },
+        {
+          "name": "__init__",
+          "line": 5,
+          "end": 5
+        },
+        {
+          "name": "update",
+          "line": 6,
+          "end": 36
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/experience_memory/scripts/engine16.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/experience_memory/scripts/engine16.py",
+      "sha256": "104359d4742ac25b977fa67a8c4160202cce95b3e44390dd33454ff121957fa7",
+      "git_blob": "346ddacd6041d3bf4b64882b040ced7af78381e8",
+      "bytes": 2827,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/experience_memory/scripts/engine16.py",
+      "symbols": [
+        {
+          "name": "MemoryEngine",
+          "line": 7,
+          "end": 43
+        },
+        {
+          "name": "__init__",
+          "line": 8,
+          "end": 14
+        },
+        {
+          "name": "predict",
+          "line": 15,
+          "end": 43
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/experience_memory/scripts/features16.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/experience_memory/scripts/features16.py",
+      "sha256": "ca366106523eed22112206c3180bf03086e20b1a4b48b17550b94a5b1c10667a",
+      "git_blob": "a2bca86d63db2034bcaa8d70574f5e5e0c0c65c0",
+      "bytes": 4071,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/experience_memory/scripts/features16.py",
+      "symbols": [
+        {
+          "name": "Admission",
+          "line": 6,
+          "end": 13
+        },
+        {
+          "name": "context",
+          "line": 14,
+          "end": 27
+        },
+        {
+          "name": "Trigger",
+          "line": 28,
+          "end": 42
+        },
+        {
+          "name": "CausalContext",
+          "line": 44,
+          "end": 55
+        },
+        {
+          "name": "__init__",
+          "line": 7,
+          "end": 10
+        },
+        {
+          "name": "check",
+          "line": 11,
+          "end": 13
+        },
+        {
+          "name": "__init__",
+          "line": 29,
+          "end": 29
+        },
+        {
+          "name": "event",
+          "line": 30,
+          "end": 42
+        },
+        {
+          "name": "__init__",
+          "line": 46,
+          "end": 48
+        },
+        {
+          "name": "add_status",
+          "line": 49,
+          "end": 49
+        },
+        {
+          "name": "add_robot",
+          "line": 50,
+          "end": 50
+        },
+        {
+          "name": "at",
+          "line": 51,
+          "end": 55
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/motion_prediction/scripts/imm15.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/motion_prediction/scripts/imm15.py",
+      "sha256": "8092e8e61ace7beef3711b9e6231c30180d472b04b24d92fbfbbd8bb6c18b238",
+      "git_blob": "33d3751607f036b08007dc9701e9b08dc1b475d7",
+      "bytes": 5379,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/motion_prediction/scripts/imm15.py",
+      "symbols": [
+        {
+          "name": "transition",
+          "line": 13,
+          "end": 30
+        },
+        {
+          "name": "covariance",
+          "line": 33,
+          "end": 40
+        },
+        {
+          "name": "process_noise",
+          "line": 43,
+          "end": 45
+        },
+        {
+          "name": "IMM",
+          "line": 48,
+          "end": 117
+        },
+        {
+          "name": "__init__",
+          "line": 49,
+          "end": 65
+        },
+        {
+          "name": "update",
+          "line": 67,
+          "end": 99
+        },
+        {
+          "name": "predict",
+          "line": 101,
+          "end": 117
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/motion_prediction/scripts/trajectron15.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/motion_prediction/scripts/trajectron15.py",
+      "sha256": "f4372fb15365437a7cbc7f78e38bfda5b315beb8c36277df98e68e29bb151a52",
+      "git_blob": "f6efccfba5dc479e600fd38959fc7361624f5bb0",
+      "bytes": 5172,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/motion_prediction/scripts/trajectron15.py",
+      "symbols": [
+        {
+          "name": "Trajectron",
+          "line": 15,
+          "end": 94
+        },
+        {
+          "name": "__init__",
+          "line": 16,
+          "end": 40
+        },
+        {
+          "name": "predict",
+          "line": 43,
+          "end": 94
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/coverage_partition/scripts/geometry11.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/coverage_partition/scripts/geometry11.py",
+      "sha256": "0bca4b9508a5af743546ff7187163637fbb18c558c0f8df6f74e1adbed8b44c5",
+      "git_blob": "26c59c4a8e76c043ab95eb92608159f8780a7665",
+      "bytes": 7370,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/coverage_partition/scripts/geometry11.py",
+      "symbols": [
+        {
+          "name": "parameters",
+          "line": 9,
+          "end": 12
+        },
+        {
+          "name": "polygons",
+          "line": 14,
+          "end": 19
+        },
+        {
+          "name": "components",
+          "line": 21,
+          "end": 29
+        },
+        {
+          "name": "load_domain",
+          "line": 31,
+          "end": 58
+        },
+        {
+          "name": "build_graph",
+          "line": 60,
+          "end": 104
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/coverage_partition/scripts/partition11.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/coverage_partition/scripts/partition11.py",
+      "sha256": "e654921ca2a15e22c51fab7b7094d57015216477b6e437c898016455bb46a20c",
+      "git_blob": "89f0b69af4dac15937028921abb983c9ec6bc62d",
+      "bytes": 9724,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/coverage_partition/scripts/partition11.py",
+      "symbols": [
+        {
+          "name": "metis",
+          "line": 9,
+          "end": 19
+        },
+        {
+          "name": "kmeans",
+          "line": 21,
+          "end": 35
+        },
+        {
+          "name": "repair",
+          "line": 37,
+          "end": 78
+        },
+        {
+          "name": "verify",
+          "line": 80,
+          "end": 102
+        },
+        {
+          "name": "solve",
+          "line": 104,
+          "end": 127
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/planning_r03.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/scripts/planning_r03.py",
+      "sha256": "a2602a00134c47226d575f9935a54f0d3cf306679a5a5b134671a98f9c1e39a1",
+      "git_blob": "76e6a0c34b7ecceaad404b56186d616c1cf56b5f",
+      "bytes": 12804,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/planning_r03.py",
+      "symbols": [
+        {
+          "name": "curve_line",
+          "line": 19,
+          "end": 20
+        },
+        {
+          "name": "footprint_ok",
+          "line": 22,
+          "end": 25
+        },
+        {
+          "name": "segment",
+          "line": 27,
+          "end": 29
+        },
+        {
+          "name": "visibility",
+          "line": 31,
+          "end": 55
+        },
+        {
+          "name": "spray_plan",
+          "line": 57,
+          "end": 75
+        },
+        {
+          "name": "mowing_plan",
+          "line": 77,
+          "end": 123
+        },
+        {
+          "name": "plan_all",
+          "line": 125,
+          "end": 144
+        },
+        {
+          "name": "lines",
+          "line": 79,
+          "end": 82
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/rig_r08.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/scripts/rig_r08.py",
+      "sha256": "faf89efd43487884aafbe515e39e2d3e9af72edfa2c9a5034d51adf3f96aedb3",
+      "git_blob": "d48de430837239a165f05342831419520e61d9e8",
+      "bytes": 2017,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/rig_r08.py",
+      "symbols": [
+        {
+          "name": "effective_rig",
+          "line": 5,
+          "end": 12
+        },
+        {
+          "name": "validate",
+          "line": 14,
+          "end": 19
+        },
+        {
+          "name": "runtime_rig",
+          "line": 21,
+          "end": 23
+        },
+        {
+          "name": "apply_scene",
+          "line": 25,
+          "end": 28
+        },
+        {
+          "name": "bind_adapter",
+          "line": 30,
+          "end": 34
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/startup_r08.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/scripts/startup_r08.py",
+      "sha256": "0840c673601c3a34309b36bb2b33845f2a7fad1b68158957cce02c6e51f6869e",
+      "git_blob": "3dd2ba851af157c99f48807fff09042cf2107382",
+      "bytes": 614,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/startup_r08.py",
+      "symbols": [
+        {
+          "name": "stable_corrections",
+          "line": 3,
+          "end": 6
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/tracking_error_r08.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/scripts/tracking_error_r08.py",
+      "sha256": "30b9f8218b06d2a39508a9e3dfbc73a8c17511ec6b6751adc5bb435c51346f9b",
+      "git_blob": "d2b265f7984b1abb8b636b9ae3a8478ea55ea0e8",
+      "bytes": 1137,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/tracking_error_r08.py",
+      "symbols": [
+        {
+          "name": "errors",
+          "line": 5,
+          "end": 18
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/obstruction_memory_r10.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/scripts/obstruction_memory_r10.py",
+      "sha256": "632f85b5555f7d69799fdc45daa74b55514697ad3d98ab646aa3d3907c7c31f5",
+      "git_blob": "28408b25f9aed65df8683722aa8e47882ed486f7",
+      "bytes": 1121,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/obstruction_memory_r10.py",
+      "symbols": [
+        {
+          "name": "ObstructionMemory",
+          "line": 9,
+          "end": 24
+        },
+        {
+          "name": "__init__",
+          "line": 10,
+          "end": 12
+        },
+        {
+          "name": "update",
+          "line": 13,
+          "end": 24
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/r09_backend/self_filter.hpp",
+      "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/r09_backend/self_filter.hpp",
+      "sha256": "fcb035de32d1e43ea92bd545bcb463eaa01444bcad7c38ceb65cd6cd8bac29b6",
+      "git_blob": "ad9f5dcd805c12257c9d5d95c61c4e21eb1e2f44",
+      "bytes": 608,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/r09_backend/self_filter.hpp"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/r08_backend/surface_statistics.hpp",
+      "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/r08_backend/surface_statistics.hpp",
+      "sha256": "2df4a08c311509afded0dab2a76c725238e1574374f49245a3d406b90bb65917",
+      "git_blob": "def7f3c1ccc8db459ada263cf719f09be04d8998",
+      "bytes": 1674,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/r08_backend/surface_statistics.hpp"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/r08_nav/observed_prior.cpp",
+      "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/r08_nav/observed_prior.cpp",
+      "sha256": "fe180c93d8d084dd0f87099a8f59812fd4f398666ad7e1e80d5c6090a8b47b41",
+      "git_blob": "6e3ead2f86df9fbad9b705e34aa0d8baca5c2575",
+      "bytes": 3238,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/r08_nav/observed_prior.cpp"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/r07_nav/exact_goal.cpp",
+      "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/r07_nav/exact_goal.cpp",
+      "sha256": "15fb3e3876a00ff46b6700df1fa1b6a605a1aa66de558ce085b5d9dc5018d776",
+      "git_blob": "f28a0dbf16d7f87a51b90c066ba7617dc1d9cd4a",
+      "bytes": 2970,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/r07_nav/exact_goal.cpp"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/mission_r08.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/scripts/mission_r08.py",
+      "sha256": "5a26b755fc15359e0098b019504f527cf86a59228b4dd80ba4d3e05533555425",
+      "git_blob": "f246e0914555f32f0ebf3f9f38f9a9cd4871c74d",
+      "bytes": 13672,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/mission_r08.py",
+      "symbols": [
+        {
+          "name": "yaw",
+          "line": 15,
+          "end": 15
+        },
+        {
+          "name": "main",
+          "line": 16,
+          "end": 130
+        },
+        {
+          "name": "log",
+          "line": 19,
+          "end": 20
+        },
+        {
+          "name": "publish",
+          "line": 23,
+          "end": 29
+        },
+        {
+          "name": "tick",
+          "line": 31,
+          "end": 39
+        },
+        {
+          "name": "wait",
+          "line": 40,
+          "end": 44
+        },
+        {
+          "name": "result",
+          "line": 45,
+          "end": 45
+        },
+        {
+          "name": "cancel",
+          "line": 46,
+          "end": 50
+        },
+        {
+          "name": "pose",
+          "line": 51,
+          "end": 52
+        },
+        {
+          "name": "path_goal",
+          "line": 53,
+          "end": 61
+        },
+        {
+          "name": "bt_ready",
+          "line": 62,
+          "end": 62
+        },
+        {
+          "name": "replan_query",
+          "line": 63,
+          "end": 76
+        },
+        {
+          "name": "stop",
+          "line": 77,
+          "end": 77
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/prepare_safe_plan_r10.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/scripts/prepare_safe_plan_r10.py",
+      "sha256": "d6280e6b50e6817765b51046c8228b921ea2dd76d4504c0fe7f690097607bce6",
+      "git_blob": "20e463e8c738b5630941ac89e4d49863af18cedc",
+      "bytes": 8014,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/prepare_safe_plan_r10.py",
+      "symbols": [
+        {
+          "name": "prepare",
+          "line": 15,
+          "end": 74
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/safe_plan_r10.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/scripts/safe_plan_r10.py",
+      "sha256": "f1fb6bd2d929119b2ac9b83b0a488ff6fee59c8b48c0ff27488844ee2c5aaaf0",
+      "git_blob": "2bfd744cd9c90839f218f10630f387601102f7a3",
+      "bytes": 4747,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/safe_plan_r10.py",
+      "symbols": [
+        {
+          "name": "validate",
+          "line": 12,
+          "end": 50
+        },
+        {
+          "name": "load_checked",
+          "line": 53,
+          "end": 62
+        },
+        {
+          "name": "work_identity",
+          "line": 65,
+          "end": 67
+        },
+        {
+          "name": "requested_target",
+          "line": 70,
+          "end": 72
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/tracker_r08.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/scripts/tracker_r08.py",
+      "sha256": "e0c967e86c065ac985601a8ebbf1da3e8fab581061c2a548674d1b1384a58c19",
+      "git_blob": "7d8f91beaf468f8de41c8b304cde9d737ae601a1",
+      "bytes": 6445,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/tracker_r08.py",
+      "symbols": [
+        {
+          "name": "main",
+          "line": 16,
+          "end": 57
+        },
+        {
+          "name": "path",
+          "line": 19,
+          "end": 24
+        },
+        {
+          "name": "geometry",
+          "line": 26,
+          "end": 50
+        },
+        {
+          "name": "stop",
+          "line": 52,
+          "end": 52
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/terrain_r08.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/scripts/terrain_r08.py",
+      "sha256": "5f305458ad9eaccc48bc9f6db24af32fb7830c7edc1fa4856993522e04843f59",
+      "git_blob": "096168d48d1fd22938b93b9823fe283edc1fb8dd",
+      "bytes": 4570,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/terrain_r08.py",
+      "symbols": [
+        {
+          "name": "cooperative_main",
+          "line": 4,
+          "end": 7
+        },
+        {
+          "name": "build_terrain",
+          "line": 9,
+          "end": 22
+        },
+        {
+          "name": "build_navigation",
+          "line": 24,
+          "end": 43
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/terrain_r09.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/scripts/terrain_r09.py",
+      "sha256": "41502e0c4a2615edf759fe478ee714211a43458fff0fcc1df812f10e7f657143",
+      "git_blob": "ab406c7fc7cbc91ee33521ede80170d41b4d9b1f",
+      "bytes": 1472,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/terrain_r09.py",
+      "symbols": [
+        {
+          "name": "put",
+          "line": 3,
+          "end": 4
+        },
+        {
+          "name": "build_terrain",
+          "line": 5,
+          "end": 14
+        }
+      ]
+    },
+    {
+      "path": "optimization_v2/config/slam_mapping.yaml",
+      "local": "baseline/l02_source/optimization_v2/config/slam_mapping.yaml",
+      "sha256": "84d0a89eccad62bc5ea2c3162cb871a943af189f60bfb2627865562272920a3d",
+      "git_blob": "c11e3055ddc26e099704b6bca1c8f1e2df6d46ec",
+      "bytes": 1943,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/config/slam_mapping.yaml"
+    },
+    {
+      "path": "optimization_v2/config/slam_localization.yaml",
+      "local": "baseline/l02_source/optimization_v2/config/slam_localization.yaml",
+      "sha256": "486a74a6a12d1ff519db05ed90fe1e6ce72e6fbfc6a0da58128bd0c1914e785c",
+      "git_blob": "c4d2bb64f4832324864e4795f8000328c6107518",
+      "bytes": 2447,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/config/slam_localization.yaml"
+    },
+    {
+      "path": "optimization_v2/config/local_estimator.yaml",
+      "local": "baseline/l02_source/optimization_v2/config/local_estimator.yaml",
+      "sha256": "8261ede9d1b6e3b21dd5badcd596fca50d5463ea35b6d6dd4024556176fa5835",
+      "git_blob": "2df6ae62c260d2222e0e92bd9b439ea16bf994c4",
+      "bytes": 5878,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/config/local_estimator.yaml"
+    },
+    {
+      "path": "optimization_v2/config/icp_odometry.yaml",
+      "local": "baseline/l02_source/optimization_v2/config/icp_odometry.yaml",
+      "sha256": "854fe4d216e7b4f6a1e34b4150c11f8248bcec06719343d923e01d3f3386692d",
+      "git_blob": "5661fe8cccc8c5afdb9d686633e7f96cb634b9a7",
+      "bytes": 1080,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/config/icp_odometry.yaml"
+    },
+    {
+      "path": "optimization_v2/config/sensors.yaml",
+      "local": "baseline/l02_source/optimization_v2/config/sensors.yaml",
+      "sha256": "d916deafb95eb82ab3c02c787d0b2ff7aa1b351774ad1a5b5e2b46851bea1943",
+      "git_blob": "affa81229735d91047a004dcc2b5b557e4863aff",
+      "bytes": 1368,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/config/sensors.yaml"
+    },
+    {
+      "path": "optimization_v2/config/controller_profiles.yaml",
+      "local": "baseline/l02_source/optimization_v2/config/controller_profiles.yaml",
+      "sha256": "e3ca680e2564ba7d71fe2e2234dee0fc13fbed5e096388dc71ba928d4afc073b",
+      "git_blob": "884fcdf7e38a444cc20848a3ef5ca15686cbadfb",
+      "bytes": 755,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/config/controller_profiles.yaml"
+    },
+    {
+      "path": "optimization_v2/maps/prior/workspaces.geojson",
+      "local": "baseline/l02_source/optimization_v2/maps/prior/workspaces.geojson",
+      "sha256": "2e3f8af626bfd169047e1ad367e7862761cd8cebbb4d156426458d11b285f5ea",
+      "git_blob": "ee37a9ac500841bb2b97a88f91599dae81b1f5e2",
+      "bytes": 2628,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/maps/prior/workspaces.geojson"
+    },
+    {
+      "path": "optimization_v2/maps/prior/permanent.geojson",
+      "local": "baseline/l02_source/optimization_v2/maps/prior/permanent.geojson",
+      "sha256": "26acfb478963d1f0d48dd6a1bbf4dd9246646bdd1daf79b48ac726afaf2ecefc",
+      "git_blob": "277b71bc649ed41c678cf3195940f81c489f7274",
+      "bytes": 1770,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/maps/prior/permanent.geojson"
+    },
+    {
+      "path": "optimization_v2/maps/prior/terrain_coarse.geojson",
+      "local": "baseline/l02_source/optimization_v2/maps/prior/terrain_coarse.geojson",
+      "sha256": "17de23e84bba66954fdd13b7711e6e04cd7c2faf733d29852599221e493a3178",
+      "git_blob": "de6c15fbcf7d4814bf0825ca9e21b04e09c6af4d",
+      "bytes": 728,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/maps/prior/terrain_coarse.geojson"
+    },
+    {
+      "path": "optimization_v2/maps/frozen/manifest.json",
+      "local": "baseline/l02_source/optimization_v2/maps/frozen/manifest.json",
+      "sha256": "1f931b1d43456f6d217bad25d4996991ed01e59c590d9e55280f37ed16b35a36",
+      "git_blob": "6b880cdf7f2e579b1bcc4488d1c0833c031a4638",
+      "bytes": 2152,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/maps/frozen/manifest.json"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R05/mowing/sensors.json",
+      "local": "baseline/l02_source/optimization_v2/three_tasks/editions/R05/mowing/sensors.json",
+      "sha256": "79f1bc50f7ad5fd61e7613c14d0c9c0bfad776b5dea4f962c2d0e61a0717038a",
+      "git_blob": "8fa4d6178eec443f6ddb91f9143c4b0872eddead",
+      "bytes": 2593,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/three_tasks/editions/R05/mowing/sensors.json"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R05/mowing/binding.json",
+      "local": "baseline/l02_source/optimization_v2/three_tasks/editions/R05/mowing/binding.json",
+      "sha256": "c305af8e89aa7428509388cb408807dc605f96ffd5f4e50b0079bc071a16d709",
+      "git_blob": "0d24b5ee4ea967ae528db3808aa15c258c9f4fbe",
+      "bytes": 1749,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/three_tasks/editions/R05/mowing/binding.json"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R09/nav2.yaml",
+      "local": "baseline/l02_source/optimization_v2/three_tasks/editions/R09/nav2.yaml",
+      "sha256": "1f182bcfa0bc064f9aa82236c454fcf7dbf4a31d95f57383f6ba003639dda218",
+      "git_blob": "2b8fe5a975ad653b8cfb0d7d981ad1e0abf0fa9e",
+      "bytes": 8755,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/three_tasks/editions/R09/nav2.yaml"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R10/spray/nav2.yaml",
+      "local": "baseline/l02_source/optimization_v2/three_tasks/editions/R10/spray/nav2.yaml",
+      "sha256": "f08f3c0365a632adb25688849fc7a66c70068fbed27e76e94536a679398a0e53",
+      "git_blob": "5c323eacd066e35e1dfc7a769f2599f406ab0571",
+      "bytes": 9266,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/three_tasks/editions/R10/spray/nav2.yaml"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R10/mowing/mission.json",
+      "local": "baseline/l02_source/optimization_v2/three_tasks/editions/R10/mowing/mission.json",
+      "sha256": "abb235b87e2a7875a586a7191d160b81d07d4f87e2b848be338d3bbfbaad6a54",
+      "git_blob": "0b841d60c8ea084d23ceb0792cd358ca7df10272",
+      "bytes": 3878027,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/three_tasks/editions/R10/mowing/mission.json"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R10/spray/mission.json",
+      "local": "baseline/l02_source/optimization_v2/three_tasks/editions/R10/spray/mission.json",
+      "sha256": "d24f60f1f0abeec62e47616c240b80ae68bf50dab8417a83febc51877ca75a76",
+      "git_blob": "4dc971b1597e577b64ca94e66952108d881200a7",
+      "bytes": 78760,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/three_tasks/editions/R10/spray/mission.json"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/dispatch.py",
+      "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/scripts/dispatch.py",
+      "sha256": "8a8ff76e4c2d7e51a1b2e2659459bb872473c1a5952531bc2738787ab5177766",
+      "git_blob": "88e3f1a4e09991d1a0df9b8b55ce9a5b0101d05f",
+      "bytes": 866,
+      "url": "https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/dispatch.py",
+      "symbols": []
+    }
+  ],
+  "missing_selections": [],
+  "scope": "Additional L02 fixed references; L01 manifest unchanged"
+}

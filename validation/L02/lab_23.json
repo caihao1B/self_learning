@@ -1,0 +1,9 @@
+{
+  "chapter": "23",
+  "passed": true,
+  "result": {
+    "complete": "COMPLETE",
+    "complete_but_unsafe": "STOP",
+    "complete_but_unlocalized": "WAIT"
+  }
+}

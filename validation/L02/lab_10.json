@@ -1,0 +1,14 @@
+{
+  "chapter": "10",
+  "passed": true,
+  "result": {
+    "kind": "synthetic dimensions, not Dino calibration",
+    "rear_radius_m": 2.078460969082653,
+    "outer_front_sweep_m": 2.983028824715352,
+    "omega_rad_s": 0.24056261216234404,
+    "wheel_rad_s": [
+      1.8985934695941398,
+      3.10140653040586
+    ]
+  }
+}

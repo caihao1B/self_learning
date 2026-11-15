@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "commit": "9aff8337b7794f704c5556a973a5220e73f17808",
+  "checked_source_files": 821,
+  "changed": [],
+  "checked_at": "2026-11-15T17:55:24.822289+08:00",
+  "scope": "Read-only byte comparison with frozen Git blobs; no robot simulation or source modification."
+}

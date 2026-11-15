@@ -1,0 +1,13 @@
+{
+  "chapter": "04",
+  "passed": true,
+  "result": {
+    "valid_m": 0.03,
+    "rejected": [
+      "None",
+      "True",
+      "nan",
+      "-1"
+    ]
+  }
+}

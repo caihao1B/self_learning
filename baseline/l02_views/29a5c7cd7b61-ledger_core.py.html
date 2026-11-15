@@ -1,0 +1,110 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ledger_core.py</title><style>body{margin:25px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;padding:20px;border:1px solid #d6e2e3;font:13px/1.8 Consolas,monospace;overflow:auto}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff0b0}a{color:#086b71}p{overflow-wrap:anywhere}</style><a href="../../L02/index.html">← L02 教材目录</a><h1>ledger_core.py</h1><p>optimization_v2/ws/src/work_ledger/scripts/ledger_core.py</p><p>固定基线 9aff8337b7794f704c5556a973a5220e73f17808 · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/work_ledger/scripts/ledger_core.py">GitHub 原文件</a></p><p>原始文件按字节保留；显示换行不改变行号。快照用于阅读，不直接作为运行入口。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Feedback-only SQLite accounting; no ROS, simulator state, or planned-path credit.&quot;&quot;&quot;</span>
+<span class="line" id="L2"><a href="#L2">   2</a> import sqlite3,json,hashlib,math,time</span>
+<span class="line" id="L3"><a href="#L3">   3</a> from shapely.geometry import Polygon,Point,box,mapping,shape</span>
+<span class="line" id="L4"><a href="#L4">   4</a> from shapely.affinity import rotate,translate</span>
+<span class="line" id="L5"><a href="#L5">   5</a> from shapely import wkb,set_precision,union</span>
+<span class="line" id="L6"><a href="#L6">   6</a> </span>
+<span class="line" id="L7"><a href="#L7">   7</a> def canonical(v):return hashlib.sha256(json.dumps(v,sort_keys=True,separators=(&#x27;,&#x27;,&#x27;:&#x27;),allow_nan=False).encode()).hexdigest()</span>
+<span class="line" id="L8"><a href="#L8">   8</a> def latest_at(records,t):</span>
+<span class="line" id="L9"><a href="#L9">   9</a>  eligible=[x for x in records if x[&#x27;t&#x27;]&lt;=t+1e-6]</span>
+<span class="line" id="L10"><a href="#L10">  10</a>  return max(eligible,key=lambda x:x[&#x27;t&#x27;]) if eligible else None</span>
+<span class="line" id="L11"><a href="#L11">  11</a> def footprint(x,y,yaw,length,width,erosion=0.):</span>
+<span class="line" id="L12"><a href="#L12">  12</a>  p=box(-length/2,-width/2,length/2,width/2).buffer(-erosion,join_style=2)</span>
+<span class="line" id="L13"><a href="#L13">  13</a>  return translate(rotate(p,yaw,use_radians=True),x,y)</span>
+<span class="line" id="L14"><a href="#L14">  14</a> class Ledger:</span>
+<span class="line" id="L15"><a href="#L15">  15</a>  def __init__(self,path,cfg):</span>
+<span class="line" id="L16"><a href="#L16">  16</a>   self.c=cfg;self.db=sqlite3.connect(str(path),isolation_level=None);self.db.execute(&#x27;PRAGMA journal_mode=WAL&#x27;);self.db.execute(&#x27;PRAGMA synchronous=FULL&#x27;);self.db.execute(&#x27;PRAGMA busy_timeout=2000&#x27;)</span>
+<span class="line" id="L17"><a href="#L17">  17</a>   self.db.executescript(&#x27;&#x27;&#x27;CREATE TABLE IF NOT EXISTS jobs(key TEXT PRIMARY KEY,fingerprint TEXT NOT NULL,goal TEXT NOT NULL,status TEXT NOT NULL,quantity REAL NOT NULL DEFAULT 0,credit BLOB,attempt TEXT,uncertain INTEGER NOT NULL DEFAULT 0,reason TEXT NOT NULL DEFAULT &#x27;&#x27;,updated REAL NOT NULL DEFAULT 0);</span>
+<span class="line" id="L18"><a href="#L18">  18</a> CREATE TABLE IF NOT EXISTS events(id TEXT PRIMARY KEY,key TEXT,attempt TEXT,t REAL,accepted INTEGER,reason TEXT,quantity REAL,observation TEXT);</span>
+<span class="line" id="L19"><a href="#L19">  19</a> CREATE TABLE IF NOT EXISTS transitions(id INTEGER PRIMARY KEY,key TEXT,t REAL,status TEXT,reason TEXT);&#x27;&#x27;&#x27;)</span>
+<span class="line" id="L20"><a href="#L20">  20</a>   self.db.execute(&quot;UPDATE jobs SET status=&#x27;RECOVERY_REQUIRED&#x27;,uncertain=1,reason=&#x27;PROCESS_RESTART_UNCONFIRMED_STOP&#x27; WHERE status=&#x27;RUNNING&#x27;&quot;)</span>
+<span class="line" id="L21"><a href="#L21">  21</a>   self.active=None;self.previous=None;self.streak=None;self.last_seq={};self.rejected={}</span>
+<span class="line" id="L22"><a href="#L22">  22</a>  def goal(self,key):</span>
+<span class="line" id="L23"><a href="#L23">  23</a>   row=self.db.execute(&#x27;SELECT goal FROM jobs WHERE key=?&#x27;,(key,)).fetchone();return json.loads(row[0]) if row else None</span>
+<span class="line" id="L24"><a href="#L24">  24</a>  def snapshot(self,key,geometry=True):</span>
+<span class="line" id="L25"><a href="#L25">  25</a>   column=&#x27;credit&#x27; if geometry else &#x27;NULL&#x27;</span>
+<span class="line" id="L26"><a href="#L26">  26</a>   r=self.db.execute(f&#x27;SELECT status,quantity,{column},attempt,uncertain,reason,goal FROM jobs WHERE key=?&#x27;,(key,)).fetchone()</span>
+<span class="line" id="L27"><a href="#L27">  27</a>   if not r:return dict(ok=False,error=&#x27;UNKNOWN_KEY&#x27;)</span>
+<span class="line" id="L28"><a href="#L28">  28</a>   status,q,blob,attempt,u,reason,g=r;g=json.loads(g)</span>
+<span class="line" id="L29"><a href="#L29">  29</a>   result=dict(ok=True,key=key,state=status,confirmed_quantity=q,remaining_quantity=max(0,g[&#x27;requested_quantity&#x27;]-q),uncertainty_pending=bool(u),attempt=attempt,reason=reason,operation=g[&#x27;operation&#x27;])</span>
+<span class="line" id="L30"><a href="#L30">  30</a>   if geometry:</span>
+<span class="line" id="L31"><a href="#L31">  31</a>    area=Polygon(g[&#x27;area&#x27;]) if len(g[&#x27;area&#x27;])&gt;=3 else Point(g[&#x27;target&#x27;][:2]).buffer(self.c[&#x27;tool&#x27;].get(&#x27;virtual_effect_radius_m&#x27;,.2));credit=wkb.loads(blob) if blob else Polygon();residual=area.difference(credit) if g[&#x27;operation&#x27;]==2 else (area if q&lt;g[&#x27;requested_quantity&#x27;] else Polygon());result.update(residual_geojson=json.dumps(mapping(residual)),credit_geojson=mapping(credit))</span>
+<span class="line" id="L32"><a href="#L32">  32</a>   return result</span>
+<span class="line" id="L33"><a href="#L33">  33</a>  def reserve(self,g,attempt,now=0.):</span>
+<span class="line" id="L34"><a href="#L34">  34</a>   for k in [&#x27;map_id&#x27;,&#x27;map_revision&#x27;,&#x27;frame_epoch&#x27;,&#x27;plan_revision&#x27;,&#x27;tool_revision&#x27;]:</span>
+<span class="line" id="L35"><a href="#L35">  35</a>    if g.get(k)!=self.c.get(k):return dict(ok=False,error=&#x27;VERSION_&#x27;+k)</span>
+<span class="line" id="L36"><a href="#L36">  36</a>   if g.get(&#x27;operation&#x27;) not in [1,2] or not g.get(&#x27;idempotency_key&#x27;) or not g.get(&#x27;task_id&#x27;):return dict(ok=False,error=&#x27;INVALID_GOAL&#x27;)</span>
+<span class="line" id="L37"><a href="#L37">  37</a>   if (g[&#x27;operation&#x27;]==1)!=(self.c[&#x27;vehicle&#x27;]==&#x27;diff&#x27;):return dict(ok=False,error=&#x27;CAPABILITY&#x27;)</span>
+<span class="line" id="L38"><a href="#L38">  38</a>   if g.get(&#x27;frame&#x27;)!=&#x27;map&#x27; or not all(math.isfinite(x) for x in [*g[&#x27;target&#x27;],g[&#x27;requested_quantity&#x27;],g[&#x27;timeout_sim_s&#x27;]]) or not 0&lt;g[&#x27;timeout_sim_s&#x27;]&lt;=300 or g[&#x27;requested_quantity&#x27;]&lt;=0:return dict(ok=False,error=&#x27;GOAL_RANGE&#x27;)</span>
+<span class="line" id="L39"><a href="#L39">  39</a>   if g[&#x27;operation&#x27;]==2:</span>
+<span class="line" id="L40"><a href="#L40">  40</a>    p=Polygon(g[&#x27;area&#x27;])</span>
+<span class="line" id="L41"><a href="#L41">  41</a>    if not p.is_valid or p.area&lt;.01 or g[&#x27;requested_quantity&#x27;]&gt;p.area+1e-6:return dict(ok=False,error=&#x27;TARGET_AREA&#x27;)</span>
+<span class="line" id="L42"><a href="#L42">  42</a>   key=g[&#x27;idempotency_key&#x27;];fp=canonical(g);r=self.db.execute(&#x27;SELECT fingerprint,status,uncertain FROM jobs WHERE key=?&#x27;,(key,)).fetchone()</span>
+<span class="line" id="L43"><a href="#L43">  43</a>   if r and r[0]!=fp:return dict(ok=False,error=&#x27;IDEMPOTENCY_CONFLICT&#x27;)</span>
+<span class="line" id="L44"><a href="#L44">  44</a>   if r and r[1]==&#x27;SUCCEEDED&#x27;:return dict(self.snapshot(key),replayed=True)</span>
+<span class="line" id="L45"><a href="#L45">  45</a>   if r and (r[2] or r[1]==&#x27;RECOVERY_REQUIRED&#x27;):return dict(ok=False,error=&#x27;RECOVERY_REQUIRED&#x27;,**{k:v for k,v in self.snapshot(key).items() if k!=&#x27;ok&#x27;})</span>
+<span class="line" id="L46"><a href="#L46">  46</a>   if self.active:return dict(ok=False,error=&#x27;BUSY&#x27;)</span>
+<span class="line" id="L47"><a href="#L47">  47</a>   self.db.execute(&#x27;BEGIN IMMEDIATE&#x27;)</span>
+<span class="line" id="L48"><a href="#L48">  48</a>   try:</span>
+<span class="line" id="L49"><a href="#L49">  49</a>    if not r:self.db.execute(&#x27;INSERT INTO jobs(key,fingerprint,goal,status,attempt) VALUES(?,?,?,?,?)&#x27;,(key,fp,json.dumps(g),&#x27;RUNNING&#x27;,attempt))</span>
+<span class="line" id="L50"><a href="#L50">  50</a>    else:self.db.execute(&quot;UPDATE jobs SET status=&#x27;RUNNING&#x27;,attempt=?,reason=&#x27;&#x27; WHERE key=?&quot;,(attempt,key))</span>
+<span class="line" id="L51"><a href="#L51">  51</a>    self.db.execute(&#x27;INSERT INTO transitions(key,t,status,reason) VALUES(?,?,?,?)&#x27;,(key,now,&#x27;RUNNING&#x27;,&#x27;RESERVED_NOT_COMPLETED&#x27;));self.db.execute(&#x27;COMMIT&#x27;)</span>
+<span class="line" id="L52"><a href="#L52">  52</a>   except BaseException:self.db.execute(&#x27;ROLLBACK&#x27;);raise</span>
+<span class="line" id="L53"><a href="#L53">  53</a>   self.active=key;self.previous=None;self.streak=None;return dict(self.snapshot(key),replayed=False)</span>
+<span class="line" id="L54"><a href="#L54">  54</a>  def guard(self,ctx,g,now,for_start=False):</span>
+<span class="line" id="L55"><a href="#L55">  55</a>   if not ctx or not -1e-6&lt;=now-ctx.get(&#x27;t&#x27;,-100)&lt;=self.c[&#x27;context_age_s&#x27;]:return &#x27;CONTEXT_STALE&#x27;</span>
+<span class="line" id="L56"><a href="#L56">  56</a>   if not all(math.isfinite(x) for x in [ctx.get(&#x27;v&#x27;,float(&#x27;nan&#x27;)),ctx.get(&#x27;w&#x27;,float(&#x27;nan&#x27;)),ctx.get(&#x27;yaw&#x27;,float(&#x27;nan&#x27;)),*ctx.get(&#x27;tool_xy&#x27;,[float(&#x27;nan&#x27;)])]):return &#x27;NONFINITE_CONTEXT&#x27;</span>
+<span class="line" id="L57"><a href="#L57">  57</a>   if not ctx.get(&#x27;localization&#x27;):return &#x27;LOCALIZATION&#x27;</span>
+<span class="line" id="L58"><a href="#L58">  58</a>   if not ctx.get(&#x27;target_ok&#x27;):return &#x27;TARGET_CONDITION&#x27;</span>
+<span class="line" id="L59"><a href="#L59">  59</a>   v,w=abs(ctx[&#x27;v&#x27;]),abs(ctx[&#x27;w&#x27;])</span>
+<span class="line" id="L60"><a href="#L60">  60</a>   if g[&#x27;operation&#x27;]==1:</span>
+<span class="line" id="L61"><a href="#L61">  61</a>    if v&gt;self.c[&#x27;spray_stopped_v&#x27;] or w&gt;self.c[&#x27;spray_stopped_w&#x27;]:return &#x27;NOT_STOPPED&#x27;</span>
+<span class="line" id="L62"><a href="#L62">  62</a>    if math.dist(ctx[&#x27;tool_xy&#x27;],g[&#x27;target&#x27;][:2])&gt;self.c[&#x27;tool&#x27;][&#x27;docking_error_m&#x27;]:return &#x27;NOT_DOCKED&#x27;</span>
+<span class="line" id="L63"><a href="#L63">  63</a>   else:</span>
+<span class="line" id="L64"><a href="#L64">  64</a>    if not ctx.get(&#x27;perception&#x27;):return &#x27;PERCEPTION&#x27;</span>
+<span class="line" id="L65"><a href="#L65">  65</a>    if ctx.get(&#x27;segment&#x27;)!=&#x27;COVERAGE&#x27; or ctx.get(&#x27;segment_id&#x27;)!=g[&#x27;segment_id&#x27;]:return &#x27;NON_WORK_SEGMENT&#x27;</span>
+<span class="line" id="L66"><a href="#L66">  66</a>    if not (0. if for_start else self.c[&#x27;work_min_speed&#x27;])&lt;=v&lt;=min(ctx.get(&#x27;max_speed&#x27;,0),self.c[&#x27;work_max_speed&#x27;]) or w&gt;self.c[&#x27;work_max_yaw_rate&#x27;]:return &#x27;WORK_SPEED&#x27;</span>
+<span class="line" id="L67"><a href="#L67">  67</a>   if not ctx.get(&#x27;perception&#x27;):return &#x27;PERCEPTION&#x27;</span>
+<span class="line" id="L68"><a href="#L68">  68</a>   return &#x27;OK&#x27;</span>
+<span class="line" id="L69"><a href="#L69">  69</a>  def observe(self,m,ctx,now):</span>
+<span class="line" id="L70"><a href="#L70">  70</a>   if not self.active:return dict(accepted=False,reason=&#x27;NO_ACTIVE_JOB&#x27;)</span>
+<span class="line" id="L71"><a href="#L71">  71</a>   key=self.active;g=self.goal(key);snap=self.snapshot(key,geometry=False);reason=&#x27;OK&#x27;;t=m.get(&#x27;t&#x27;,-100);seq=m.get(&#x27;seq&#x27;,-1);epoch=m.get(&#x27;sensor_epoch&#x27;,&#x27;&#x27;);identity=epoch+&#x27;:&#x27;+str(seq)+&#x27;:&#x27;+m.get(&#x27;attempt&#x27;,&#x27;&#x27;)</span>
+<span class="line" id="L72"><a href="#L72">  72</a>   if self.db.execute(&#x27;SELECT 1 FROM events WHERE id=?&#x27;,(identity,)).fetchone():return dict(accepted=False,reason=&#x27;DUPLICATE&#x27;)</span>
+<span class="line" id="L73"><a href="#L73">  73</a>   if m.get(&#x27;key&#x27;)!=key or m.get(&#x27;attempt&#x27;)!=snap[&#x27;attempt&#x27;]:return dict(accepted=False,reason=&#x27;WRONG_ATTEMPT&#x27;)</span>
+<span class="line" id="L74"><a href="#L74">  74</a>   if m.get(&#x27;tool_revision&#x27;)!=g[&#x27;tool_revision&#x27;] or epoch!=self.c[&#x27;session&#x27;]:reason=&#x27;VERSION&#x27;</span>
+<span class="line" id="L75"><a href="#L75">  75</a>   elif not math.isfinite(t) or not -1e-6&lt;=now-t&lt;=self.c[&#x27;feedback_age_sim_s&#x27;]:reason=&#x27;TIMESTAMP&#x27;</span>
+<span class="line" id="L76"><a href="#L76">  76</a>   elif seq&lt;=self.last_seq.get(epoch,-1):reason=&#x27;SEQUENCE&#x27;</span>
+<span class="line" id="L77"><a href="#L77">  77</a>   elif not ctx or abs(ctx[&#x27;t&#x27;]-t)&gt;self.c[&#x27;pose_skew_s&#x27;]:reason=&#x27;POSE_SKEW&#x27;</span>
+<span class="line" id="L78"><a href="#L78">  78</a>   else:reason=self.guard(ctx,g,now)</span>
+<span class="line" id="L79"><a href="#L79">  79</a>   self.last_seq[epoch]=max(seq,self.last_seq.get(epoch,-1))</span>
+<span class="line" id="L80"><a href="#L80">  80</a>   if reason==&#x27;OK&#x27; and not all(math.isfinite(m.get(k,float(&#x27;nan&#x27;))) for k in [&#x27;rpm_rad_s&#x27;,&#x27;flow&#x27;]):reason=&#x27;NONFINITE_FEEDBACK&#x27;</span>
+<span class="line" id="L81"><a href="#L81">  81</a>   if reason==&#x27;OK&#x27; and (not m.get(&#x27;healthy&#x27;) or not m.get(&#x27;request_on&#x27;) or abs(m.get(&#x27;rpm_rad_s&#x27;,0))&lt;self.c[&#x27;working_min_rad_s&#x27;]):reason=&#x27;TOOL_NOT_WORKING&#x27;</span>
+<span class="line" id="L82"><a href="#L82">  82</a>   prev=self.previous;dt=t-prev[&#x27;t&#x27;] if prev else 0</span>
+<span class="line" id="L83"><a href="#L83">  83</a>   if reason==&#x27;OK&#x27;:</span>
+<span class="line" id="L84"><a href="#L84">  84</a>    if prev is None or dt&lt;=0 or dt&gt;self.c[&#x27;feedback_gap_s&#x27;]:self.streak=t;reason=&#x27;FIRST_OR_GAP&#x27;</span>
+<span class="line" id="L85"><a href="#L85">  85</a>    elif self.streak is None:self.streak=t;reason=&#x27;CONFIRMING&#x27;</span>
+<span class="line" id="L86"><a href="#L86">  86</a>    elif t-self.streak&lt;self.c[&#x27;working_confirm_sim_s&#x27;]:reason=&#x27;CONFIRMING&#x27;</span>
+<span class="line" id="L87"><a href="#L87">  87</a>   else:self.streak=None</span>
+<span class="line" id="L88"><a href="#L88">  88</a>   q=snap[&#x27;confirmed_quantity&#x27;];blob=self.db.execute(&#x27;SELECT credit FROM jobs WHERE key=?&#x27;,(key,)).fetchone()[0];credit=wkb.loads(blob) if blob else Polygon()</span>
+<span class="line" id="L89"><a href="#L89">  89</a>   if reason==&#x27;OK&#x27;:</span>
+<span class="line" id="L90"><a href="#L90">  90</a>    if g[&#x27;operation&#x27;]==1:q+=max(0,min(1.,m.get(&#x27;flow&#x27;,0),prev.get(&#x27;flow&#x27;,0)))*dt</span>
+<span class="line" id="L91"><a href="#L91">  91</a>    else:</span>
+<span class="line" id="L92"><a href="#L92">  92</a>     erosion=self.c[&#x27;pose_erosion_m&#x27;]+math.hypot(.35,.45)*self.c[&#x27;yaw_erosion_rad&#x27;];precision=self.c[&#x27;ledger_precision_m&#x27;];p=footprint(*ctx[&#x27;tool_xy&#x27;],ctx[&#x27;yaw&#x27;],.70,self.c[&#x27;tool&#x27;][&#x27;virtual_effective_width_m&#x27;],erosion+precision).intersection(Polygon(g[&#x27;area&#x27;]).buffer(-precision));credit=union(credit,set_precision(p,precision),grid_size=precision);q=credit.area</span>
+<span class="line" id="L93"><a href="#L93">  93</a>   self.db.execute(&#x27;BEGIN IMMEDIATE&#x27;)</span>
+<span class="line" id="L94"><a href="#L94">  94</a>   try:</span>
+<span class="line" id="L95"><a href="#L95">  95</a>    self.db.execute(&#x27;INSERT INTO events VALUES(?,?,?,?,?,?,?,?)&#x27;,(identity,key,snap[&#x27;attempt&#x27;],t,int(reason==&#x27;OK&#x27;),reason,q,json.dumps(dict(feedback=m,context=ctx))))</span>
+<span class="line" id="L96"><a href="#L96">  96</a>    self.db.execute(&#x27;UPDATE jobs SET quantity=?,credit=?,updated=? WHERE key=?&#x27;,(q,wkb.dumps(credit),now,key));self.db.execute(&#x27;COMMIT&#x27;)</span>
+<span class="line" id="L97"><a href="#L97">  97</a>   except BaseException:self.db.execute(&#x27;ROLLBACK&#x27;);raise</span>
+<span class="line" id="L98"><a href="#L98">  98</a>   self.previous=m if reason in [&#x27;OK&#x27;,&#x27;FIRST_OR_GAP&#x27;,&#x27;CONFIRMING&#x27;] else None</span>
+<span class="line" id="L99"><a href="#L99">  99</a>   self.rejected[reason]=self.rejected.get(reason,0)+1</span>
+<span class="line" id="L100"><a href="#L100"> 100</a>   return dict(accepted=reason==&#x27;OK&#x27;,reason=reason,quantity=q)</span>
+<span class="line" id="L101"><a href="#L101"> 101</a>  def finish(self,key,state,reason,uncertain,t):</span>
+<span class="line" id="L102"><a href="#L102"> 102</a>   if self.active!=key:return dict(ok=False,error=&#x27;NOT_ACTIVE&#x27;)</span>
+<span class="line" id="L103"><a href="#L103"> 103</a>   s=self.snapshot(key);g=self.goal(key);threshold=g[&#x27;requested_quantity&#x27;]*(1. if g[&#x27;operation&#x27;]==1 else self.c[&#x27;completion_fraction&#x27;])</span>
+<span class="line" id="L104"><a href="#L104"> 104</a>   if state==&#x27;SUCCEEDED&#x27; and s[&#x27;confirmed_quantity&#x27;]+1e-9&lt;threshold:state=&#x27;PARTIAL&#x27; if s[&#x27;confirmed_quantity&#x27;]&gt;0 else &#x27;FAILED&#x27;;reason=&#x27;INSUFFICIENT_CONFIRMED_WORK&#x27;</span>
+<span class="line" id="L105"><a href="#L105"> 105</a>   self.db.execute(&#x27;BEGIN IMMEDIATE&#x27;)</span>
+<span class="line" id="L106"><a href="#L106"> 106</a>   try:</span>
+<span class="line" id="L107"><a href="#L107"> 107</a>    self.db.execute(&#x27;UPDATE jobs SET status=?,reason=?,uncertain=?,updated=? WHERE key=?&#x27;,(state,reason,int(uncertain),t,key));self.db.execute(&#x27;INSERT INTO transitions(key,t,status,reason) VALUES(?,?,?,?)&#x27;,(key,t,state,reason));self.db.execute(&#x27;COMMIT&#x27;)</span>
+<span class="line" id="L108"><a href="#L108"> 108</a>   except BaseException:self.db.execute(&#x27;ROLLBACK&#x27;);raise</span>
+<span class="line" id="L109"><a href="#L109"> 109</a>   self.active=None;self.previous=None;self.streak=None;return self.snapshot(key)</span>
+<span class="line" id="L110"><a href="#L110"> 110</a>  def close(self):self.db.execute(&#x27;PRAGMA wal_checkpoint(TRUNCATE)&#x27;);self.db.close()</span></code></pre></html>

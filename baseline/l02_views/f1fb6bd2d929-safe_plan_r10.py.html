@@ -1,0 +1,72 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>safe_plan_r10.py</title><style>body{margin:25px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;padding:20px;border:1px solid #d6e2e3;font:13px/1.8 Consolas,monospace;overflow:auto}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff0b0}a{color:#086b71}p{overflow-wrap:anywhere}</style><a href="../../L02/index.html">← L02 教材目录</a><h1>safe_plan_r10.py</h1><p>optimization_v2/ws/src/task_platform/scripts/safe_plan_r10.py</p><p>固定基线 9aff8337b7794f704c5556a973a5220e73f17808 · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/safe_plan_r10.py">GitHub 原文件</a></p><p>原始文件按字节保留；显示换行不改变行号。快照用于阅读，不直接作为运行入口。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Admission for the explicitly approved safe execution edition, not area credit.&quot;&quot;&quot;</span>
+<span class="line" id="L2"><a href="#L2">   2</a> import copy, math</span>
+<span class="line" id="L3"><a href="#L3">   3</a> import yaml</span>
+<span class="line" id="L4"><a href="#L4">   4</a> from shapely.geometry import shape, Polygon</span>
+<span class="line" id="L5"><a href="#L5">   5</a> from shapely import union_all</span>
+<span class="line" id="L6"><a href="#L6">   6</a> from common import read, sha, canonical, edition, PKG, APP</span>
+<span class="line" id="L7"><a href="#L7">   7</a> from footprint_r09 import body_polygon</span>
+<span class="line" id="L8"><a href="#L8">   8</a> from recovery_mowing_r10 import validate_candidate, gear_runs, yaw_error</span>
+<span class="line" id="L9"><a href="#L9">   9</a> from planning_envelope_r10 import envelope as make_envelope</span>
+<span class="line" id="L10"><a href="#L10">  10</a> </span>
+<span class="line" id="L11"><a href="#L11">  11</a> </span>
+<span class="line" id="L12"><a href="#L12">  12</a> def validate(plan, original):</span>
+<span class="line" id="L13"><a href="#L13">  13</a>     old=original[&#x27;clusters&#x27;][0]; new=plan[&#x27;cluster&#x27;]; segments=new[&#x27;segments&#x27;]</span>
+<span class="line" id="L14"><a href="#L14">  14</a>     old_work=[s for s in old[&#x27;segments&#x27;] if s[&#x27;kind&#x27;]==&#x27;COVERAGE&#x27;]</span>
+<span class="line" id="L15"><a href="#L15">  15</a>     original_by_id={s[&#x27;id&#x27;]:s for s in old_work}</span>
+<span class="line" id="L16"><a href="#L16">  16</a>     old_union=union_all([Polygon(s[&#x27;target_area&#x27;]) for s in old_work])</span>
+<span class="line" id="L17"><a href="#L17">  17</a>     retained=union_all([Polygon(s[&#x27;target_area&#x27;]) for s in new[&#x27;original_work_segments&#x27;]])</span>
+<span class="line" id="L18"><a href="#L18">  18</a>     if new[&#x27;original_work_segments&#x27;]!=old_work or old_union.symmetric_difference(retained).area&gt;1e-8:</span>
+<span class="line" id="L19"><a href="#L19">  19</a>         raise ValueError(&#x27;ORIGINAL_WORK_POLYGONS_CHANGED&#x27;)</span>
+<span class="line" id="L20"><a href="#L20">  20</a>     if new[&#x27;work_area_m2&#x27;]!=old[&#x27;work_area_m2&#x27;] or new[&#x27;area_map&#x27;]!=old[&#x27;area_map&#x27;]:</span>
+<span class="line" id="L21"><a href="#L21">  21</a>         raise ValueError(&#x27;ORIGINAL_CLUSTER_AREA_CHANGED&#x27;)</span>
+<span class="line" id="L22"><a href="#L22">  22</a>     if new[&#x27;budget_s&#x27;]!=old[&#x27;budget_s&#x27;] or new[&#x27;estimated_seconds&#x27;]&gt;old[&#x27;budget_s&#x27;]:</span>
+<span class="line" id="L23"><a href="#L23">  23</a>         raise ValueError(&#x27;ORIGINAL_TIME_BUDGET_CHANGED_OR_EXCEEDED&#x27;)</span>
+<span class="line" id="L24"><a href="#L24">  24</a>     prior=shape(plan[&#x27;navigation_prior&#x27;]); allowed=prior.buffer(-original[&#x27;footprint_margin_m&#x27;])</span>
+<span class="line" id="L25"><a href="#L25">  25</a>     if prior.difference(shape(original[&#x27;allowed_prior&#x27;])).area&gt;1e-8:</span>
+<span class="line" id="L26"><a href="#L26">  26</a>         raise ValueError(&#x27;NAVIGATION_AUTHORITY_EXPANDED&#x27;)</span>
+<span class="line" id="L27"><a href="#L27">  27</a>     nav=yaml.safe_load((edition(&#x27;R09&#x27;)/&#x27;nav2.yaml&#x27;).read_text())</span>
+<span class="line" id="L28"><a href="#L28">  28</a>     maps=[nav[k][k][&#x27;ros__parameters&#x27;] for k in [&#x27;local_costmap&#x27;,&#x27;global_costmap&#x27;]]</span>
+<span class="line" id="L29"><a href="#L29">  29</a>     expected,policy=make_envelope(original[&#x27;vehicle&#x27;][&#x27;footprint&#x27;],max(c[&#x27;footprint_padding&#x27;] for c in maps),max(c[&#x27;resolution&#x27;] for c in maps))</span>
+<span class="line" id="L30"><a href="#L30">  30</a>     if plan.get(&#x27;planning_envelope&#x27;)!=expected or plan.get(&#x27;planning_clearance&#x27;)!=policy:</span>
+<span class="line" id="L31"><a href="#L31">  31</a>         raise ValueError(&#x27;GRID_AND_TRACKING_ENVELOPE_CHANGED&#x27;)</span>
+<span class="line" id="L32"><a href="#L32">  32</a>     cfg=copy.deepcopy(original);cfg[&#x27;allowed_prior&#x27;]=plan[&#x27;navigation_prior&#x27;]</span>
+<span class="line" id="L33"><a href="#L33">  33</a>     previous=None</span>
+<span class="line" id="L34"><a href="#L34">  34</a>     for s in segments:</span>
+<span class="line" id="L35"><a href="#L35">  35</a>         if previous and (math.dist(previous[:2],s[&#x27;poses&#x27;][0][:2])&gt;1e-6 or yaw_error(previous[2],s[&#x27;poses&#x27;][0][2])&gt;1e-6):</span>
+<span class="line" id="L36"><a href="#L36">  36</a>             raise ValueError(&#x27;DISCONNECTED_EXECUTION_PATH&#x27;)</span>
+<span class="line" id="L37"><a href="#L37">  37</a>         valid,why=validate_candidate(s[&#x27;poses&#x27;],s[&#x27;poses&#x27;][0],s[&#x27;poses&#x27;][-1],cfg,60.)</span>
+<span class="line" id="L38"><a href="#L38">  38</a>         if not valid:raise ValueError(why)</span>
+<span class="line" id="L39"><a href="#L39">  39</a>         runs=gear_runs(s[&#x27;poses&#x27;])</span>
+<span class="line" id="L40"><a href="#L40">  40</a>         if len(runs)!=1 or runs[0][&#x27;direction&#x27;]!=s[&#x27;direction&#x27;]:raise ValueError(&#x27;UNDECLARED_GEAR_CHANGE&#x27;)</span>
+<span class="line" id="L41"><a href="#L41">  41</a>         for p,w in zip(s[&#x27;poses&#x27;],s[&#x27;poses_world&#x27;]):</span>
+<span class="line" id="L42"><a href="#L42">  42</a>             if math.dist([p[0]+28,p[1]+14,p[2]],w)&gt;1e-7:raise ValueError(&#x27;FRAME_MISMATCH&#x27;)</span>
+<span class="line" id="L43"><a href="#L43">  43</a>             if not allowed.covers(body_polygon(plan[&#x27;planning_envelope&#x27;],*w)):raise ValueError(&#x27;PLANNING_ENVELOPE_OUTSIDE_PRIOR&#x27;)</span>
+<span class="line" id="L44"><a href="#L44">  44</a>         if s[&#x27;kind&#x27;]==&#x27;COVERAGE&#x27;:</span>
+<span class="line" id="L45"><a href="#L45">  45</a>             source=original_by_id[s[&#x27;work_key&#x27;]]</span>
+<span class="line" id="L46"><a href="#L46">  46</a>             if s[&#x27;target_area&#x27;]!=source[&#x27;target_area&#x27;] or s[&#x27;requested_area_m2&#x27;]!=source[&#x27;requested_area_m2&#x27;] or s[&#x27;work_target_pose&#x27;]!=source[&#x27;poses&#x27;][0]:</span>
+<span class="line" id="L47"><a href="#L47">  47</a>                 raise ValueError(&#x27;FEEDBACK_OBLIGATION_CHANGED&#x27;)</span>
+<span class="line" id="L48"><a href="#L48">  48</a>         elif s[&#x27;tool_on&#x27;] or s[&#x27;target_area&#x27;] or s[&#x27;requested_area_m2&#x27;]!=0:raise ValueError(&#x27;CONNECTOR_HAS_WORK_CREDIT&#x27;)</span>
+<span class="line" id="L49"><a href="#L49">  49</a>         previous=s[&#x27;poses&#x27;][-1]</span>
+<span class="line" id="L50"><a href="#L50">  50</a>     return dict(passed=True,execution_segments=len(segments),reference_original_segments=len(old[&#x27;segments&#x27;]),original_reference_status=&#x27;PARTIAL&#x27;,original_work_target_union_m2=old_union.area,original_cluster_area_m2=old[&#x27;work_area_m2&#x27;],original_work_union_unchanged=True)</span>
+<span class="line" id="L51"><a href="#L51">  51</a> </span>
+<span class="line" id="L52"><a href="#L52">  52</a> </span>
+<span class="line" id="L53"><a href="#L53">  53</a> def load_checked(path=None):</span>
+<span class="line" id="L54"><a href="#L54">  54</a>     path=path or edition(&#x27;R10&#x27;)/&#x27;mowing_safe_plan.json&#x27;; plan=read(path)</span>
+<span class="line" id="L55"><a href="#L55">  55</a>     revision=plan.pop(&#x27;revision&#x27;); computed=canonical(plan);plan[&#x27;revision&#x27;]=revision</span>
+<span class="line" id="L56"><a href="#L56">  56</a>     if computed!=revision:raise ValueError(&#x27;SAFE_PLAN_REVISION_CHANGED&#x27;)</span>
+<span class="line" id="L57"><a href="#L57">  57</a>     source=edition(&#x27;R09&#x27;)/&#x27;mission.json&#x27;</span>
+<span class="line" id="L58"><a href="#L58">  58</a>     if plan[&#x27;source_sha256&#x27;]!=sha(source):raise ValueError(&#x27;REFERENCE_PLAN_CHANGED&#x27;)</span>
+<span class="line" id="L59"><a href="#L59">  59</a>     for field,p in [(&#x27;backend_sha256&#x27;,APP/&#x27;build/r10_safe_route/r10_safe_route&#x27;),(&#x27;backend_source_sha256&#x27;,PKG/&#x27;r10_backend/safe_route.cpp&#x27;),(&#x27;generator_sha256&#x27;,PKG/&#x27;scripts/prepare_safe_plan_r10.py&#x27;),(&#x27;envelope_source_sha256&#x27;,PKG/&#x27;scripts/planning_envelope_r10.py&#x27;)]:</span>
+<span class="line" id="L60"><a href="#L60">  60</a>         if sha(p)!=plan[field]:raise ValueError(&#x27;SAFE_PLAN_GENERATOR_CHANGED &#x27;+field)</span>
+<span class="line" id="L61"><a href="#L61">  61</a>     validate(plan,read(source))</span>
+<span class="line" id="L62"><a href="#L62">  62</a>     return plan</span>
+<span class="line" id="L63"><a href="#L63">  63</a> </span>
+<span class="line" id="L64"><a href="#L64">  64</a> </span>
+<span class="line" id="L65"><a href="#L65">  65</a> def work_identity(segment):</span>
+<span class="line" id="L66"><a href="#L66">  66</a>     &quot;&quot;&quot;Fragments resume one original ledger job, retaining its entire obligation.&quot;&quot;&quot;</span>
+<span class="line" id="L67"><a href="#L67">  67</a>     return segment.get(&#x27;work_key&#x27;,segment[&#x27;id&#x27;]),segment.get(&#x27;work_target_pose&#x27;,segment[&#x27;poses&#x27;][0])</span>
+<span class="line" id="L68"><a href="#L68">  68</a> </span>
+<span class="line" id="L69"><a href="#L69">  69</a> </span>
+<span class="line" id="L70"><a href="#L70">  70</a> def requested_target(cluster,selected,full):</span>
+<span class="line" id="L71"><a href="#L71">  71</a>     obligations=cluster.get(&#x27;original_work_segments&#x27;,selected) if full else selected</span>
+<span class="line" id="L72"><a href="#L72">  72</a>     return union_all([Polygon(s[&#x27;target_area&#x27;]) for s in obligations if s[&#x27;kind&#x27;]==&#x27;COVERAGE&#x27;])</span></code></pre></html>

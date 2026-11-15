@@ -1,6 +1,20 @@
 # 教材构建与检查工具
 
-普通读者直接打开根目录 `index.html`，不需要运行这里的脚本。下面说明作者如何维护 L01。
+普通读者直接打开根目录 `index.html`，不需要运行这里的脚本。下面说明作者如何维护 L01 和 L02。
+
+## L02 构建与检查
+
+在已安装 Markdown 3.7 的 `.build_venv` 中执行：
+
+```bash
+python3 tools/build_l02_figures.py
+.build_venv/bin/python tools/build_l02.py
+.build_venv/bin/python tools/validate_l02.py
+```
+
+图表需要 Graphviz `dot`。检查 C++ 需要 g++、Eigen3 与 nlohmann/json 开发头文件。`build_l02.py` 根据 `l02_catalog.py` 从固定源码提取原样片段，保留手写正文，运行无 ROS 的教学例子并构建分章阅读页。生成片段由明确注释分隔，不手改这些片段。
+
+`freeze_l02.py` 仅供原作者机从同一 Git 树追加核对来源，普通读者无需执行。`browser_l02.py` 使用 Linux Chrome 与 websocket-client，核查每章本地阅读；Windows 原生体验仍需人工确认。教材代码和静态检查不意味着重新运行了机器人任务。
 
 ## 从已冻结资料重建预览
 

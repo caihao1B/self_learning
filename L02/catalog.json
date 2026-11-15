@@ -1,0 +1,866 @@
+[
+  {
+    "number": 1,
+    "title": "第 01 章 项目为什么立项",
+    "path": "L02/chapters/01_project.md",
+    "characters": 10863,
+    "authored_characters": 3146,
+    "sources": [
+      {
+        "chapter": 1,
+        "path": "optimization_v2/ws/src/task_platform/scripts/common.py",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/scripts/common.py",
+        "start": 8,
+        "end": 12,
+        "sha256": "0547096aa7b6940ddeef5690a15bff8010f9fd6355c7731db2d777a1e8734db6",
+        "selector": "fn:check"
+      },
+      {
+        "chapter": 1,
+        "path": "optimization_v2/ws/src/task_platform/scripts/stage_r12.py",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/scripts/stage_r12.py",
+        "start": 1,
+        "end": 18,
+        "sha256": "98c026671fbeec74f01de7768f5c876d0706c9da290f53f4cf3c907e255b0aa1",
+        "selector": "1:18"
+      }
+    ],
+    "lab": "examples/l02/labs.py 01",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/01_project.html"
+  },
+  {
+    "number": 2,
+    "title": "第 02 章 Linux 第一次操作",
+    "path": "L02/chapters/02_linux.md",
+    "characters": 5102,
+    "authored_characters": 3195,
+    "sources": [
+      {
+        "chapter": 2,
+        "path": "optimization_v2/three_tasks/advance.sh",
+        "local": "baseline/source/optimization_v2/three_tasks/advance.sh",
+        "start": 1,
+        "end": 6,
+        "sha256": "1d2551db7718acb0c2a01de4973e4b38d4a64c7a62b465b3b8d47e030201e24e",
+        "selector": "1:30"
+      }
+    ],
+    "lab": "examples/l02/labs.py 02",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/02_linux.html"
+  },
+  {
+    "number": 3,
+    "title": "第 03 章 程序怎样运行",
+    "path": "L02/chapters/03_process.md",
+    "characters": 18959,
+    "authored_characters": 2820,
+    "sources": [
+      {
+        "chapter": 3,
+        "path": "optimization_v2/ws/src/task_platform/scripts/runtime_spray_r10.py",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/scripts/runtime_spray_r10.py",
+        "start": 9,
+        "end": 78,
+        "sha256": "b073d6735317b913741509729946e51741212b0a541833dbb5c412d6ea77d553",
+        "selector": "fn:run"
+      },
+      {
+        "chapter": 3,
+        "path": "optimization_v2/env.sh",
+        "local": "baseline/source/optimization_v2/env.sh",
+        "start": 1,
+        "end": 18,
+        "sha256": "53b1b7d1bf2d462345622be08271e956f61e01f4614e924687432fe47a1ca1a1",
+        "selector": "1:30"
+      }
+    ],
+    "lab": "examples/l02/labs.py 03",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/03_process.html"
+  },
+  {
+    "number": 4,
+    "title": "第 04 章 C++ 与 Python 入门",
+    "path": "L02/chapters/04_languages.md",
+    "characters": 6527,
+    "authored_characters": 3015,
+    "sources": [
+      {
+        "chapter": 4,
+        "path": "optimization_v2/ws/src/task_platform/scripts/rig_r08.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/scripts/rig_r08.py",
+        "start": 5,
+        "end": 12,
+        "sha256": "1f74d59395a0aee7966527728d3024f734498287acf221062458412ed8d8c6b4",
+        "selector": "fn:effective_rig"
+      },
+      {
+        "chapter": 4,
+        "path": "optimization_v2/ws/src/task_platform/r10_backend/precision_progress.hpp",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/r10_backend/precision_progress.hpp",
+        "start": 1,
+        "end": 17,
+        "sha256": "9824c9a194e5a8647e54d127ca09303e014fae7a89a17be7049abe88f804811e",
+        "selector": "1:45"
+      }
+    ],
+    "lab": "examples/l02/labs.py 04",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/04_languages.html"
+  },
+  {
+    "number": 5,
+    "title": "第 05 章 ROS 通信与生命周期",
+    "path": "L02/chapters/05_ros.md",
+    "characters": 9982,
+    "authored_characters": 2651,
+    "sources": [
+      {
+        "chapter": 5,
+        "path": "optimization_v2/ws/src/mission_interfaces/action/ToolTask.action",
+        "local": "baseline/source/optimization_v2/ws/src/mission_interfaces/action/ToolTask.action",
+        "start": 1,
+        "end": 32,
+        "sha256": "398c404cf59e69f30c97f74b4ce89fa6c4750e919fcc684e9c714c32000b342c",
+        "selector": "1:45"
+      },
+      {
+        "chapter": 5,
+        "path": "optimization_v2/ws/src/task_platform/scripts/mission_spray_r10.py",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/scripts/mission_spray_r10.py",
+        "start": 22,
+        "end": 47,
+        "sha256": "6cc37b30a62b72d2e06700089fe1e5e1669321aab0ac9d357a1c1b717be3c605",
+        "selector": "22:47"
+      }
+    ],
+    "lab": "examples/l02/labs.py 05",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/05_ros.html"
+  },
+  {
+    "number": 6,
+    "title": "第 06 章 空间坐标与时间",
+    "path": "L02/chapters/06_frames_time.md",
+    "characters": 5799,
+    "authored_characters": 2428,
+    "sources": [
+      {
+        "chapter": 6,
+        "path": "optimization_v2/ws/src/task_platform/scripts/recovery_mowing_r10.py",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/scripts/recovery_mowing_r10.py",
+        "start": 64,
+        "end": 88,
+        "sha256": "8068d4023938758e23c19a4911d618c1c1aea09bc4fd1f2a63d26d5c4e2a74fc",
+        "selector": "fn:validate_candidate"
+      }
+    ],
+    "lab": "examples/l02/labs.py 06",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/06_frames_time.html"
+  },
+  {
+    "number": 7,
+    "title": "第 07 章 完整系统架构",
+    "path": "L02/chapters/07_architecture.md",
+    "characters": 7490,
+    "authored_characters": 2305,
+    "sources": [
+      {
+        "chapter": 7,
+        "path": "optimization_v2/ws/src/sensor_sim_adapter/scripts/adapter.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/sensor_sim_adapter/scripts/adapter.py",
+        "start": 23,
+        "end": 41,
+        "sha256": "d7b93ed98959d9cdc3326391ed99219e38ab557c7dd231473fc358146cdc2a71",
+        "selector": "fn:__init__"
+      },
+      {
+        "chapter": 7,
+        "path": "optimization_v2/ws/src/task_platform/scripts/common.py",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/scripts/common.py",
+        "start": 19,
+        "end": 23,
+        "sha256": "362cb62291b42db5c386ce68dd16318be488f518dbb381662329295d84d2b038",
+        "selector": "fn:seal"
+      }
+    ],
+    "lab": "examples/l02/labs.py 07",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/07_architecture.html"
+  },
+  {
+    "number": 8,
+    "title": "第 08 章 从启动命令到三点点喷闭环",
+    "path": "L02/chapters/08_spray_walkthrough.md",
+    "characters": 20423,
+    "authored_characters": 12545,
+    "sources": [
+      {
+        "chapter": 8,
+        "path": "optimization_v2/ws/src/task_platform/r10_backend/precision_progress.hpp",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/r10_backend/precision_progress.hpp",
+        "start": 1,
+        "end": 17,
+        "sha256": "9824c9a194e5a8647e54d127ca09303e014fae7a89a17be7049abe88f804811e",
+        "selector": "1:45"
+      }
+    ],
+    "lab": "examples/l02/labs.py 08",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/08_spray_walkthrough.html"
+  },
+  {
+    "number": 9,
+    "title": "第 09 章 三维世界与先验分层",
+    "path": "L02/chapters/09_world.md",
+    "characters": 5675,
+    "authored_characters": 1871,
+    "sources": [
+      {
+        "chapter": 9,
+        "path": "optimization_v2/ws/src/scenario_world/scripts/generate_scene.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/scenario_world/scripts/generate_scene.py",
+        "start": 18,
+        "end": 33,
+        "sha256": "a3adbfb3aa131d7327a752d67e28b56a7b1028b9771fb2566c588f62ff29feae",
+        "selector": "fn:geometries"
+      },
+      {
+        "chapter": 9,
+        "path": "optimization_v2/ws/src/scenario_world/scripts/generate_scene.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/scenario_world/scripts/generate_scene.py",
+        "start": 58,
+        "end": 64,
+        "sha256": "886dc70e0344d83663a9527f80719189eec3395be7182485d8aa85e02b311650",
+        "selector": "fn:part"
+      }
+    ],
+    "lab": "examples/l02/labs.py 09",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/09_world.html"
+  },
+  {
+    "number": 10,
+    "title": "第 10 章 差速与阿克曼运动学",
+    "path": "L02/chapters/10_kinematics.md",
+    "characters": 6326,
+    "authored_characters": 2141,
+    "sources": [
+      {
+        "chapter": 10,
+        "path": "optimization_v2/ws/src/task_platform/src/VehicleDrive.cc",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/src/VehicleDrive.cc",
+        "start": 80,
+        "end": 114,
+        "sha256": "45f7c66b7d06b58c114b6f65989a9c1f40b3a242cd2a112e010d14944f03d2a3",
+        "selector": "80:114"
+      }
+    ],
+    "lab": "examples/l02/labs.py 10",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/10_kinematics.html"
+  },
+  {
+    "number": 11,
+    "title": "第 11 章 传感器模拟与真实误差",
+    "path": "L02/chapters/11_sensors.md",
+    "characters": 6952,
+    "authored_characters": 2160,
+    "sources": [
+      {
+        "chapter": 11,
+        "path": "optimization_v2/ws/src/sensor_sim_adapter/scripts/adapter.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/sensor_sim_adapter/scripts/adapter.py",
+        "start": 48,
+        "end": 51,
+        "sha256": "e851426c2778d1ea03ee2e6f6a2182ee299f4ded671539c97963f2654d9d194a",
+        "selector": "fn:enqueue"
+      },
+      {
+        "chapter": 11,
+        "path": "optimization_v2/ws/src/sensor_sim_adapter/scripts/adapter.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/sensor_sim_adapter/scripts/adapter.py",
+        "start": 52,
+        "end": 59,
+        "sha256": "ec20118c37f37f8750f86dab1a6b2f38e1fe3bfad3acc60a6a0a2fbcc32c9059",
+        "selector": "fn:flush"
+      },
+      {
+        "chapter": 11,
+        "path": "optimization_v2/ws/src/sensor_sim_adapter/scripts/adapter.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/sensor_sim_adapter/scripts/adapter.py",
+        "start": 80,
+        "end": 88,
+        "sha256": "9d745e0a427f98f691cf9d85b22359e5f601edc3278a9fdff935e15468f66e34",
+        "selector": "fn:imu"
+      }
+    ],
+    "lab": "examples/l02/labs.py 11",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/11_sensors.html"
+  },
+  {
+    "number": 12,
+    "title": "第 12 章 轮速 IMU 与激光局部里程计",
+    "path": "L02/chapters/12_odometry.md",
+    "characters": 7391,
+    "authored_characters": 2047,
+    "sources": [
+      {
+        "chapter": 12,
+        "path": "optimization_v2/ws/src/localization_guard/scripts/icp_gate.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/localization_guard/scripts/icp_gate.py",
+        "start": 24,
+        "end": 54,
+        "sha256": "7041796c6dbe20eb5bc09572c15b9217e0f954d37274d935f6d57f94674f9c24",
+        "selector": "fn:emit"
+      },
+      {
+        "chapter": 12,
+        "path": "optimization_v2/ws/src/localization_guard/scripts/cloud_filter.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/localization_guard/scripts/cloud_filter.py",
+        "start": 11,
+        "end": 14,
+        "sha256": "aad237c7215c26d6cdfee0c93eb9b852ba58003f6b3446ef7c7addda4fc10a82",
+        "selector": "fn:geometry"
+      }
+    ],
+    "lab": "examples/l02/labs.py 12",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/12_odometry.html"
+  },
+  {
+    "number": 13,
+    "title": "第 13 章 SLAM 建图 回环与冻结地图",
+    "path": "L02/chapters/13_slam.md",
+    "characters": 5258,
+    "authored_characters": 1849,
+    "sources": [
+      {
+        "chapter": 13,
+        "path": "optimization_v2/ws/src/map_manager/scripts/mapping_export.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/map_manager/scripts/mapping_export.py",
+        "start": 22,
+        "end": 38,
+        "sha256": "991dec881df6f62206474922e8c2d52204840904d22b5ab8c3c9d37540918c59",
+        "selector": "fn:export"
+      }
+    ],
+    "lab": "examples/l02/labs.py 13",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/13_slam.html"
+  },
+  {
+    "number": 14,
+    "title": "第 14 章 全局定位与 GNSS 偏移监督",
+    "path": "L02/chapters/14_global_localization.md",
+    "characters": 11157,
+    "authored_characters": 2880,
+    "sources": [
+      {
+        "chapter": 14,
+        "path": "optimization_v2/ws/src/task_platform/scripts/regional_r08.py",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/scripts/regional_r08.py",
+        "start": 42,
+        "end": 83,
+        "sha256": "ef3fad87eece227529503a49a90edb0fff73ca6e64f3f8f40f9fd3d889384956",
+        "selector": "42:83"
+      },
+      {
+        "chapter": 14,
+        "path": "optimization_v2/ws/src/task_platform/r10_backend/correction_filter.hpp",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/r10_backend/correction_filter.hpp",
+        "start": 1,
+        "end": 22,
+        "sha256": "12004494979d97c34060555a7f72f303bdfc92381689ca92a29d03e7458d0263",
+        "selector": "1:40"
+      }
+    ],
+    "lab": "examples/l02/labs.py 14",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/14_global_localization.html"
+  },
+  {
+    "number": 15,
+    "title": "第 15 章 点云预处理与地形代价",
+    "path": "L02/chapters/15_terrain.md",
+    "characters": 5850,
+    "authored_characters": 1637,
+    "sources": [
+      {
+        "chapter": 15,
+        "path": "optimization_v2/ws/src/task_platform/r08_backend/surface_statistics.hpp",
+        "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/r08_backend/surface_statistics.hpp",
+        "start": 1,
+        "end": 25,
+        "sha256": "c2a9799b83857acfb1cca85b3f5839f1b087e6eeea3c2b190e0b9563db823261",
+        "selector": "1:45"
+      },
+      {
+        "chapter": 15,
+        "path": "optimization_v2/ws/src/task_platform/r09_backend/self_filter.hpp",
+        "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/r09_backend/self_filter.hpp",
+        "start": 1,
+        "end": 13,
+        "sha256": "ddcbba8d60757b7b3cf5cbb5f1b1b9870ea9bb393215d0b7630f04d26b635e31",
+        "selector": "1:30"
+      }
+    ],
+    "lab": "examples/l02/labs.py 15",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/15_terrain.html"
+  },
+  {
+    "number": 16,
+    "title": "第 16 章 动态障碍与保持距离跟随",
+    "path": "L02/chapters/16_dynamic.md",
+    "characters": 10294,
+    "authored_characters": 1741,
+    "sources": [
+      {
+        "chapter": 16,
+        "path": "optimization_v2/ws/src/object_fusion/scripts/tracker.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/object_fusion/scripts/tracker.py",
+        "start": 6,
+        "end": 36,
+        "sha256": "5300b3cfe7e6e10a20eb452a7d75619b176cc6834368f0a96f5c2158fdde1baa",
+        "selector": "fn:update"
+      },
+      {
+        "chapter": 16,
+        "path": "optimization_v2/ws/src/task_platform/scripts/tracker_r08.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/scripts/tracker_r08.py",
+        "start": 26,
+        "end": 46,
+        "sha256": "7a10c9daec4a54ca636ea694d341fdf14e7b1a0e1f3f8d10e9784e71ef3616ea",
+        "selector": "26:46"
+      }
+    ],
+    "lab": "examples/l02/labs.py 16",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/16_dynamic.html"
+  },
+  {
+    "number": 17,
+    "title": "第 17 章 预测与经验缓存实验",
+    "path": "L02/chapters/17_prediction_cache.md",
+    "characters": 7111,
+    "authored_characters": 1883,
+    "sources": [
+      {
+        "chapter": 17,
+        "path": "optimization_v2/ws/src/motion_prediction/scripts/imm15.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/motion_prediction/scripts/imm15.py",
+        "start": 13,
+        "end": 30,
+        "sha256": "6c7ea842140e6eee448e8a0352095ea253dbf28d945e03bf208637491d3f65d1",
+        "selector": "fn:transition"
+      },
+      {
+        "chapter": 17,
+        "path": "optimization_v2/ws/src/experience_memory/scripts/engine16.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/experience_memory/scripts/engine16.py",
+        "start": 15,
+        "end": 43,
+        "sha256": "8331294aee365126aea582085e0ab6506bccb01b4345173bdff053ee4a8ad28f",
+        "selector": "fn:predict"
+      }
+    ],
+    "lab": "examples/l02/labs.py 17",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/17_prediction_cache.html"
+  },
+  {
+    "number": 18,
+    "title": "第 18 章 连通工作量分簇",
+    "path": "L02/chapters/18_partition.md",
+    "characters": 7544,
+    "authored_characters": 1670,
+    "sources": [
+      {
+        "chapter": 18,
+        "path": "optimization_v2/ws/src/coverage_partition/src/partition_metis.cpp",
+        "local": "baseline/source/optimization_v2/ws/src/coverage_partition/src/partition_metis.cpp",
+        "start": 25,
+        "end": 66,
+        "sha256": "5bfdf1edd9bbbcf1f86674b1dbb21120104477adb1e3e9bf20c79e75503efabc",
+        "selector": "25:73"
+      },
+      {
+        "chapter": 18,
+        "path": "optimization_v2/ws/src/coverage_partition/scripts/partition11.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/coverage_partition/scripts/partition11.py",
+        "start": 9,
+        "end": 19,
+        "sha256": "9fbe1be127a27821dc4c6a42cb993694ba49bdd9b254a0106d17df179faff567",
+        "selector": "fn:metis"
+      }
+    ],
+    "lab": "examples/l02/labs.py 18",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/18_partition.html"
+  },
+  {
+    "number": 19,
+    "title": "第 19 章 点访问序列与工时",
+    "path": "L02/chapters/19_tsp.md",
+    "characters": 6207,
+    "authored_characters": 1652,
+    "sources": [
+      {
+        "chapter": 19,
+        "path": "optimization_v2/ws/src/task_platform/scripts/planning_r03.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/scripts/planning_r03.py",
+        "start": 31,
+        "end": 55,
+        "sha256": "5d9f55cb3080ac855c55365c9520daa36c2678d1921af7093ca175cea808da32",
+        "selector": "fn:visibility"
+      },
+      {
+        "chapter": 19,
+        "path": "optimization_v2/ws/src/coverage_planner/src/planner_backend.cpp",
+        "local": "baseline/source/optimization_v2/ws/src/coverage_planner/src/planner_backend.cpp",
+        "start": 44,
+        "end": 53,
+        "sha256": "4a29106ee8685b88e1c89e74ebf4b190cdaf18d4cce23d3aaea34356f54d48f6",
+        "selector": "fn:tsp"
+      }
+    ],
+    "lab": "examples/l02/labs.py 19",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/19_tsp.html"
+  },
+  {
+    "number": 20,
+    "title": "第 20 章 条带 地头与安全执行版本",
+    "path": "L02/chapters/20_swaths.md",
+    "characters": 8296,
+    "authored_characters": 1657,
+    "sources": [
+      {
+        "chapter": 20,
+        "path": "optimization_v2/ws/src/coverage_planner/src/planner_backend.cpp",
+        "local": "baseline/source/optimization_v2/ws/src/coverage_planner/src/planner_backend.cpp",
+        "start": 20,
+        "end": 32,
+        "sha256": "476c6ba6278a687dd57618883cacc27426a8a20d2dff2e137844467169e8bd17",
+        "selector": "20:32"
+      },
+      {
+        "chapter": 20,
+        "path": "optimization_v2/ws/src/task_platform/scripts/safe_plan_r10.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/scripts/safe_plan_r10.py",
+        "start": 12,
+        "end": 50,
+        "sha256": "27b04118045c13e6b8744a223b765d0a2cff61f97f6e38eae831334bf20199e4",
+        "selector": "fn:validate"
+      }
+    ],
+    "lab": "examples/l02/labs.py 20",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/20_swaths.html"
+  },
+  {
+    "number": 21,
+    "title": "第 21 章 Nav2 动作与规划器",
+    "path": "L02/chapters/21_nav2.md",
+    "characters": 8678,
+    "authored_characters": 2062,
+    "sources": [
+      {
+        "chapter": 21,
+        "path": "optimization_v2/ws/src/task_platform/scripts/mission_spray_r10.py",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/scripts/mission_spray_r10.py",
+        "start": 22,
+        "end": 47,
+        "sha256": "6cc37b30a62b72d2e06700089fe1e5e1669321aab0ac9d357a1c1b717be3c605",
+        "selector": "22:47"
+      },
+      {
+        "chapter": 21,
+        "path": "optimization_v2/three_tasks/editions/R09/nav2.yaml",
+        "local": "baseline/l02_source/optimization_v2/three_tasks/editions/R09/nav2.yaml",
+        "start": 1,
+        "end": 34,
+        "sha256": "9888d8dc119bb3f32c7ae208a40a6681ce35516da78834b3dee9187ba38292a0",
+        "selector": "1:34"
+      }
+    ],
+    "lab": "examples/l02/labs.py 21",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/21_nav2.html"
+  },
+  {
+    "number": 22,
+    "title": "第 22 章 RPP MPPI DWB 与精停",
+    "path": "L02/chapters/22_controllers.md",
+    "characters": 5541,
+    "authored_characters": 1823,
+    "sources": [
+      {
+        "chapter": 22,
+        "path": "optimization_v2/ws/src/task_platform/r10_backend/precision_progress.hpp",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/r10_backend/precision_progress.hpp",
+        "start": 1,
+        "end": 17,
+        "sha256": "9824c9a194e5a8647e54d127ca09303e014fae7a89a17be7049abe88f804811e",
+        "selector": "1:45"
+      },
+      {
+        "chapter": 22,
+        "path": "optimization_v2/three_tasks/editions/R09/nav2.yaml",
+        "local": "baseline/l02_source/optimization_v2/three_tasks/editions/R09/nav2.yaml",
+        "start": 88,
+        "end": 114,
+        "sha256": "49277d795b5fa9c1a6baae285e28a39b87b5b35e740a9cdb185e6389358b8c5b",
+        "selector": "88:114"
+      }
+    ],
+    "lab": "examples/l02/labs.py 22",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/22_controllers.html"
+  },
+  {
+    "number": 23,
+    "title": "第 23 章 可解释行为树",
+    "path": "L02/chapters/23_bt.md",
+    "characters": 9418,
+    "authored_characters": 2035,
+    "sources": [
+      {
+        "chapter": 23,
+        "path": "optimization_v2/ws/src/task_platform/r08_backend/common.xml",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/r08_backend/common.xml",
+        "start": 1,
+        "end": 27,
+        "sha256": "5862c3a12a2f26ae4f3a57eb94671d170c318e2a9002e57d13b3d104e065ec7f",
+        "selector": "1:40"
+      },
+      {
+        "chapter": 23,
+        "path": "optimization_v2/ws/src/task_platform/r08_backend/policy.hpp",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/r08_backend/policy.hpp",
+        "start": 18,
+        "end": 49,
+        "sha256": "fc0d82507ca4a1beaa473e73408832d1b91d78b3e821c0f89aa3f42fbf4701f4",
+        "selector": "18:49"
+      }
+    ],
+    "lab": "examples/l02/labs.py 23",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/23_bt.html"
+  },
+  {
+    "number": 24,
+    "title": "第 24 章 任务状态机与恢复",
+    "path": "L02/chapters/24_state_machine.md",
+    "characters": 6613,
+    "authored_characters": 1862,
+    "sources": [
+      {
+        "chapter": 24,
+        "path": "optimization_v2/ws/src/task_platform/scripts/mission_mowing_r10.py",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/scripts/mission_mowing_r10.py",
+        "start": 125,
+        "end": 141,
+        "sha256": "dd55146a2c722811d5f1107a6150308723aa1214b5fce44047547c76e8f4eab2",
+        "selector": "125:141"
+      },
+      {
+        "chapter": 24,
+        "path": "optimization_v2/ws/src/task_platform/scripts/recovery_mowing_r10.py",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/scripts/recovery_mowing_r10.py",
+        "start": 18,
+        "end": 34,
+        "sha256": "10a368c9fa0f68106f0428dc99153991873e31442c18706dff4e065fa48ba4fd",
+        "selector": "fn:gear_runs"
+      }
+    ],
+    "lab": "examples/l02/labs.py 24",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/24_state_machine.html"
+  },
+  {
+    "number": 25,
+    "title": "第 25 章 工具动作与有效作业账本",
+    "path": "L02/chapters/25_ledger.md",
+    "characters": 8982,
+    "authored_characters": 2088,
+    "sources": [
+      {
+        "chapter": 25,
+        "path": "optimization_v2/ws/src/work_ledger/scripts/ledger_core.py",
+        "local": "baseline/source/optimization_v2/ws/src/work_ledger/scripts/ledger_core.py",
+        "start": 33,
+        "end": 53,
+        "sha256": "706b958cf6ddaf7c120d54ee8dde25f52321bf90b23a4601cf64571e818c5f40",
+        "selector": "fn:reserve"
+      },
+      {
+        "chapter": 25,
+        "path": "optimization_v2/ws/src/work_ledger/scripts/ledger_core.py",
+        "local": "baseline/source/optimization_v2/ws/src/work_ledger/scripts/ledger_core.py",
+        "start": 69,
+        "end": 100,
+        "sha256": "aabb4283f879ab3865c5ad9bd75d21c15b383397056c710e0c56c9be6bd3ca32",
+        "selector": "fn:observe"
+      }
+    ],
+    "lab": "examples/l02/labs.py 25",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/25_ledger.html"
+  },
+  {
+    "number": 26,
+    "title": "第 26 章 环境搭建与资源迁移",
+    "path": "L02/chapters/26_environment.md",
+    "characters": 9636,
+    "authored_characters": 5508,
+    "sources": [
+      {
+        "chapter": 26,
+        "path": "optimization_v2/ws/src/task_platform/CMakeLists.txt",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/CMakeLists.txt",
+        "start": 1,
+        "end": 18,
+        "sha256": "fd77704ef0d0abcba09d78480a301a59a1370e84a127a776db5635d0a9d88a77",
+        "selector": "1:35"
+      },
+      {
+        "chapter": 26,
+        "path": "optimization_v2/env.sh",
+        "local": "baseline/source/optimization_v2/env.sh",
+        "start": 1,
+        "end": 18,
+        "sha256": "53b1b7d1bf2d462345622be08271e956f61e01f4614e924687432fe47a1ca1a1",
+        "selector": "1:30"
+      }
+    ],
+    "lab": "examples/l02/labs.py 26",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/26_environment.html"
+  },
+  {
+    "number": 27,
+    "title": "第 27 章 三任务人工操作与录像",
+    "path": "L02/chapters/27_operations.md",
+    "characters": 11441,
+    "authored_characters": 2861,
+    "sources": [
+      {
+        "chapter": 27,
+        "path": "optimization_v2/ws/src/task_platform/scripts/stage_r12.py",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/scripts/stage_r12.py",
+        "start": 1,
+        "end": 18,
+        "sha256": "98c026671fbeec74f01de7768f5c876d0706c9da290f53f4cf3c907e255b0aa1",
+        "selector": "1:18"
+      },
+      {
+        "chapter": 27,
+        "path": "optimization_v2/ws/src/task_platform/scripts/stage_r12.py",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/scripts/stage_r12.py",
+        "start": 33,
+        "end": 60,
+        "sha256": "5a8ce6a16c89cabdb5b43acee510655f43e7f8ea5d796b88309cfd048fc5b59a",
+        "selector": "fn:record"
+      }
+    ],
+    "lab": "examples/l02/labs.py 27",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/27_operations.html"
+  },
+  {
+    "number": 28,
+    "title": "第 28 章 实时 GUI 与证据阅读",
+    "path": "L02/chapters/28_gui.md",
+    "characters": 6083,
+    "authored_characters": 1885,
+    "sources": [
+      {
+        "chapter": 28,
+        "path": "optimization_v2/three_tasks/monitor/data.py",
+        "local": "baseline/source/optimization_v2/three_tasks/monitor/data.py",
+        "start": 56,
+        "end": 61,
+        "sha256": "714696cbf61a534257081cef5cd07153e2ec277fbbc1bfbb3710d62e7b4f6822",
+        "selector": "fn:freshness"
+      },
+      {
+        "chapter": 28,
+        "path": "optimization_v2/three_tasks/monitor/server.py",
+        "local": "baseline/source/optimization_v2/three_tasks/monitor/server.py",
+        "start": 40,
+        "end": 71,
+        "sha256": "8fce1721386672778e9b230b1aaf9dc4e5ee316c9cd535a9bf1bd97b52d95123",
+        "selector": "40:75"
+      }
+    ],
+    "lab": "examples/l02/labs.py 28",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/28_gui.html"
+  },
+  {
+    "number": 29,
+    "title": "第 29 章 失败案例与诊断方法",
+    "path": "L02/chapters/29_failures.md",
+    "characters": 8242,
+    "authored_characters": 2238,
+    "sources": [
+      {
+        "chapter": 29,
+        "path": "optimization_v2/ws/src/task_platform/scripts/tool_build_r09.py",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/scripts/tool_build_r09.py",
+        "start": 5,
+        "end": 36,
+        "sha256": "dc16584f01757f565072ba269223e23c9ae7f4d884ae2e1389ba133b0a248e29",
+        "selector": "fn:generate_tool"
+      },
+      {
+        "chapter": 29,
+        "path": "optimization_v2/ws/src/task_platform/scripts/common.py",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/scripts/common.py",
+        "start": 8,
+        "end": 12,
+        "sha256": "0547096aa7b6940ddeef5690a15bff8010f9fd6355c7731db2d777a1e8734db6",
+        "selector": "fn:check"
+      }
+    ],
+    "lab": "examples/l02/labs.py 29",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/29_failures.html"
+  },
+  {
+    "number": 30,
+    "title": "第 30 章 从学习到修改项目",
+    "path": "L02/chapters/30_research.md",
+    "characters": 5818,
+    "authored_characters": 2186,
+    "sources": [
+      {
+        "chapter": 30,
+        "path": "optimization_v2/ws/src/task_platform/scripts/safe_plan_r10.py",
+        "local": "baseline/l02_source/optimization_v2/ws/src/task_platform/scripts/safe_plan_r10.py",
+        "start": 53,
+        "end": 62,
+        "sha256": "434a1b511150545bf3defc8bb567a90337fe3fbc0792babaa80df1cfcc0b7d64",
+        "selector": "fn:load_checked"
+      },
+      {
+        "chapter": 30,
+        "path": "optimization_v2/ws/src/task_platform/scripts/common.py",
+        "local": "baseline/source/optimization_v2/ws/src/task_platform/scripts/common.py",
+        "start": 19,
+        "end": 23,
+        "sha256": "362cb62291b42db5c386ce68dd16318be488f518dbb381662329295d84d2b038",
+        "selector": "fn:seal"
+      }
+    ],
+    "lab": "examples/l02/labs.py 30",
+    "learning_check": "本章练习、常见故障与自测答案",
+    "html": "L02/read/30_research.html"
+  }
+]

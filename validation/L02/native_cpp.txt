@@ -1,0 +1,4 @@
+PASS 9 direct production-helper checks
+filter_translation_x=0.0951626 m
+Scope: finite/scope guards, correction interpolation and self-return classification.
+No physical safety, ROS lifecycle or full mission claim.

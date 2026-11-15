@@ -1,0 +1,13 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>self_filter.hpp</title><style>body{margin:25px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;padding:20px;border:1px solid #d6e2e3;font:13px/1.8 Consolas,monospace;overflow:auto}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff0b0}a{color:#086b71}p{overflow-wrap:anywhere}</style><a href="../../L02/index.html">← L02 教材目录</a><h1>self_filter.hpp</h1><p>optimization_v2/ws/src/task_platform/r09_backend/self_filter.hpp</p><p>固定基线 9aff8337b7794f704c5556a973a5220e73f17808 · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/r09_backend/self_filter.hpp">GitHub 原文件</a></p><p>原始文件按字节保留；显示换行不改变行号。快照用于阅读，不直接作为运行入口。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> #pragma once</span>
+<span class="line" id="L2"><a href="#L2">   2</a> #include &lt;array&gt;</span>
+<span class="line" id="L3"><a href="#L3">   3</a> namespace r09 {</span>
+<span class="line" id="L4"><a href="#L4">   4</a> // Keep real low ground/steps in the uncertainty annulus. The physical body</span>
+<span class="line" id="L5"><a href="#L5">   5</a> // still removes its own returns; this never synthesizes free-space cells.</span>
+<span class="line" id="L6"><a href="#L6">   6</a> inline bool selfReturn(double x,double y,double z,const std::array&lt;double,4&gt;&amp; expanded,</span>
+<span class="line" id="L7"><a href="#L7">   7</a>                        double margin,double ceiling) {</span>
+<span class="line" id="L8"><a href="#L8">   8</a>  const bool padded=x&gt;expanded[0]&amp;&amp;x&lt;expanded[1]&amp;&amp;y&gt;expanded[2]&amp;&amp;y&lt;expanded[3];</span>
+<span class="line" id="L9"><a href="#L9">   9</a>  const bool physical=x&gt;expanded[0]+margin&amp;&amp;x&lt;expanded[1]-margin&amp;&amp;</span>
+<span class="line" id="L10"><a href="#L10">  10</a>                      y&gt;expanded[2]+margin&amp;&amp;y&lt;expanded[3]-margin;</span>
+<span class="line" id="L11"><a href="#L11">  11</a>  return z&lt;ceiling &amp;&amp; (physical || (padded &amp;&amp; z&gt;.08));</span>
+<span class="line" id="L12"><a href="#L12">  12</a> }</span>
+<span class="line" id="L13"><a href="#L13">  13</a> }</span></code></pre></html>

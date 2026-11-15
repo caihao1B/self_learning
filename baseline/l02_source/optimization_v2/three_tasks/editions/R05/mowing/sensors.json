@@ -1,0 +1,128 @@
+{
+  "schema": "R05-SENSORS/1",
+  "revision": "8e1a4af258224f2e7139ed02ebfbabd358ae2b282722e596ddb06067198eec60",
+  "physics_step_s": 0.001,
+  "real_time_factor": 1.0,
+  "lidar": {
+    "horizontal": 1024,
+    "vertical": 64,
+    "rate_hz": 10,
+    "vertical_min_rad": -0.35,
+    "vertical_max_rad": 0.35,
+    "min_m": 0.15,
+    "max_m": 50.0,
+    "sigma_m": 0.015,
+    "xyz": [
+      1.1,
+      0,
+      1.5
+    ],
+    "frame": "lidar_link",
+    "scan_model": "instantaneous_no_point_times"
+  },
+  "stereo": {
+    "width": 640,
+    "height": 360,
+    "rate_hz": 15,
+    "hfov_rad": 1.2,
+    "baseline_m": 0.12,
+    "xyz": [
+      2.25,
+      0,
+      1.3
+    ],
+    "pixel_sigma": 0.8,
+    "max_pair_error_s": 0.002,
+    "model": "ideal_rectified_pinhole_global_shutter"
+  },
+  "imu": {
+    "rate_hz": 200,
+    "xyz": [
+      0.819,
+      0,
+      1.0
+    ],
+    "frame": "imu_link",
+    "gyro_sigma": 0.003,
+    "accel_sigma": 0.03,
+    "gyro_bias": [
+      0.001,
+      -0.001,
+      0.002
+    ],
+    "accel_bias": [
+      0.01,
+      -0.01,
+      0.02
+    ],
+    "gyro_walk": 0.0002,
+    "accel_walk": 0.002,
+    "orientation": "unavailable"
+  },
+  "wheel": {
+    "rate_hz": 100,
+    "frame": "base_link",
+    "ticks_per_rev": 4096,
+    "velocity_sigma": 0.003,
+    "angular_sigma": 0.002,
+    "slip_model": "effective_wheel_odometry_scale_error"
+  },
+  "gnss": {
+    "rate_hz": 5,
+    "xyz": [
+      0.6,
+      0,
+      1.55
+    ],
+    "frame": "gnss_link",
+    "origin": [
+      31.2304,
+      121.4737,
+      10.0
+    ],
+    "fixed_sigma_m": [
+      0.02,
+      0.02,
+      0.04
+    ],
+    "float_sigma_m": [
+      0.3,
+      0.3,
+      0.6
+    ],
+    "correlation_tau_s": 2.0,
+    "correlated_sigma_m": 0.01
+  },
+  "branches": {
+    "localization_lidar_hz": 10,
+    "perception_lidar_hz": 5,
+    "perception_stride": 2,
+    "stereo_pair_queue": 6
+  },
+  "limits": {
+    "queue_bytes": 33554432,
+    "record_bytes": 67108864,
+    "record_start_s": 10,
+    "record_duration_s": 2,
+    "snapshots": 3,
+    "case_disk_bytes": 268435456,
+    "owned_rss_bytes": 8589934592
+  },
+  "task": "mowing",
+  "mapping_filter": {
+    "range_max_m": 35.0,
+    "voxel_m": 0.12,
+    "ground_stride": 4,
+    "ground_band_m": 0.18,
+    "max_points": 6000,
+    "reason": "retain observed elevated structures for multi-height rigs; fixed surface quality gates unchanged"
+  },
+  "self_filter": {
+    "x_min": -0.621,
+    "x_max": 2.2589999999999995,
+    "y_min": -1.435,
+    "y_max": 1.435,
+    "z_max": 1.188218021463
+  },
+  "vehicle_hash": "52410d437f633b24dc1e2da3c06cd9a6727071cb7e2f2a08682cdd996b64c8ce"
+}

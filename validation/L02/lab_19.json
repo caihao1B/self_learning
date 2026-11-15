@@ -1,0 +1,17 @@
+{
+  "chapter": "19",
+  "passed": true,
+  "result": {
+    "kind": "four-node exact teaching solver; production OR-Tools heuristic",
+    "tour": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "distance_m": 10,
+    "travel_s": 20.0,
+    "service_s": 12,
+    "total_lower_bound_s": 32.0
+  }
+}

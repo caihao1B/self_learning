@@ -1,0 +1,10 @@
+{
+  "chapter": "03",
+  "passed": true,
+  "result": {
+    "child_stdout": "parent",
+    "parent_copy": "parent",
+    "exit_code": 0,
+    "shell_interpolation": false
+  }
+}

@@ -1,0 +1,119 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>第 02 章 Linux 第一次操作</title><style>*{box-sizing:border-box}body{margin:0;background:#eff4f5;color:#17343d;font:17px/1.95 "Segoe UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif}header{background:#163c45;color:#e5f3ef;padding:22px max(20px,calc((100vw - 1080px)/2))}header a{color:#bceadf;margin-right:20px}main{max-width:1140px;margin:28px auto;padding:34px 48px;background:white;border:1px solid #dae5e8;border-radius:12px}h1{font-size:32px;line-height:1.5;color:#174b50}h2{margin-top:42px;font-size:24px;color:#256466;border-bottom:1px solid #dce9e8;padding-bottom:9px}h3{font-size:20px;color:#345b62}a{color:#08777a;text-underline-offset:3px}p,li{overflow-wrap:anywhere}pre{background:#112c38;color:#e3f0ed;padding:20px;border-radius:8px;overflow:auto;font:13px/1.8 Consolas,monospace;white-space:pre;overflow-wrap:normal}code{font-family:Consolas,monospace}p code,li code,td code{background:#edf3f4;padding:2px 4px}table{display:block;overflow:auto;border-collapse:collapse;font-size:15px;margin:22px 0}th,td{border:1px solid #cedfe1;padding:10px;min-width:100px;vertical-align:top}th{background:#e6f2ef}img{max-width:100%;height:auto;margin:22px auto;display:block}blockquote{border-left:4px solid #3c9083;padding:8px 20px;background:#f0f7f4;margin:20px 0}.toc{background:#f3f8f7;padding:12px 25px;font-size:14px}footer{max-width:1100px;margin:24px auto;padding:20px;color:#47666c}button{background:#e7f4ed;color:#245448;border:0;padding:7px 12px;border-radius:5px;cursor:pointer}@media(max-width:700px){body{font-size:16px}main{padding:22px 18px;margin:12px;border-radius:8px}h1{font-size:26px}h2{font-size:22px}header{padding:16px}pre{font-size:12px}}@media print{header,footer,button,.toc{display:none}main{border:0;max-width:none;margin:0;padding:0}pre{background:#eee;color:black;white-space:pre-wrap;overflow-wrap:anywhere}a{color:black}h2{break-after:avoid}img{max-height:230mm}}</style><header><a href="../../index.html">学习首页</a><a href="../index.html">三十章目录</a><a href="01_project.html">← 上一章</a><a href="03_process.html">下一章 →</a><button onclick="window.print()">打印本章</button></header><main><details class="toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#02-linux">第 02 章 Linux 第一次操作</a><ul>
+<li><a href="#_1">目录和路径</a></li>
+<li><a href="#_2">一条命令怎样分词</a></li>
+<li><a href="#_3">文件权限和执行</a></li>
+<li><a href="#_4">安全地找资料</a></li>
+<li><a href="#python-bash">Python 和 Bash 怎样处理同一个路径</a></li>
+<li><a href="#_5">固定生产代码逐段阅读</a><ul>
+<li><a href="#advancesh-1-6">advance.sh 第 1 至 6 行</a></li>
+</ul>
+</li>
+<li><a href="#_6">本章练习及预期</a><ul>
+<li><a href="#_7">本章练习核心代码与实际输出</a></li>
+</ul>
+</li>
+<li><a href="#_8">常见故障和排查顺序</a></li>
+<li><a href="#_9">自测与答案</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details><h1 id="02-linux">第 02 章 Linux 第一次操作</h1>
+<p>终端是人与程序交流的入口，Bash 是解释输入的程序，文件系统是组织工程的树状结构。刚开始不需要背很多命令，先掌握“我在哪里、操作哪个文件、命令怎样拆成参数、结果怎样判断”。本章的练习只操作临时学习目录，机器人原工程保持不变。</p>
+<h2 id="_1">目录和路径</h2>
+<p>Linux 的根目录是 <code>/</code>，用户主目录通常是 <code>/home/用户名</code>。<code>/home/ceihao/robot_project</code> 是当前作者机的机器人目录，<code>/home/ceihao/self_learning</code> 是学习材料目录。两者用途不同。Windows 下载教材后可放在任意位置，但书中的 Linux 原工程绝对路径不能照搬为你的 Windows 路径。</p>
+<p>绝对路径从 <code>/</code> 开始，不依赖当前目录。相对路径例如 <code>examples/l02/labs.py</code> 从当前目录开始寻找。<code>.</code> 表示当前目录，<code>..</code> 表示上一级。<code>~</code> 通常由 shell 展开为当前用户主目录；它不是 Python 路径字符串自动理解的特殊字符，Python 中需要 <code>Path.home()</code> 或 <code>expanduser()</code>。</p>
+<pre><code class="language-bash">cd /home/ceihao/self_learning
+pwd
+ls
+ls -ld . L02 examples
+</code></pre>
+<p><code>cd</code> 改变当前 shell 的目录；<code>pwd</code> 打印目录；<code>ls</code> 列出目录内容；<code>-l</code> 请求详细信息；<code>-d</code> 查看目录本身而不展开内容。<code>ls -ld</code> 中的两个选项可以合并，因为它们都是无额外参数的短选项；不能据此推断所有程序都支持任意合并。</p>
+<h2 id="_2">一条命令怎样分词</h2>
+<p>下面的路径中有空格。双引号使它作为一个参数传给 <code>mkdir</code>，而不是分成三个名称。</p>
+<pre><code class="language-bash">mkdir -p &quot;$HOME/robot learning notes&quot;
+printf '%s\n' '今天学习导航与作业的区别' &gt; &quot;$HOME/robot learning notes/day01.txt&quot;
+cat &quot;$HOME/robot learning notes/day01.txt&quot;
+</code></pre>
+<p><code>mkdir -p</code> 创建缺失的父目录，已有目录不会因此报错。<code>$HOME</code> 是系统提供的用户主目录变量；使用它可以，不能把它改成项目工作变量。<code>printf</code> 按格式输出，<code>%s</code> 放入一个字符串，<code>\n</code> 表示换行。单引号中的内容一般保持字面意义，双引号允许变量展开。<code>&gt;</code> 把标准输出重定向到文件，已有同名文件会被覆盖；<code>&gt;&gt;</code> 是追加。先确认目标路径，再使用重定向。</p>
+<p>程序通常接收一个参数数组。例如 <code>python3 examples/l02/labs.py 02</code> 被拆成解释器、脚本、章节编号。<code>02</code> 在 Bash 中只是字符串，Python 的 <code>argparse</code> 再决定它是否为合法章节。不要把文档中的提示符 <code>$</code> 一起粘贴到命令行。</p>
+<h2 id="_3">文件权限和执行</h2>
+<p>详细列表中的 <code>r</code>、<code>w</code>、<code>x</code> 分别表示读、写、执行/进入目录的权限。目录的 <code>x</code> 表示能通过它访问内部路径，与普通文件执行含义不同。<code>bash script.sh</code> 由 Bash 读取脚本；<code>./script.sh</code> 则要求脚本可执行且有合适的解释器声明。遇到 Permission denied 时先检查目标与权限，不要立即对整个工程递归 <code>chmod 777</code>。</p>
+<pre><code class="language-bash">test -f README.md
+echo $?
+test -r README.md
+echo $?
+command -v python3
+python3 --version
+</code></pre>
+<p><code>test</code> 通常不打印文字，使用退出码表达判断。<code>echo $?</code> 必须紧跟被检查的命令，否则拿到的是别的命令的状态。<code>command -v</code> 显示 shell 实际找到的程序，这比凭印象认为“已经安装 Python”更有用。</p>
+<h2 id="_4">安全地找资料</h2>
+<p><code>rg</code> 搜索文本，<code>rg --files</code> 列出文件。先在小范围找入口，再打开附近代码。不要从主目录递归输出所有日志，也不要用文件日期推断可删除性；旧地图和动态库可能仍被当前任务绑定。</p>
+<pre><code class="language-bash">rg --files L02
+rg -n 'POINT_SERVICE' baseline/source/optimization_v2/ws/src/mission_interfaces/action/ToolTask.action
+sed -n '1,80p' examples/inspect_spray.py
+</code></pre>
+<p><code>-n</code> 显示行号；引号中的搜索串避免被 shell 特殊解释。<code>sed -n '1,80p'</code> 只打印 1 到 80 行，适合阅读短片段。这里的行号只对固定文件版本有效。<code>rg</code> 没有匹配时通常返回 1，这不是程序崩溃；命令不存在则通常由 shell 返回 127。</p>
+<h2 id="python-bash">Python 和 Bash 怎样处理同一个路径</h2>
+<p>Python 的 <code>Path</code> 对象可以连接路径、检查存在、读取 UTF-8 文本。<code>Path(__file__).resolve()</code> 从脚本自身位置出发，因此离线例子不依赖你把仓库下载在哪。Bash 的相对路径则主要取决于当前工作目录，所以教材在运行前明确写 <code>cd</code>。</p>
+<p>实际项目的 <code>advance.sh</code> 使用 <code>${BASH_SOURCE[0]}</code> 找到脚本目录，再定位 <code>env.sh</code>。<code>$(...)</code> 是命令替换：先执行括号内命令，再把输出作为文本。双引号保留路径中的空格和中文。<code>"$@"</code> 保留每个参数边界，不能随意改成不加引号的 <code>$*</code>。</p>
+<!-- generated-production-start -->
+<h2 id="_5">固定生产代码逐段阅读</h2>
+<p>下面是固定提交中的原样节选。完整文件有离线行号页；片段可能省略上下文，不能单独当成可运行脚本。读完每段后，回到调用者确认它在当前任务中如何使用。</p>
+<h3 id="advancesh-1-6">advance.sh 第 1 至 6 行</h3>
+<p><a href="../../baseline/l02_views/142670af88c5-advance.sh.html#L1">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/three_tasks/advance.sh#L1">固定 Git 提交</a></p>
+<pre><code class="language-bash">#!/usr/bin/env bash
+set -Eeuo pipefail
+r_base=&quot;$(cd -- &quot;$(dirname -- &quot;${BASH_SOURCE[0]}&quot;)/..&quot; &amp;&amp; pwd -P)&quot;
+source &quot;$r_base/env.sh&quot;
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
+exec &quot;$r_base/venvs/scene/bin/python&quot; &quot;$r_base/ws/src/task_platform/scripts/dispatch.py&quot; &quot;$@&quot;
+</code></pre>
+<p>set 的选项影响 shell 错误行为；r_base 通过脚本自身路径计算。source 在当前 shell 加载环境，exec 替换 shell，最后的 "$@" 保留参数边界。把这些词按顺序解释，比死记启动命令更容易迁移目录。</p>
+<!-- generated-production-end -->
+
+<h2 id="_6">本章练习及预期</h2>
+<pre><code class="language-bash">cd /home/ceihao/self_learning
+python3 examples/l02/labs.py 02
+</code></pre>
+<p>例子用 <code>TemporaryDirectory</code> 创建带空格的目录，在其中写入中文文件，检查文件名、相对路径和内容，退出上下文时自动清理它自己创建的目录。<code>with</code> 管理资源生命周期；你无需手工找到临时目录再删除。这是学习临时文件管理，比在原工程随便创建和删除文件更容易复现。</p>
+<!-- generated-lab-start -->
+<h3 id="_7">本章练习核心代码与实际输出</h3>
+<p><a href="../../examples/l02/labs.py">完整教学脚本</a> · <a href="../../validation/L02/lab_02.json">本章完整输出</a></p>
+<p>代码只使用 Python 标准库；合成输入与历史记录在输出 kind 中区分。公共 ROOT、read、wrap、connected 等辅助函数在完整脚本中定义。</p>
+<pre><code class="language-python">def lab02():
+    &quot;&quot;&quot;Paths and quoting, with a disposable directory containing a space.&quot;&quot;&quot;
+    with tempfile.TemporaryDirectory(prefix='robot learning ') as tmp:
+        p = Path(tmp) / '笔记.txt'
+        p.write_text('navigation != work\n', encoding='utf-8')
+        assert p.is_file() and p.read_text(encoding='utf-8').endswith('\n')
+        return dict(absolute=p.is_absolute(), file_name=p.name,
+                    relative=str(p.relative_to(tmp)), suffix=p.suffix,
+                    exists_during_lab=p.exists(), temporary_cleanup=True)
+</code></pre>
+<pre><code class="language-text">{
+  &quot;chapter&quot;: &quot;02&quot;,
+  &quot;passed&quot;: true,
+  &quot;result&quot;: {
+    &quot;absolute&quot;: true,
+    &quot;file_name&quot;: &quot;笔记.txt&quot;,
+    &quot;relative&quot;: &quot;笔记.txt&quot;,
+    &quot;suffix&quot;: &quot;.txt&quot;,
+    &quot;exists_during_lab&quot;: true,
+    &quot;temporary_cleanup&quot;: true
+  }
+}
+</code></pre>
+<p>本章例子可以在 Windows 使用 <code>py -3</code> 或在 Linux 使用 <code>python3</code> 重跑。它验证局部概念或读取历史证据，不对机器人全任务提供新通过结论。</p>
+<!-- generated-lab-end -->
+
+<h2 id="_8">常见故障和排查顺序</h2>
+<p><code>No such file or directory</code>：先执行 <code>pwd</code>，再 <code>ls</code> 检查上级目录；确认大小写、中文目录、空格是否正确。Linux 通常区分大小写，<code>L02</code> 与 <code>l02</code> 不同。若脚本文件明明存在，仍提示找不到解释器，检查首行解释器路径及 Windows CRLF 换行。</p>
+<p>中文乱码：先看编辑器是否按 UTF-8 保存，再用 <code>locale</code> 查看环境。不要通过更改源码字符串来掩盖编码问题。教材 Python 示例显式指定 <code>encoding='utf-8'</code>，减少不同系统默认编码差异。</p>
+<p>输出太多：缩小检索范围，使用 <code>sed</code> 阅读指定行，不要删除日志解决显示问题。复制路径时也不要把文件内容当命令执行。</p>
+<h2 id="_9">自测与答案</h2>
+<p>问：为什么 <code>cd</code> 后的相对路径会改变，而绝对路径不变？答：相对路径以当前工作目录为起点；绝对路径以根目录为起点。</p>
+<p>问：<code>echo $?</code> 输出 0 是否代表机器人作业完成？答：只代表上一条程序按自己的约定返回 0。<code>cat</code> 成功读完一个 PARTIAL 报告也会返回 0。</p>
+<p>练习：在临时笔记目录保存“原任务分母”和“本次选择范围”两行文字，再用 <code>cat</code> 查看。能解释每个参数和重定向符号后进入第 03 章。</p></main><footer>L02 内容阅读版 · 固定基线 9aff8337 · 原机器人 R10–R12 PARTIAL · L03 完整站点尚待执行</footer></html>

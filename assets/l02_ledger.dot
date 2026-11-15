@@ -1,0 +1,7 @@
+digraph G {
+graph [bgcolor="#f7fafb",pad="0.3",nodesep="0.4",ranksep="0.5",fontname="Noto Sans CJK SC"];
+node [shape=box,style="rounded,filled",fillcolor="#e6f3ef",color="#478276",fontname="Noto Sans CJK SC",fontsize=15,margin=".2,.15"];
+edge [color="#5d8189",fontname="Noto Sans CJK SC",fontsize=12];rankdir=TB;
+goal[label="工作键 + 原目标 + 版本"];reserve[label="预留任务 / 检查重复与冲突"];feedback[label="当前工具反馈 + 同时刻上下文"];guard[label="身份 / 时间 / 健康 / 位置 / 连续窗口"];credit[label="剂量积分 或 工具面积并集"];tx[label="同一事务写事件与确认量"];residual[label="原义务 − 已确认 = 残余"];replay[label="已完成工作键重放\n返回原结果，不再次工作"];
+goal->reserve->feedback->guard->credit->tx->residual;reserve->replay[label="已成功"];
+}

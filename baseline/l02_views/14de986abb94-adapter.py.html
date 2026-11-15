@@ -1,0 +1,116 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>adapter.py</title><style>body{margin:25px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;padding:20px;border:1px solid #d6e2e3;font:13px/1.8 Consolas,monospace;overflow:auto}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff0b0}a{color:#086b71}p{overflow-wrap:anywhere}</style><a href="../../L02/index.html">← L02 教材目录</a><h1>adapter.py</h1><p>optimization_v2/ws/src/sensor_sim_adapter/scripts/adapter.py</p><p>固定基线 9aff8337b7794f704c5556a973a5220e73f17808 · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/sensor_sim_adapter/scripts/adapter.py">GitHub 原文件</a></p><p>原始文件按字节保留；显示换行不改变行号。快照用于阅读，不直接作为运行入口。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Trusted sensor generator: raw domain 121 -&gt; explicit noisy observation domain 119.</span>
+<span class="line" id="L2"><a href="#L2">   2</a> Only this process has both contexts. It never publishes raw inputs or world poses.</span>
+<span class="line" id="L3"><a href="#L3">   3</a> &quot;&quot;&quot;</span>
+<span class="line" id="L4"><a href="#L4">   4</a> import argparse,copy,heapq,json,math,signal,time</span>
+<span class="line" id="L5"><a href="#L5">   5</a> from collections import Counter</span>
+<span class="line" id="L6"><a href="#L6">   6</a> import numpy as np</span>
+<span class="line" id="L7"><a href="#L7">   7</a> import rclpy</span>
+<span class="line" id="L8"><a href="#L8">   8</a> from rclpy.context import Context</span>
+<span class="line" id="L9"><a href="#L9">   9</a> from rclpy.executors import SingleThreadedExecutor</span>
+<span class="line" id="L10"><a href="#L10">  10</a> from rclpy.qos import qos_profile_sensor_data,QoSProfile,ReliabilityPolicy</span>
+<span class="line" id="L11"><a href="#L11">  11</a> from sensor_msgs.msg import PointCloud2,PointField,Image,Imu,NavSatFix,JointState</span>
+<span class="line" id="L12"><a href="#L12">  12</a> from geometry_msgs.msg import TwistWithCovarianceStamped</span>
+<span class="line" id="L13"><a href="#L13">  13</a> from rosgraph_msgs.msg import Clock</span>
+<span class="line" id="L14"><a href="#L14">  14</a> from std_msgs.msg import String</span>
+<span class="line" id="L15"><a href="#L15">  15</a> from sensor_msgs_py import point_cloud2</span>
+<span class="line" id="L16"><a href="#L16">  16</a> from common import *</span>
+<span class="line" id="L17"><a href="#L17">  17</a> import sys</span>
+<span class="line" id="L18"><a href="#L18">  18</a> sys.path.insert(0,str(BASE/&#x27;ws/src/chassis_bridge/scripts&#x27;))</span>
+<span class="line" id="L19"><a href="#L19">  19</a> from kinematics import twist</span>
+<span class="line" id="L20"><a href="#L20">  20</a> TYPES={&#x27;points&#x27;:PointCloud2,&#x27;left&#x27;:Image,&#x27;right&#x27;:Image,&#x27;imu&#x27;:Imu,&#x27;wheel&#x27;:TwistWithCovarianceStamped,&#x27;joints&#x27;:JointState,&#x27;gnss&#x27;:NavSatFix,&#x27;quality&#x27;:String}</span>
+<span class="line" id="L21"><a href="#L21">  21</a> TOPICS={&#x27;points&#x27;:&#x27;lidar/points&#x27;,&#x27;left&#x27;:&#x27;stereo/left/image_rect&#x27;,&#x27;right&#x27;:&#x27;stereo/right/image_rect&#x27;,&#x27;imu&#x27;:&#x27;imu/data&#x27;,&#x27;wheel&#x27;:&#x27;wheel/twist&#x27;,&#x27;joints&#x27;:&#x27;wheel/joint_states&#x27;,&#x27;gnss&#x27;:&#x27;gnss/fix&#x27;,&#x27;quality&#x27;:&#x27;gnss/quality&#x27;}</span>
+<span class="line" id="L22"><a href="#L22">  22</a> class Adapter:</span>
+<span class="line" id="L23"><a href="#L23">  23</a>     def __init__(self,vehicle,out,seed,profile,streams=&#x27;motion&#x27;):</span>
+<span class="line" id="L24"><a href="#L24">  24</a>         self.c=settings();self.vehicle=read(vehicle);self.out=out;out.mkdir(parents=True,exist_ok=True);self.log=(out/&#x27;generation.jsonl&#x27;).open(&#x27;w&#x27;);self.t=0.;self.queue=[];self.bytes=0;self.highwater=0;self.seq=0;self.epoch=0;self.counts=Counter();self.drops=Counter();self.last={};self.profile=profile</span>
+<span class="line" id="L25"><a href="#L25">  25</a>         self.rng={k:np.random.default_rng(np.random.SeedSequence([seed,i])) for i,k in enumerate([&#x27;points&#x27;,&#x27;left&#x27;,&#x27;right&#x27;,&#x27;imu&#x27;,&#x27;wheel&#x27;,&#x27;gnss&#x27;])}</span>
+<span class="line" id="L26"><a href="#L26">  26</a>         self.gyro_bias=np.array(self.c[&#x27;imu&#x27;][&#x27;gyro_bias&#x27;]);self.accel_bias=np.array(self.c[&#x27;imu&#x27;][&#x27;accel_bias&#x27;]);self.gnss_bias=np.zeros(3);self.last_published={}</span>
+<span class="line" id="L27"><a href="#L27">  27</a>         self.raw_context=Context();self.online_context=Context();rclpy.init(context=self.raw_context,domain_id=121);rclpy.init(context=self.online_context,domain_id=119)</span>
+<span class="line" id="L28"><a href="#L28">  28</a>         self.raw=rclpy.create_node(&#x27;s04_generator_raw_&#x27;+streams,context=self.raw_context);self.online=rclpy.create_node(&#x27;s04_generator_output_&#x27;+streams,context=self.online_context)</span>
+<span class="line" id="L29"><a href="#L29">  29</a>         active={&#x27;points&#x27;,&#x27;left&#x27;,&#x27;right&#x27;} if streams==&#x27;vision&#x27; else {&#x27;imu&#x27;,&#x27;wheel&#x27;,&#x27;joints&#x27;,&#x27;gnss&#x27;,&#x27;quality&#x27;}</span>
+<span class="line" id="L30"><a href="#L30">  30</a>         self.pub={}</span>
+<span class="line" id="L31"><a href="#L31">  31</a>         for k,v in TYPES.items():</span>
+<span class="line" id="L32"><a href="#L32">  32</a>             if k not in active:continue</span>
+<span class="line" id="L33"><a href="#L33">  33</a>             qos=QoSProfile(depth=3 if k in [&#x27;left&#x27;,&#x27;right&#x27;] else 10,reliability=ReliabilityPolicy.BEST_EFFORT)</span>
+<span class="line" id="L34"><a href="#L34">  34</a>             self.pub[k]=self.online.create_publisher(v,&#x27;/s04/&#x27;+TOPICS[k],qos)</span>
+<span class="line" id="L35"><a href="#L35">  35</a>         self.raw.create_subscription(Clock,&#x27;/clock&#x27;,self.clock,qos_profile_sensor_data)</span>
+<span class="line" id="L36"><a href="#L36">  36</a>         for key,typ,topic,callback in [(&#x27;points&#x27;,PointCloud2,&#x27;lidar/points&#x27;,self.cloud),(&#x27;left&#x27;,Image,&#x27;left&#x27;,lambda m:self.camera(m,&#x27;left&#x27;)),(&#x27;right&#x27;,Image,&#x27;right&#x27;,lambda m:self.camera(m,&#x27;right&#x27;)),(&#x27;imu&#x27;,Imu,&#x27;imu&#x27;,self.imu),(&#x27;gnss&#x27;,NavSatFix,&#x27;gnss&#x27;,self.gnss),(&#x27;wheel&#x27;,String,&#x27;joints&#x27;,self.wheel)]:</span>
+<span class="line" id="L37"><a href="#L37">  37</a>             if key in active:</span>
+<span class="line" id="L38"><a href="#L38">  38</a>                 qos=QoSProfile(depth=3 if key in [&#x27;left&#x27;,&#x27;right&#x27;] else 20,reliability=ReliabilityPolicy.BEST_EFFORT)</span>
+<span class="line" id="L39"><a href="#L39">  39</a>                 self.raw.create_subscription(typ,&#x27;/s04/raw/&#x27;+topic,callback,qos)</span>
+<span class="line" id="L40"><a href="#L40">  40</a>         self.executor=SingleThreadedExecutor(context=self.raw_context);self.executor.add_node(self.raw)</span>
+<span class="line" id="L41"><a href="#L41">  41</a>         (out/&#x27;ready&#x27;).write_text(&#x27;raw 121 -&gt; observations 119&#x27;)</span>
+<span class="line" id="L42"><a href="#L42">  42</a>     def clock(self,m):</span>
+<span class="line" id="L43"><a href="#L43">  43</a>         t=m.clock.sec+m.clock.nanosec*1e-9</span>
+<span class="line" id="L44"><a href="#L44">  44</a>         if t&lt;self.t:</span>
+<span class="line" id="L45"><a href="#L45">  45</a>             self.queue.clear();self.bytes=0;self.last.clear();self.last_published.clear();self.epoch+=1</span>
+<span class="line" id="L46"><a href="#L46">  46</a>         self.t=t;self.flush()</span>
+<span class="line" id="L47"><a href="#L47">  47</a>     def audit(self,k,t,**data):self.log.write(json.dumps(dict(sensor=k,t=t,epoch=self.epoch,**data),separators=(&#x27;,&#x27;,&#x27;:&#x27;))+&#x27;\n&#x27;)</span>
+<span class="line" id="L48"><a href="#L48">  48</a>     def enqueue(self,k,m,t,size=500):</span>
+<span class="line" id="L49"><a href="#L49">  49</a>         f=phase(t,self.profile);delay=float(f.get(&#x27;delay_s&#x27;,0));self.seq+=1</span>
+<span class="line" id="L50"><a href="#L50">  50</a>         if self.bytes+size&gt;self.c[&#x27;limits&#x27;][&#x27;queue_bytes&#x27;]:self.drops[&#x27;queue_&#x27;+k]+=1;return</span>
+<span class="line" id="L51"><a href="#L51">  51</a>         heapq.heappush(self.queue,(t+delay,self.seq,k,m,size,t));self.bytes+=size;self.highwater=max(self.bytes,self.highwater);self.flush()</span>
+<span class="line" id="L52"><a href="#L52">  52</a>     def flush(self):</span>
+<span class="line" id="L53"><a href="#L53">  53</a>         while self.queue and self.queue[0][0]&lt;=self.t+1e-9:</span>
+<span class="line" id="L54"><a href="#L54">  54</a>             due,seq,key,m,size,t=heapq.heappop(self.queue);self.bytes-=size</span>
+<span class="line" id="L55"><a href="#L55">  55</a>             # A transport recovery can overtake delayed samples. Never time-travel online.</span>
+<span class="line" id="L56"><a href="#L56">  56</a>             if t&lt;=self.last_published.get(key,-1):</span>
+<span class="line" id="L57"><a href="#L57">  57</a>                 self.drops[&#x27;late_&#x27;+key]+=1;self.audit(key,t,event=&#x27;late_discard&#x27;,delivery_sim=self.t);continue</span>
+<span class="line" id="L58"><a href="#L58">  58</a>             self.last_published[key]=t;self.pub[key].publish(m);self.counts[key]+=1</span>
+<span class="line" id="L59"><a href="#L59">  59</a>             self.audit(key,t,event=&#x27;published&#x27;,delivery_sim=self.t,delay_sim=self.t-t)</span>
+<span class="line" id="L60"><a href="#L60">  60</a>     def cloud(self,m):</span>
+<span class="line" id="L61"><a href="#L61">  61</a>         t=stamp(m);rng=self.rng[&#x27;points&#x27;];xyz=point_cloud2.read_points_numpy(m,field_names=[&#x27;x&#x27;,&#x27;y&#x27;,&#x27;z&#x27;],skip_nans=False).reshape(-1,3).astype(np.float32);n=len(xyz);distance=np.linalg.norm(xyz,axis=1);valid=np.isfinite(xyz).all(axis=1)&amp;(distance&gt;0)</span>
+<span class="line" id="L62"><a href="#L62">  62</a>         before=xyz[valid][:100].copy();noise=rng.normal(0,self.c[&#x27;lidar&#x27;][&#x27;sigma_m&#x27;],valid.sum());xyz[valid]*=(1+noise/distance[valid])[:,None]</span>
+<span class="line" id="L63"><a href="#L63">  63</a>         data=np.zeros(n,dtype=[(&#x27;x&#x27;,&#x27;&lt;f4&#x27;),(&#x27;y&#x27;,&#x27;&lt;f4&#x27;),(&#x27;z&#x27;,&#x27;&lt;f4&#x27;),(&#x27;intensity&#x27;,&#x27;&lt;f4&#x27;),(&#x27;ring&#x27;,&#x27;&lt;u2&#x27;)])</span>
+<span class="line" id="L64"><a href="#L64">  64</a>         for i,k in enumerate([&#x27;x&#x27;,&#x27;y&#x27;,&#x27;z&#x27;]):data[k]=xyz[:,i]</span>
+<span class="line" id="L65"><a href="#L65">  65</a>         # Beam IDs from the native organized raster; never invent point acquisition times.</span>
+<span class="line" id="L66"><a href="#L66">  66</a>         data[&#x27;ring&#x27;]=np.arange(n)//self.c[&#x27;lidar&#x27;][&#x27;horizontal&#x27;];data[&#x27;intensity&#x27;]=0.</span>
+<span class="line" id="L67"><a href="#L67">  67</a>         out=PointCloud2();out.header=copy.deepcopy(m.header);out.header.frame_id=&#x27;lidar_link&#x27;;out.height=self.c[&#x27;lidar&#x27;][&#x27;vertical&#x27;];out.width=self.c[&#x27;lidar&#x27;][&#x27;horizontal&#x27;];out.is_bigendian=False;out.point_step=18;out.row_step=out.width*18;out.is_dense=False</span>
+<span class="line" id="L68"><a href="#L68">  68</a>         out.fields=[PointField(name=k,offset=4*i,datatype=PointField.FLOAT32,count=1) for i,k in enumerate([&#x27;x&#x27;,&#x27;y&#x27;,&#x27;z&#x27;,&#x27;intensity&#x27;])]+[PointField(name=&#x27;ring&#x27;,offset=16,datatype=PointField.UINT16,count=1)];out.data=data.tobytes()</span>
+<span class="line" id="L69"><a href="#L69">  69</a>         if n!=out.width*out.height:raise ValueError(&#x27;Native 3D lidar raster does not match frozen configuration&#x27;)</span>
+<span class="line" id="L70"><a href="#L70">  70</a>         self.audit(&#x27;points&#x27;,t,event=&#x27;generated&#x27;,native_shape=[m.height,m.width],finite=int(valid.sum()),range_noise_std=float(np.std(noise)),sample_changed=bool(len(before) and np.any(before!=xyz[valid][:100])))</span>
+<span class="line" id="L71"><a href="#L71">  71</a>         self.enqueue(&#x27;points&#x27;,out,t,len(out.data))</span>
+<span class="line" id="L72"><a href="#L72">  72</a>     def camera(self,m,key):</span>
+<span class="line" id="L73"><a href="#L73">  73</a>         t=stamp(m);rng=self.rng[key];f=phase(t,self.profile)</span>
+<span class="line" id="L74"><a href="#L74">  74</a>         if rng.random()&lt;f.get(&#x27;image_drop_probability&#x27;,0):self.drops[key]+=1;self.audit(key,t,event=&#x27;injected_drop&#x27;);return</span>
+<span class="line" id="L75"><a href="#L75">  75</a>         if m.encoding not in [&#x27;rgb8&#x27;,&#x27;bgr8&#x27;]:raise ValueError(&#x27;unsupported image encoding &#x27;+m.encoding)</span>
+<span class="line" id="L76"><a href="#L76">  76</a>         raw=np.frombuffer(m.data,np.uint8).reshape(m.height,m.step)[:,:m.width*3].reshape(m.height,m.width,3)</span>
+<span class="line" id="L77"><a href="#L77">  77</a>         if m.encoding==&#x27;bgr8&#x27;:raw=raw[:,:,::-1]</span>
+<span class="line" id="L78"><a href="#L78">  78</a>         noisy=np.clip(raw.astype(np.float32)+rng.normal(0,self.c[&#x27;stereo&#x27;][&#x27;pixel_sigma&#x27;],raw.shape),0,255).astype(np.uint8)</span>
+<span class="line" id="L79"><a href="#L79">  79</a>         m.data=noisy.tobytes();m.encoding=&#x27;rgb8&#x27;;m.step=m.width*3;m.header.frame_id=key+&#x27;_optical&#x27;;self.enqueue(key,m,t,len(m.data))</span>
+<span class="line" id="L80"><a href="#L80">  80</a>     def imu(self,m):</span>
+<span class="line" id="L81"><a href="#L81">  81</a>         t=stamp(m);c=self.c[&#x27;imu&#x27;];rng=self.rng[&#x27;imu&#x27;];dt=max(0,min(.1,t-self.last.get(&#x27;imu&#x27;,t)));self.last[&#x27;imu&#x27;]=t;f=phase(t,self.profile)</span>
+<span class="line" id="L82"><a href="#L82">  82</a>         self.gyro_bias+=rng.normal(0,c[&#x27;gyro_walk&#x27;]*math.sqrt(dt),3);self.accel_bias+=rng.normal(0,c[&#x27;accel_walk&#x27;]*math.sqrt(dt),3)</span>
+<span class="line" id="L83"><a href="#L83">  83</a>         angular=np.array([m.angular_velocity.x,m.angular_velocity.y,m.angular_velocity.z]);accel=np.array([m.linear_acceleration.x,m.linear_acceleration.y,m.linear_acceleration.z]);raw_z=float(angular[2])</span>
+<span class="line" id="L84"><a href="#L84">  84</a>         angular+=self.gyro_bias+rng.normal(0,c[&#x27;gyro_sigma&#x27;],3);angular[2]+=f.get(&#x27;gyro_z_bias_rad_s&#x27;,0);accel+=self.accel_bias+rng.normal(0,c[&#x27;accel_sigma&#x27;],3)</span>
+<span class="line" id="L85"><a href="#L85">  85</a>         for i,k in enumerate([&#x27;x&#x27;,&#x27;y&#x27;,&#x27;z&#x27;]):setattr(m.angular_velocity,k,float(angular[i]));setattr(m.linear_acceleration,k,float(accel[i]))</span>
+<span class="line" id="L86"><a href="#L86">  86</a>         m.header.frame_id=&#x27;imu_link&#x27;;m.orientation.x=m.orientation.y=m.orientation.z=0.;m.orientation.w=1.;m.orientation_covariance=[-1.,0.,0.,0.,0.,0.,0.,0.,0.]</span>
+<span class="line" id="L87"><a href="#L87">  87</a>         m.angular_velocity_covariance=[c[&#x27;gyro_sigma&#x27;]**2 if i in [0,4,8] else 0. for i in range(9)];m.linear_acceleration_covariance=[c[&#x27;accel_sigma&#x27;]**2 if i in [0,4,8] else 0. for i in range(9)]</span>
+<span class="line" id="L88"><a href="#L88">  88</a>         self.audit(&#x27;imu&#x27;,t,event=&#x27;generated&#x27;,raw_z=raw_z,observed_z=float(angular[2]),bias=self.gyro_bias.tolist());self.enqueue(&#x27;imu&#x27;,m,t)</span>
+<span class="line" id="L89"><a href="#L89">  89</a>     def wheel(self,msg):</span>
+<span class="line" id="L90"><a href="#L90">  90</a>         d=json.loads(msg.data);t=d[&#x27;t&#x27;];c=self.c[&#x27;wheel&#x27;];rng=self.rng[&#x27;wheel&#x27;];resolution=2*math.pi/c[&#x27;ticks_per_rev&#x27;];q=np.round(np.array(d[&#x27;q&#x27;])/resolution)*resolution;v,w=twist(d[&#x27;velocity&#x27;],q,self.vehicle);raw_v=v;f=phase(t,self.profile)</span>
+<span class="line" id="L91"><a href="#L91">  91</a>         v=v*(1+f.get(&#x27;wheel_scale_error&#x27;,0))+rng.normal(0,c[&#x27;velocity_sigma&#x27;]);w+=rng.normal(0,c[&#x27;angular_sigma&#x27;])</span>
+<span class="line" id="L92"><a href="#L92">  92</a>         out=TwistWithCovarianceStamped();set_stamp(out,t);out.header.frame_id=&#x27;base_link&#x27;;out.twist.twist.linear.x=float(v);out.twist.twist.angular.z=float(w)</span>
+<span class="line" id="L93"><a href="#L93">  93</a>         for i,value in enumerate([c[&#x27;velocity_sigma&#x27;]**2,1e6,1e6,1e6,1e6,c[&#x27;angular_sigma&#x27;]**2]):out.twist.covariance[7*i]=value</span>
+<span class="line" id="L94"><a href="#L94">  94</a>         j=JointState();j.header=copy.deepcopy(out.header);j.name=[&#x27;rear_left_joint&#x27;,&#x27;rear_right_joint&#x27;]+([&#x27;steer_left_joint&#x27;,&#x27;steer_right_joint&#x27;] if len(q)==4 else []);j.position=q.tolist();j.velocity=d[&#x27;velocity&#x27;]</span>
+<span class="line" id="L95"><a href="#L95">  95</a>         self.audit(&#x27;wheel&#x27;,t,event=&#x27;generated&#x27;,shaft_v=raw_v,observed_v=float(v));self.enqueue(&#x27;wheel&#x27;,out,t);self.enqueue(&#x27;joints&#x27;,j,t)</span>
+<span class="line" id="L96"><a href="#L96">  96</a>     def gnss(self,m):</span>
+<span class="line" id="L97"><a href="#L97">  97</a>         t=stamp(m);c=self.c[&#x27;gnss&#x27;];rng=self.rng[&#x27;gnss&#x27;];f=phase(t,self.profile);mode=f.get(&#x27;gnss_mode&#x27;,&#x27;fixed&#x27;)</span>
+<span class="line" id="L98"><a href="#L98">  98</a>         raw=to_enu([m.latitude,m.longitude,m.altitude],c[&#x27;origin&#x27;]);dt=max(0,min(1,t-self.last.get(&#x27;gnss&#x27;,t)));self.last[&#x27;gnss&#x27;]=t</span>
+<span class="line" id="L99"><a href="#L99">  99</a>         alpha=math.exp(-dt/c[&#x27;correlation_tau_s&#x27;]);self.gnss_bias=alpha*self.gnss_bias+math.sqrt(1-alpha*alpha)*rng.normal(0,c[&#x27;correlated_sigma_m&#x27;],3)</span>
+<span class="line" id="L100"><a href="#L100"> 100</a>         quality=String();quality.data=json.dumps(dict(stamp=t,reported_mode=&#x27;no_fix&#x27; if mode==&#x27;dropout&#x27; else &#x27;float&#x27; if mode==&#x27;float&#x27; else &#x27;fixed&#x27;));self.enqueue(&#x27;quality&#x27;,quality,t)</span>
+<span class="line" id="L101"><a href="#L101"> 101</a>         if mode==&#x27;dropout&#x27;:self.drops[&#x27;gnss&#x27;]+=1;self.audit(&#x27;gnss&#x27;,t,event=&#x27;injected_drop&#x27;);return</span>
+<span class="line" id="L102"><a href="#L102"> 102</a>         sigma=np.array(c[&#x27;float_sigma_m&#x27;] if mode==&#x27;float&#x27; else c[&#x27;fixed_sigma_m&#x27;]);error=rng.normal(0,sigma,3)+self.gnss_bias+np.array(f.get(&#x27;gnss_bias_enu_m&#x27;,[0,0,0]));llh=from_enu(raw+error,c[&#x27;origin&#x27;]);m.latitude,m.longitude,m.altitude=map(float,llh);m.header.frame_id=&#x27;gnss_link&#x27;;m.status.status=2 if mode in [&#x27;fixed&#x27;,&#x27;false_fixed&#x27;] else 0;m.status.service=1</span>
+<span class="line" id="L103"><a href="#L103"> 103</a>         m.position_covariance_type=2;m.position_covariance=[float(sigma[i//4]**2+c[&#x27;correlated_sigma_m&#x27;]**2) if i in [0,4,8] else 0. for i in range(9)]</span>
+<span class="line" id="L104"><a href="#L104"> 104</a>         self.audit(&#x27;gnss&#x27;,t,event=&#x27;generated&#x27;,raw_enu=raw.tolist(),observed_enu=(raw+error).tolist(),error_enu=error.tolist(),mode_injected=mode,reported_mode=&#x27;fixed&#x27; if mode==&#x27;false_fixed&#x27; else mode,covariance=list(m.position_covariance));self.enqueue(&#x27;gnss&#x27;,m,t)</span>
+<span class="line" id="L105"><a href="#L105"> 105</a>     def finish(self):</span>
+<span class="line" id="L106"><a href="#L106"> 106</a>         self.log.close();dump(self.out/&#x27;result.json&#x27;,dict(counts=dict(self.counts),injected_or_queue_drops=dict(self.drops),queue_highwater_bytes=self.highwater,pending_discarded=len(self.queue),domains=[121,119],raw_topics=[t for t,_ in self.raw.get_topic_names_and_types()],outputs=TOPICS,epoch=self.epoch,config_hash=config_hash()))</span>
+<span class="line" id="L107"><a href="#L107"> 107</a>         self.executor.shutdown();self.raw.destroy_node();self.online.destroy_node();self.raw_context.shutdown();self.online_context.shutdown()</span>
+<span class="line" id="L108"><a href="#L108"> 108</a> def main():</span>
+<span class="line" id="L109"><a href="#L109"> 109</a>     p=argparse.ArgumentParser();p.add_argument(&#x27;--vehicle&#x27;,type=Path,required=True);p.add_argument(&#x27;--out&#x27;,type=Path,required=True);p.add_argument(&#x27;--seed&#x27;,type=int,required=True);p.add_argument(&#x27;--profile&#x27;,choices=[&#x27;nominal&#x27;,&#x27;sensor_faults&#x27;],required=True);p.add_argument(&#x27;--streams&#x27;,choices=[&#x27;motion&#x27;,&#x27;vision&#x27;],required=True);a=p.parse_args()</span>
+<span class="line" id="L110"><a href="#L110"> 110</a>     profile=yaml.safe_load((BASE/&#x27;config/fault_profiles.yaml&#x27;).read_text())[a.profile];node=Adapter(a.vehicle,a.out,a.seed,profile,a.streams);stop=[False]</span>
+<span class="line" id="L111"><a href="#L111"> 111</a>     def end(s,f):stop[0]=True</span>
+<span class="line" id="L112"><a href="#L112"> 112</a>     signal.signal(signal.SIGINT,end);signal.signal(signal.SIGTERM,end)</span>
+<span class="line" id="L113"><a href="#L113"> 113</a>     try:</span>
+<span class="line" id="L114"><a href="#L114"> 114</a>         while not stop[0]:node.executor.spin_once(timeout_sec=.01)</span>
+<span class="line" id="L115"><a href="#L115"> 115</a>     finally:node.finish()</span>
+<span class="line" id="L116"><a href="#L116"> 116</a> if __name__==&#x27;__main__&#x27;:main()</span></code></pre></html>

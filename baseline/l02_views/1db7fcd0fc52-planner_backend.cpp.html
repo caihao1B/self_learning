@@ -1,0 +1,59 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>planner_backend.cpp</title><style>body{margin:25px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;padding:20px;border:1px solid #d6e2e3;font:13px/1.8 Consolas,monospace;overflow:auto}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff0b0}a{color:#086b71}p{overflow-wrap:anywhere}</style><a href="../../L02/index.html">← L02 教材目录</a><h1>planner_backend.cpp</h1><p>optimization_v2/ws/src/coverage_planner/src/planner_backend.cpp</p><p>固定基线 9aff8337b7794f704c5556a973a5220e73f17808 · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/coverage_planner/src/planner_backend.cpp">GitHub 原文件</a></p><p>原始文件按字节保留；显示换行不改变行号。快照用于阅读，不直接作为运行入口。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> // Actual installed Fields2Cover and OR-Tools APIs. No trust in geometric success alone.</span>
+<span class="line" id="L2"><a href="#L2">   2</a> #include &lt;fields2cover.h&gt;</span>
+<span class="line" id="L3"><a href="#L3">   3</a> #include &lt;ortools/constraint_solver/routing.h&gt;</span>
+<span class="line" id="L4"><a href="#L4">   4</a> #include &lt;ortools/constraint_solver/routing_parameters.h&gt;</span>
+<span class="line" id="L5"><a href="#L5">   5</a> #include &lt;nlohmann/json.hpp&gt;</span>
+<span class="line" id="L6"><a href="#L6">   6</a> #include &lt;fstream&gt;</span>
+<span class="line" id="L7"><a href="#L7">   7</a> #include &lt;iostream&gt;</span>
+<span class="line" id="L8"><a href="#L8">   8</a> #include &lt;cmath&gt;</span>
+<span class="line" id="L9"><a href="#L9">   9</a> using json=nlohmann::json;</span>
+<span class="line" id="L10"><a href="#L10">  10</a> void need(bool v,const char* s){if(!v)throw std::runtime_error(s);}</span>
+<span class="line" id="L11"><a href="#L11">  11</a> F2CCell cell(const json&amp; g){</span>
+<span class="line" id="L12"><a href="#L12">  12</a>   need(g.at(&quot;type&quot;)==&quot;Polygon&quot;,&quot;POLYGON_REQUIRED&quot;);F2CCell c;</span>
+<span class="line" id="L13"><a href="#L13">  13</a>   for(const auto&amp; ring:g.at(&quot;coordinates&quot;)){F2CLinearRing r;for(const auto&amp; p:ring){double x=p.at(0),y=p.at(1);need(std::isfinite(x)&amp;&amp;std::isfinite(y),&quot;NONFINITE_GEOMETRY&quot;);r.addPoint(x,y);}c.addRing(r);}</span>
+<span class="line" id="L14"><a href="#L14">  14</a>   need(c.area()&gt;1e-8,&quot;EMPTY_CELL&quot;);return c;</span>
+<span class="line" id="L15"><a href="#L15">  15</a> }</span>
+<span class="line" id="L16"><a href="#L16">  16</a> template&lt;class G&gt; json geo(const G&amp; g){char* s=g-&gt;exportToJson();json j=json::parse(s);CPLFree(s);return j;}</span>
+<span class="line" id="L17"><a href="#L17">  17</a> json swaths(const json&amp; j){</span>
+<span class="line" id="L18"><a href="#L18">  18</a>   auto c=cell(j.at(&quot;work&quot;));auto motion=cell(j.at(&quot;motion&quot;));double width=j.at(&quot;spacing&quot;),hl=j.at(&quot;headland&quot;);need(width&gt;.05&amp;&amp;width&lt;3&amp;&amp;hl&gt;=0,&quot;BAD_SWATH_PARAMETERS&quot;);</span>
+<span class="line" id="L19"><a href="#L19">  19</a>   f2c::hg::ConstHL h;auto inner=h.generateHeadlands(F2CCells(c),hl);auto inner_motion=h.generateHeadlands(F2CCells(motion),hl);</span>
+<span class="line" id="L20"><a href="#L20">  20</a>   f2c::sg::BruteForce generator;generator.setStepAngle(M_PI/12);f2c::obj::NSwath objective;</span>
+<span class="line" id="L21"><a href="#L21">  21</a>   double angle=j.contains(&quot;angle&quot;)?j.at(&quot;angle&quot;).get&lt;double&gt;():generator.computeBestAngle(objective,width,c);</span>
+<span class="line" id="L22"><a href="#L22">  22</a>   f2c::decomp::BoustrophedonDecomp decomp;decomp.setSplitAngle(angle);auto cells=decomp.decompose(F2CCells(c));</span>
+<span class="line" id="L23"><a href="#L23">  23</a>   // One global line phase over the entire work zone avoids seams at cell/cluster boundaries.</span>
+<span class="line" id="L24"><a href="#L24">  24</a>   auto lines=generator.generateSwaths(angle,width,c);f2c::rp::BoustrophedonOrder order;auto sorted=order.genSortedSwaths(lines);</span>
+<span class="line" id="L25"><a href="#L25">  25</a>   json rows=json::array();for(const auto&amp; s:sorted){auto a=s.startPoint(),b=s.endPoint();rows.push_back({{&quot;id&quot;,s.getId()},{&quot;a&quot;,{a.getX(),a.getY()}},{&quot;b&quot;,{b.getX(),b.getY()}},{&quot;length&quot;,s.length()}});}</span>
+<span class="line" id="L26"><a href="#L26">  26</a>   return {{&quot;angle&quot;,angle},{&quot;swaths&quot;,rows},{&quot;inner_work&quot;,geo(inner)},{&quot;inner_motion&quot;,geo(inner_motion)},{&quot;decomposition&quot;,geo(cells)},{&quot;library&quot;,&quot;Fields2Cover&quot;},{&quot;whole_zone_headland&quot;,true}};</span>
+<span class="line" id="L27"><a href="#L27">  27</a> }</span>
+<span class="line" id="L28"><a href="#L28">  28</a> json turns(const json&amp; j){</span>
+<span class="line" id="L29"><a href="#L29">  29</a>   double radius=j.at(&quot;radius&quot;),ds=j.value(&quot;ds&quot;,.05);need(radius&gt;=2.11&amp;&amp;ds&gt;0&amp;&amp;ds&lt;=.1,&quot;TURN_LIMITS&quot;);</span>
+<span class="line" id="L30"><a href="#L30">  30</a>   F2CRobot robot(1.04,.9);robot.setMinTurningRadius(radius);robot.setMaxDiffCurv(.25);robot.setCruiseVel(.12);robot.setTurnVel(.12);</span>
+<span class="line" id="L31"><a href="#L31">  31</a>   f2c::pp::DubinsCurvesCC cc;cc.setDiscretization(ds);cc.setUsingCache(false);f2c::pp::DubinsCurves simple;simple.setDiscretization(ds);simple.setUsingCache(false);json out=json::array();</span>
+<span class="line" id="L32"><a href="#L32">  32</a>   need(j.at(&quot;queries&quot;).size()&lt;=300,&quot;QUERY_LIMIT&quot;);</span>
+<span class="line" id="L33"><a href="#L33">  33</a>   for(const auto&amp; q:j.at(&quot;queries&quot;)){</span>
+<span class="line" id="L34"><a href="#L34">  34</a>     auto a=q.at(&quot;start&quot;),b=q.at(&quot;goal&quot;);</span>
+<span class="line" id="L35"><a href="#L35">  35</a>     for(int mode=0;mode&lt;2;mode++){</span>
+<span class="line" id="L36"><a href="#L36">  36</a>     f2c::pp::TurningBase&amp; curve=mode==0?static_cast&lt;f2c::pp::TurningBase&amp;&gt;(cc):static_cast&lt;f2c::pp::TurningBase&amp;&gt;(simple);</span>
+<span class="line" id="L37"><a href="#L37">  37</a>     auto path=curve.createTurn(robot,F2CPoint(a[0],a[1]),a[2],F2CPoint(b[0],b[1]),b[2]);json poses=json::array();</span>
+<span class="line" id="L38"><a href="#L38">  38</a>     for(const auto&amp; s:path.getStates())poses.push_back({s.point.getX(),s.point.getY(),s.angle});</span>
+<span class="line" id="L39"><a href="#L39">  39</a>     out.push_back({{&quot;poses&quot;,poses},{&quot;length&quot;,path.length()},{&quot;continuous_curvature&quot;,curve.hasContinuousCurvature()},{&quot;id&quot;,q.at(&quot;id&quot;)}});</span>
+<span class="line" id="L40"><a href="#L40">  40</a>   }</span>
+<span class="line" id="L41"><a href="#L41">  41</a>   }</span>
+<span class="line" id="L42"><a href="#L42">  42</a>   return {{&quot;turns&quot;,out}};</span>
+<span class="line" id="L43"><a href="#L43">  43</a> }</span>
+<span class="line" id="L44"><a href="#L44">  44</a> json tsp(const json&amp; j){</span>
+<span class="line" id="L45"><a href="#L45">  45</a>   using namespace operations_research;auto cost=j.at(&quot;cost&quot;).get&lt;std::vector&lt;std::vector&lt;int64_t&gt;&gt;&gt;();int n=cost.size();need(n&gt;=2&amp;&amp;n&lt;=500,&quot;TSP_SIZE&quot;);</span>
+<span class="line" id="L46"><a href="#L46">  46</a>   for(const auto&amp; row:cost){need(row.size()==static_cast&lt;size_t&gt;(n),&quot;MATRIX_SHAPE&quot;);for(auto v:row)need(v&gt;=0&amp;&amp;v&lt;1000000000000LL,&quot;MATRIX_VALUE&quot;);}</span>
+<span class="line" id="L47"><a href="#L47">  47</a>   RoutingIndexManager manager(n,1,RoutingIndexManager::NodeIndex(0));RoutingModel routing(manager);</span>
+<span class="line" id="L48"><a href="#L48">  48</a>   const int cb=routing.RegisterTransitCallback([&amp;](int64_t i,int64_t k){return cost[manager.IndexToNode(i).value()][manager.IndexToNode(k).value()];});routing.SetArcCostEvaluatorOfAllVehicles(cb);</span>
+<span class="line" id="L49"><a href="#L49">  49</a>   auto options=DefaultRoutingSearchParameters();options.set_first_solution_strategy(FirstSolutionStrategy::PATH_CHEAPEST_ARC);options.set_local_search_metaheuristic(LocalSearchMetaheuristic::GREEDY_DESCENT);</span>
+<span class="line" id="L50"><a href="#L50">  50</a>   options.mutable_time_limit()-&gt;set_seconds(2);options.set_solution_limit(1000);const Assignment* solution=routing.SolveWithParameters(options);need(solution!=nullptr,&quot;TSP_NO_SOLUTION&quot;);</span>
+<span class="line" id="L51"><a href="#L51">  51</a>   json order=json::array();for(auto i=routing.Start(0);!routing.IsEnd(i);i=solution-&gt;Value(routing.NextVar(i)))order.push_back(manager.IndexToNode(i).value());</span>
+<span class="line" id="L52"><a href="#L52">  52</a>   return {{&quot;order&quot;,order},{&quot;cost&quot;,solution-&gt;ObjectiveValue()},{&quot;optimality_claimed&quot;,false},{&quot;solver&quot;,&quot;OR-Tools RoutingModel&quot;}};</span>
+<span class="line" id="L53"><a href="#L53">  53</a> }</span>
+<span class="line" id="L54"><a href="#L54">  54</a> int main(int argc,char** argv){</span>
+<span class="line" id="L55"><a href="#L55">  55</a>  try{need(argc==3,&quot;USAGE request.json result.json&quot;);std::ifstream f(argv[1]);need(f.good(),&quot;NO_INPUT&quot;);json j;f&gt;&gt;j;std::string mode=j.at(&quot;mode&quot;);json result;</span>
+<span class="line" id="L56"><a href="#L56">  56</a>  if(mode==&quot;swaths&quot;)result=swaths(j);else if(mode==&quot;turns&quot;)result=turns(j);else if(mode==&quot;tsp&quot;)result=tsp(j);else throw std::runtime_error(&quot;UNKNOWN_MODE&quot;);</span>
+<span class="line" id="L57"><a href="#L57">  57</a>  std::ofstream o(argv[2]);need(o.good(),&quot;NO_OUTPUT&quot;);o&lt;&lt;result.dump()&lt;&lt;&quot;\n&quot;;return 0;</span>
+<span class="line" id="L58"><a href="#L58">  58</a>  }catch(const std::exception&amp; e){std::cerr&lt;&lt;e.what()&lt;&lt;&quot;\n&quot;;return 2;}</span>
+<span class="line" id="L59"><a href="#L59">  59</a> }</span></code></pre></html>

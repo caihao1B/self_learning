@@ -1,0 +1,44 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              49.0,
+              61.0
+            ],
+            [
+              49.0,
+              67.0
+            ],
+            [
+              38.0,
+              67.0
+            ],
+            [
+              38.0,
+              61.0
+            ],
+            [
+              49.0,
+              61.0
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "coarse_grade_1",
+        "slope_band_deg": [
+          0,
+          8
+        ],
+        "resolution_m": 3,
+        "uncertainty_deg": 3
+      }
+    }
+  ]
+}

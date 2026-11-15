@@ -1,0 +1,9 @@
+digraph G {
+graph [bgcolor="#f7fafb",pad="0.3",nodesep="0.4",ranksep="0.5",fontname="Noto Sans CJK SC"];
+node [shape=box,style="rounded,filled",fillcolor="#e6f3ef",color="#478276",fontname="Noto Sans CJK SC",fontsize=15,margin=".2,.15"];
+edge [color="#5d8189",fontname="Noto Sans CJK SC",fontsize=12];rankdir=TB;
+map[label="map 全局地图"];odom[label="odom 连续局部运动"];base[label="base_link 车体参考"];sensor[label="lidar / camera / IMU / GNSS"];
+map->odom[label="全局修正"];odom->base[label="局部里程计"];base->sensor[label="固定外参 / 杆臂"];
+capture[label="采集时间 t"];arrival[label="接收时间 t + 延迟"];use[label="按采集时刻配对与变换"];
+capture->arrival;arrival->use; sensor->capture[style=dashed];
+}

@@ -1,0 +1,107 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              36.5,
+              20.5
+            ],
+            [
+              36.5,
+              23.5
+            ],
+            [
+              33.5,
+              23.5
+            ],
+            [
+              33.5,
+              20.5
+            ],
+            [
+              36.5,
+              20.5
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "pump_house",
+        "height_m": 2.5
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              139.5,
+              67.0
+            ],
+            [
+              139.5,
+              71.0
+            ],
+            [
+              134.5,
+              71.0
+            ],
+            [
+              134.5,
+              67.0
+            ],
+            [
+              139.5,
+              67.0
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "shed",
+        "height_m": 3
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              50.0,
+              56.0
+            ],
+            [
+              50.0,
+              58.0
+            ],
+            [
+              48.0,
+              58.0
+            ],
+            [
+              48.0,
+              56.0
+            ],
+            [
+              50.0,
+              56.0
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "utility",
+        "height_m": 1.5
+      }
+    }
+  ]
+}

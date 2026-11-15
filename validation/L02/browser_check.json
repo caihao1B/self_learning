@@ -1,0 +1,408 @@
+{
+  "passed": true,
+  "chapters": [
+    {
+      "chapter": 1,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 2,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 3,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 4,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 5,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 6,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 7,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 8,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 9,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 10,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 11,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 12,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 13,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 14,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 15,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 16,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 17,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 18,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 19,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 20,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 21,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 22,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 23,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 24,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 25,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 26,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 27,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 28,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 29,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    },
+    {
+      "chapter": 30,
+      "checks": {
+        "title": true,
+        "file_url": true,
+        "images": true,
+        "no_overflow": true,
+        "no_remote_assets": true,
+        "code_present": true,
+        "next_previous": true
+      },
+      "passed": true
+    }
+  ],
+  "shared_checks": {
+    "thirty_chapter_links": true,
+    "mobile_no_overflow": true,
+    "mobile_code_no_overflow": true,
+    "print_header_hidden": true,
+    "print_text_visible": true,
+    "source_view": true,
+    "no_exceptions": true
+  },
+  "exceptions": [],
+  "environment": "Linux Chrome headless, file URL, desktop 1440x1000, mobile emulation 430x932, print CSS",
+  "windows_native_manual": "PENDING_USER",
+  "scope": "L02 reading edition; not L03 search/hosting or robot simulation"
+}

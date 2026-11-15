@@ -1,0 +1,15 @@
+{
+  "chapter": "16",
+  "passed": true,
+  "result": {
+    "kind": "synthetic thresholds",
+    "gap_m": 2.0,
+    "TTC_s": 6.666666666666667,
+    "following_candidate": true,
+    "crossing_velocity_mps": [
+      0.0,
+      0.4
+    ],
+    "lesson": "A transverse mover must not reuse this following decision."
+  }
+}

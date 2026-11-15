@@ -1,0 +1,126 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>第 10 章 差速与阿克曼运动学</title><style>*{box-sizing:border-box}body{margin:0;background:#eff4f5;color:#17343d;font:17px/1.95 "Segoe UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif}header{background:#163c45;color:#e5f3ef;padding:22px max(20px,calc((100vw - 1080px)/2))}header a{color:#bceadf;margin-right:20px}main{max-width:1140px;margin:28px auto;padding:34px 48px;background:white;border:1px solid #dae5e8;border-radius:12px}h1{font-size:32px;line-height:1.5;color:#174b50}h2{margin-top:42px;font-size:24px;color:#256466;border-bottom:1px solid #dce9e8;padding-bottom:9px}h3{font-size:20px;color:#345b62}a{color:#08777a;text-underline-offset:3px}p,li{overflow-wrap:anywhere}pre{background:#112c38;color:#e3f0ed;padding:20px;border-radius:8px;overflow:auto;font:13px/1.8 Consolas,monospace;white-space:pre;overflow-wrap:normal}code{font-family:Consolas,monospace}p code,li code,td code{background:#edf3f4;padding:2px 4px}table{display:block;overflow:auto;border-collapse:collapse;font-size:15px;margin:22px 0}th,td{border:1px solid #cedfe1;padding:10px;min-width:100px;vertical-align:top}th{background:#e6f2ef}img{max-width:100%;height:auto;margin:22px auto;display:block}blockquote{border-left:4px solid #3c9083;padding:8px 20px;background:#f0f7f4;margin:20px 0}.toc{background:#f3f8f7;padding:12px 25px;font-size:14px}footer{max-width:1100px;margin:24px auto;padding:20px;color:#47666c}button{background:#e7f4ed;color:#245448;border:0;padding:7px 12px;border-radius:5px;cursor:pointer}@media(max-width:700px){body{font-size:16px}main{padding:22px 18px;margin:12px;border-radius:8px}h1{font-size:26px}h2{font-size:22px}header{padding:16px}pre{font-size:12px}}@media print{header,footer,button,.toc{display:none}main{border:0;max-width:none;margin:0;padding:0}pre{background:#eee;color:black;white-space:pre-wrap;overflow-wrap:anywhere}a{color:black}h2{break-after:avoid}img{max-height:230mm}}</style><header><a href="../../index.html">学习首页</a><a href="../index.html">三十章目录</a><a href="09_world.html">← 上一章</a><a href="11_sensors.html">下一章 →</a><button onclick="window.print()">打印本章</button></header><main><details class="toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#10">第 10 章 差速与阿克曼运动学</a><ul>
+<li><a href="#_1">差速模型</a></li>
+<li><a href="#_2">阿克曼与自行车模型</a></li>
+<li><a href="#_3">当前割草车的真实配置</a></li>
+<li><a href="#_4">后轴圆与车体外圈不同</a></li>
+<li><a href="#_5">实际执行器做了什么</a></li>
+<li><a href="#_6">固定生产代码逐段阅读</a><ul>
+<li><a href="#vehicledrivecc-80-114">VehicleDrive.cc 第 80 至 114 行</a></li>
+</ul>
+</li>
+<li><a href="#_7">离线练习与图解任务</a><ul>
+<li><a href="#_8">本章练习核心代码与实际输出</a></li>
+</ul>
+</li>
+<li><a href="#_9">排错与自测</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details><h1 id="10">第 10 章 差速与阿克曼运动学</h1>
+<p>车辆能否转进下一条条带，首先是几何问题。控制器只能在物理能力内跟踪路径，不能把前轮转向车辆变成能原地旋转的差速车。本章从后轴参考点、轮距、轴距和车体扫掠解释为什么割草轨迹可能出现大圈。</p>
+<h2 id="_1">差速模型</h2>
+<p>设左右轮线速度为 vL、vR，轮距为 T，则车体前向速度 <code>v=(vR+vL)/2</code>，角速度 <code>ω=(vR−vL)/T</code>。轮半径为 r 时，关节角速度分别为 <code>(v−Tω/2)/r</code> 与 <code>(v+Tω/2)/r</code>。v 的单位为 m/s，ω 和轮速单位为 rad/s。</p>
+<p>当 v=0、ω 非零时，两侧轮反向转动，理论上可以原地旋转。四轮滑移差速还存在接触滑移，因此有效轮距可能不同于几何轮距。项目保留标定值与几何值的区别，不能只测模型宽度就认为转角积分一定准确。</p>
+<h2 id="_2">阿克曼与自行车模型</h2>
+<p>自行车模型把左右前轮等效为一个转向轮。轴距 L、等效前轮转角 δ、后轴中心速度 v 对应曲率 <code>κ=tanδ/L</code>，转弯半径 <code>R=1/|κ|</code>，角速度 <code>ω=vκ</code>。速度接近零时不能任意使用 w/v；当前执行器也明确禁止阿克曼零速原地旋转。</p>
+<p>真正左右前轮转角不同。若轮距为 T，给定曲率 κ，内外轮可按 <code>atan(Lκ/(1∓Tκ/2))</code> 求出。内轮通常转得更多，关节极限应逐轮满足。把 45° 的单个关节限制直接当作自行车等效转角，可能高估实际曲率能力。</p>
+<h2 id="_3">当前割草车的真实配置</h2>
+<p>固定 R10 mowing mission 中，轴距 1.638 m、轮距 1.8 m、车体声明外长 2.78 m、外宽 2.77 m，最大曲率约 0.333518 1/m，对应后轴基准最小半径约 2.99834 m。足迹相对后轴地面投影从 x=−0.571 到 2.209 m，y=±1.385 m。工具有效幅宽为 1.6 m。</p>
+<p>这些参数说明它是项目 Dino 几何的前阿克曼简化适配，配置明确 <code>hardware_equivalence=false</code>。它不是小型零转向草坪机，也不能据模型名宣称与某个商用机硬件完全一致。当前动力学是 Gazebo 刚体接触与受限关节速度执行，并未验证实机电机扭矩、功率、轮胎和农业地面性能。</p>
+<h2 id="_4">后轴圆与车体外圈不同</h2>
+<p>后轴中心半径 R≈3 m，不代表整车只需 6 m 宽空间。粗略考虑最外前角，外圈半径可估为 <code>sqrt((R+半宽)²+前悬参考距离²)</code>。代入当前足迹约得到 4.91 m；完整连续转弯扫掠直径可接近 9.8 m，再加安全边距。这个计算是包络直觉，不替代完整多边形扫掠验证。</p>
+<p>如果条带间距只有约 1.4 m，简单前进 U 形转弯很难直接连接相邻条带。可选择跳条、较大的合法地头、Reeds–Shepp 倒车组合或重新排列方向。路径超出工作条带并不自动不合理，但必须始终在允许通行区域，不能穿越坡面禁区。</p>
+<h2 id="_5">实际执行器做了什么</h2>
+<p><code>VehicleDrive.cc</code> 首先检查会话、版本、epoch、sequence 和时间戳，之后才使用请求速度。它限速、限加减速、检查转向跟踪误差，并把速度映射到关节命令。执行器没有直接把底盘位姿设置到规划点；车辆运动来自物理关节与接触。</p>
+<p>转向轮尚未对准时，代码把车速降到低速，并在误差持续过久时锁存故障。这解释了为什么控制器请求 0.5 m/s，实际速度仍可能只有 0.1 m/s。不同层的速度限制需要逐层排查。</p>
+<!-- generated-production-start -->
+<h2 id="_6">固定生产代码逐段阅读</h2>
+<p>下面是固定提交中的原样节选。完整文件有离线行号页；片段可能省略上下文，不能单独当成可运行脚本。读完每段后，回到调用者确认它在当前任务中如何使用。</p>
+<h3 id="vehicledrivecc-80-114">VehicleDrive.cc 第 80 至 114 行</h3>
+<p><a href="../../baseline/l02_views/7e4ef90fa8ef-VehicleDrive.cc.html#L80">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/src/VehicleDrive.cc#L80">固定 Git 提交</a></p>
+<pre><code class="language-cpp">       lastSequence=request.at(&quot;sequence&quot;);lastRequestSim=t;
+       std::string mode=request.at(&quot;mode&quot;);
+       if(mode==&quot;STOP&quot;)latch(&quot;STOP_REQUEST&quot;);
+       else if(mode==&quot;ARM&quot; &amp;&amp; !info.paused &amp;&amp; stopped &amp;&amp; std::abs(v)&lt;.001 &amp;&amp; std::abs(w)&lt;.001){latched=false;reason=&quot;ARMED&quot;;}
+       else if(mode!=&quot;DRIVE&quot; &amp;&amp; mode!=&quot;ARM&quot;)latch(&quot;INVALID_MODE&quot;);
+     }catch(const std::exception &amp;){latch(&quot;LEASE_REJECTED&quot;);}
+   }
+   if(age&gt;c[&quot;safety&quot;][&quot;actuator_wall_s&quot;].get&lt;double&gt;() || t-lastRequestSim&gt;c[&quot;safety&quot;][&quot;actuator_sim_s&quot;].get&lt;double&gt;())latch(&quot;ACTUATOR_WATCHDOG&quot;);
+   if(!valid)latch(&quot;ENCODER_MISSING&quot;);
+   double v=0,w=0;
+   if(!latched &amp;&amp; !info.paused &amp;&amp; request.is_object() &amp;&amp; request.value(&quot;mode&quot;,std::string())==&quot;DRIVE&quot;){
+     v=request.value(&quot;v&quot;,0.);w=request.value(&quot;w&quot;,0.);
+     v=std::clamp(v,-c[&quot;limits&quot;][&quot;reverse&quot;].get&lt;double&gt;(),c[&quot;limits&quot;][&quot;max_speed&quot;].get&lt;double&gt;());
+     w=std::clamp(w,-c[&quot;limits&quot;][&quot;yaw_rate&quot;].get&lt;double&gt;(),c[&quot;limits&quot;][&quot;yaw_rate&quot;].get&lt;double&gt;());
+   }
+   if(ack &amp;&amp; std::abs(v)&lt;.001){v=w=0;}
+   if(!info.paused &amp;&amp; dt&gt;0 &amp;&amp; dt&lt;.1 &amp;&amp; valid){
+     double k=heldK,error=0;
+     if(ack &amp;&amp; v!=0)k=std::clamp(w/v,-c[&quot;steering&quot;][&quot;max_curvature&quot;].get&lt;double&gt;(),c[&quot;steering&quot;][&quot;max_curvature&quot;].get&lt;double&gt;());
+     if(ack){heldK=k;double al=atan(L*k/(1-T*k/2)),ar=atan(L*k/(1+T*k/2));error=std::max(abs(al-q[2]),abs(ar-q[3]));
+       if(error&gt;c[&quot;safety&quot;][&quot;alignment_error_rad&quot;].get&lt;double&gt;()){
+         v=std::clamp(v,-c[&quot;safety&quot;][&quot;alignment_speed_mps&quot;].get&lt;double&gt;(),c[&quot;safety&quot;][&quot;alignment_speed_mps&quot;].get&lt;double&gt;());
+         if(trackingSince&lt;0)trackingSince=t;
+         if(t-trackingSince&gt;c[&quot;safety&quot;][&quot;steering_tracking_timeout_s&quot;].get&lt;double&gt;()){latch(&quot;STEERING_TRACKING_FAULT&quot;);v=0;}
+       }else trackingSince=-1;
+       const double gain=c[&quot;steering&quot;][&quot;gain&quot;],rate=c[&quot;steering&quot;][&quot;rate_rad_s&quot;];
+       command[2]=std::clamp(gain*(al-q[2]),-rate,rate);command[3]=std::clamp(gain*(ar-q[3]),-rate,rate);
+     }
+     if(speed*v&lt;0)v=0;
+     const double rate=(abs(v)&lt;abs(speed))?c[&quot;limits&quot;][&quot;deceleration&quot;].get&lt;double&gt;():c[&quot;limits&quot;][&quot;acceleration&quot;].get&lt;double&gt;();
+     speed+=std::clamp(v-speed,-rate*dt,rate*dt);
+     const double wrate=c[&quot;limits&quot;][&quot;yaw_acceleration&quot;];yaw+=std::clamp(w-yaw,-wrate*dt,wrate*dt);
+     if(ack){double a=tan(q[2]),b=tan(q[3]);k=.5*(a/(L+T*a/2)+b/(L-T*b/2));yaw=speed*k;}
+     command[0]=(speed-driveTrack*yaw/2)/r;command[1]=(speed+driveTrack*yaw/2)/r;
+     if(!ack){command[2]=command[0];command[3]=command[1];}
+</code></pre>
+<p>v,w 先限幅，阿克曼零速不允许转圈。k=w/v 被最大曲率限制，左右转角按轴距与轮距分别计算；转向误差大时降低车速。最后用反馈转角计算实际曲率，再映射四个关节命令。</p>
+<!-- generated-production-end -->
+
+<h2 id="_7">离线练习与图解任务</h2>
+<p><code>python3 examples/l02/labs.py 10</code> 使用另一个明确标注的教学尺寸，计算后轴圆、外侧前角圆与左右轮速。它不覆盖当前 Dino 参数，也不参与控制。把输出画成同心参考图，观察外圈为何更大。</p>
+<!-- generated-lab-start -->
+<h3 id="_8">本章练习核心代码与实际输出</h3>
+<p><a href="../../examples/l02/labs.py">完整教学脚本</a> · <a href="../../validation/L02/lab_10.json">本章完整输出</a></p>
+<p>代码只使用 Python 标准库；合成输入与历史记录在输出 kind 中区分。公共 ROOT、read、wrap、connected 等辅助函数在完整脚本中定义。</p>
+<pre><code class="language-python">def lab10():
+    &quot;&quot;&quot;Rear-axle bicycle radius and the larger outer front corner sweep.&quot;&quot;&quot;
+    L=1.2; delta=math.radians(30); half_width=.5; front=1.5
+    radius=L/math.tan(delta)
+    outer=math.hypot(radius+half_width,front)
+    v=.5; omega=v/radius; r=.2; track=1.
+    left=(v-track*omega/2)/r; right=(v+track*omega/2)/r
+    assert outer&gt;radius and right&gt;left
+    return dict(kind='synthetic dimensions, not Dino calibration',rear_radius_m=radius,
+                outer_front_sweep_m=outer,omega_rad_s=omega,wheel_rad_s=[left,right])
+</code></pre>
+<pre><code class="language-text">{
+  &quot;chapter&quot;: &quot;10&quot;,
+  &quot;passed&quot;: true,
+  &quot;result&quot;: {
+    &quot;kind&quot;: &quot;synthetic dimensions, not Dino calibration&quot;,
+    &quot;rear_radius_m&quot;: 2.078460969082653,
+    &quot;outer_front_sweep_m&quot;: 2.983028824715352,
+    &quot;omega_rad_s&quot;: 0.24056261216234404,
+    &quot;wheel_rad_s&quot;: [
+      1.8985934695941398,
+      3.10140653040586
+    ]
+  }
+}
+</code></pre>
+<p>本章例子可以在 Windows 使用 <code>py -3</code> 或在 Linux 使用 <code>python3</code> 重跑。它验证局部概念或读取历史证据，不对机器人全任务提供新通过结论。</p>
+<!-- generated-lab-end -->
+
+<p>再从固定 mission 文件中找到 <code>physical_contract</code> 与 <code>footprint</code>：</p>
+<pre><code class="language-bash">cd /home/ceihao/self_learning
+rg -n 'wheelbase|max_curvature|nominal_bicycle_radius|footprint|hardware_equivalence' baseline/l02_source/optimization_v2/three_tasks/editions/R10/mowing/mission.json
+</code></pre>
+<h2 id="_9">排错与自测</h2>
+<p>转弯半径很大：先核查参考点、最大曲率、实际关节限位和足迹，而不是先调 RPP 前视距离。轨迹绕远：检查是否是障碍、坡面、末端姿态、前进约束或地头空间导致；一个有限时间规划器找不到短路，不等于数学上没有路径。</p>
+<p>车体侧面撞边：检查规划是否只验证中心线，是否忽略前角扫掠或工具包络。倒车后方向异常：检查路径切分、航向定义和换挡时是否确认停车。</p>
+<p>问：缩小 visual 模型能让车转小圈吗？答：不会。必须修改物理合同、碰撞、足迹、传感器和路径，并重新验证；只改外观不能改变运动学。</p>
+<p>练习：解释“最小转弯半径 3 m”包含哪个参考点、哪种运动模型、哪个方向约束。无法回答这些限定时，单个半径数字不足以判断场景是否合理。</p></main><footer>L02 内容阅读版 · 固定基线 9aff8337 · 原机器人 R10–R12 PARTIAL · L03 完整站点尚待执行</footer></html>

@@ -1,0 +1,127 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>partition11.py</title><style>body{margin:25px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;padding:20px;border:1px solid #d6e2e3;font:13px/1.8 Consolas,monospace;overflow:auto}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff0b0}a{color:#086b71}p{overflow-wrap:anywhere}</style><a href="../../L02/index.html">← L02 教材目录</a><h1>partition11.py</h1><p>optimization_v2/ws/src/coverage_partition/scripts/partition11.py</p><p>固定基线 9aff8337b7794f704c5556a973a5220e73f17808 · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/coverage_partition/scripts/partition11.py">GitHub 原文件</a></p><p>原始文件按字节保留；显示换行不改变行号。快照用于阅读，不直接作为运行入口。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Seeded METIS / K-means candidates, connectivity repair and independent checks.&quot;&quot;&quot;</span>
+<span class="line" id="L2"><a href="#L2">   2</a> import math,time,subprocess</span>
+<span class="line" id="L3"><a href="#L3">   3</a> import numpy as np</span>
+<span class="line" id="L4"><a href="#L4">   4</a> from shapely import union_all,STRtree</span>
+<span class="line" id="L5"><a href="#L5">   5</a> from shapely.geometry import shape</span>
+<span class="line" id="L6"><a href="#L6">   6</a> from geometry11 import components,polygons</span>
+<span class="line" id="L7"><a href="#L7">   7</a> from common11 import *</span>
+<span class="line" id="L8"><a href="#L8">   8</a> </span>
+<span class="line" id="L9"><a href="#L9">   9</a> def metis(g,k,seed,c,out):</span>
+<span class="line" id="L10"><a href="#L10">  10</a>     x=[0];a=[];ew=[]</span>
+<span class="line" id="L11"><a href="#L11">  11</a>     for neighbors in g[&#x27;adj&#x27;]:</span>
+<span class="line" id="L12"><a href="#L12">  12</a>         for j,w in sorted(neighbors.items()):a.append(j);ew.append(w)</span>
+<span class="line" id="L13"><a href="#L13">  13</a>         x.append(len(a))</span>
+<span class="line" id="L14"><a href="#L14">  14</a>     request=dict(xadj=x,adjncy=a,adjwgt=ew,vwgt=g[&#x27;iw&#x27;].tolist(),k=k,seed=seed,ufactor=c[&#x27;metis_ufactor&#x27;])</span>
+<span class="line" id="L15"><a href="#L15">  15</a>     dump(out/&#x27;csr.json&#x27;,request)</span>
+<span class="line" id="L16"><a href="#L16">  16</a>     r=subprocess.run([str(BIN),str(out/&#x27;csr.json&#x27;),str(out/&#x27;metis.json&#x27;)],capture_output=True,text=True,timeout=25)</span>
+<span class="line" id="L17"><a href="#L17">  17</a>     dump(out/&#x27;metis_command.json&#x27;,dict(command=r.args,exit_code=r.returncode,stdout=r.stdout,stderr=r.stderr))</span>
+<span class="line" id="L18"><a href="#L18">  18</a>     if r.returncode:raise ValueError(&#x27;METIS_REJECTED: &#x27;+r.stderr.strip())</span>
+<span class="line" id="L19"><a href="#L19">  19</a>     return np.array(read(out/&#x27;metis.json&#x27;)[&#x27;labels&#x27;],dtype=int)</span>
+<span class="line" id="L20"><a href="#L20">  20</a> </span>
+<span class="line" id="L21"><a href="#L21">  21</a> def kmeans(g,k,seed):</span>
+<span class="line" id="L22"><a href="#L22">  22</a>     xy=g[&#x27;xy&#x27;];rng=np.random.default_rng(seed);ids=[int(rng.integers(len(xy)))];distance=((xy-xy[ids[0]])**2).sum(axis=1)</span>
+<span class="line" id="L23"><a href="#L23">  23</a>     for _ in range(1,k):</span>
+<span class="line" id="L24"><a href="#L24">  24</a>         j=int(rng.choice(len(xy),p=distance/distance.sum()));ids.append(j);distance=np.minimum(distance,((xy-xy[j])**2).sum(axis=1))</span>
+<span class="line" id="L25"><a href="#L25">  25</a>     centres=xy[ids].copy();labels=np.full(len(xy),-1,dtype=int)</span>
+<span class="line" id="L26"><a href="#L26">  26</a>     for _ in range(100):</span>
+<span class="line" id="L27"><a href="#L27">  27</a>         dist=((xy[:,None,:]-centres[None,:,:])**2).sum(axis=2);new=dist.argmin(axis=1)</span>
+<span class="line" id="L28"><a href="#L28">  28</a>         # Never silently reduce k after an empty Euclidean cluster.</span>
+<span class="line" id="L29"><a href="#L29">  29</a>         for label in range(k):</span>
+<span class="line" id="L30"><a href="#L30">  30</a>             if not np.any(new==label):</span>
+<span class="line" id="L31"><a href="#L31">  31</a>                 counts=np.bincount(new,minlength=k);eligible=np.where(counts[new]&gt;1)[0]</span>
+<span class="line" id="L32"><a href="#L32">  32</a>                 j=int(eligible[np.argmax(dist[eligible,new[eligible]])]);new[j]=label</span>
+<span class="line" id="L33"><a href="#L33">  33</a>         if np.array_equal(labels,new):break</span>
+<span class="line" id="L34"><a href="#L34">  34</a>         labels=new;centres=np.array([xy[labels==i].mean(axis=0) for i in range(k)])</span>
+<span class="line" id="L35"><a href="#L35">  35</a>     return labels</span>
+<span class="line" id="L36"><a href="#L36">  36</a> </span>
+<span class="line" id="L37"><a href="#L37">  37</a> def repair(g,labels,k,c):</span>
+<span class="line" id="L38"><a href="#L38">  38</a>     labels=np.asarray(labels,dtype=int).copy();adj=g[&#x27;adj&#x27;];weights=g[&#x27;weights&#x27;];events=[]</span>
+<span class="line" id="L39"><a href="#L39">  39</a>     if len(labels)!=len(adj) or set(labels)!=set(range(k)):raise ValueError(&#x27;EMPTY_OR_INVALID_LABELS&#x27;)</span>
+<span class="line" id="L40"><a href="#L40">  40</a>     raw=[len(components(adj,np.flatnonzero(labels==i))) for i in range(k)]</span>
+<span class="line" id="L41"><a href="#L41">  41</a>     if max(raw)&gt;1:</span>
+<span class="line" id="L42"><a href="#L42">  42</a>         # Retain each largest component. Grow only across a real shared edge.</span>
+<span class="line" id="L43"><a href="#L43">  43</a>         cores=[set(components(adj,np.flatnonzero(labels==i))[0]) for i in range(k)]</span>
+<span class="line" id="L44"><a href="#L44">  44</a>         assigned=np.full(len(labels),-1,dtype=int)</span>
+<span class="line" id="L45"><a href="#L45">  45</a>         for i,core in enumerate(cores):assigned[list(core)]=i</span>
+<span class="line" id="L46"><a href="#L46">  46</a>         loads=np.array([weights[list(core)].sum() for core in cores]);remaining=set(np.flatnonzero(assigned&lt;0));target=weights.sum()/k</span>
+<span class="line" id="L47"><a href="#L47">  47</a>         while remaining:</span>
+<span class="line" id="L48"><a href="#L48">  48</a>             candidates=[]</span>
+<span class="line" id="L49"><a href="#L49">  49</a>             for u in sorted(remaining):</span>
+<span class="line" id="L50"><a href="#L50">  50</a>                 ns=sorted({int(assigned[v]) for v in adj[u] if assigned[v]&gt;=0})</span>
+<span class="line" id="L51"><a href="#L51">  51</a>                 for dest in ns:candidates.append(((loads[dest]+weights[u])/target+.05*(dest!=labels[u]),u,dest))</span>
+<span class="line" id="L52"><a href="#L52">  52</a>             if not candidates:raise ValueError(&#x27;REPAIR_DISCONNECTED_INPUT&#x27;)</span>
+<span class="line" id="L53"><a href="#L53">  53</a>             _,u,dest=min(candidates);assigned[u]=dest;loads[dest]+=weights[u];remaining.remove(u)</span>
+<span class="line" id="L54"><a href="#L54">  54</a>         events.append(dict(kind=&#x27;connected_region_growth&#x27;,moved=int(np.count_nonzero(labels!=assigned))))</span>
+<span class="line" id="L55"><a href="#L55">  55</a>         labels=assigned</span>
+<span class="line" id="L56"><a href="#L56">  56</a>     loads=np.bincount(labels,weights=weights,minlength=k);mean=weights.sum()/k;total_edges=sum(e[2] for e in g[&#x27;edges&#x27;]);moves=0</span>
+<span class="line" id="L57"><a href="#L57">  57</a>     # Single-cell exchanges preserve both donor and receiver connectivity.</span>
+<span class="line" id="L58"><a href="#L58">  58</a>     for iteration in range(c[&#x27;repair_balance_passes&#x27;]):</span>
+<span class="line" id="L59"><a href="#L59">  59</a>         changed=0</span>
+<span class="line" id="L60"><a href="#L60">  60</a>         for u in sorted(range(len(adj)),key=lambda x:(-loads[labels[x]],x)):</span>
+<span class="line" id="L61"><a href="#L61">  61</a>             src=int(labels[u]);neighbors=adj[u]</span>
+<span class="line" id="L62"><a href="#L62">  62</a>             choices=[]</span>
+<span class="line" id="L63"><a href="#L63">  63</a>             for dst in sorted({int(labels[v]) for v in neighbors if labels[v]!=src}):</span>
+<span class="line" id="L64"><a href="#L64">  64</a>                 delta=3*((loads[src]-weights[u]-mean)**2+(loads[dst]+weights[u]-mean)**2-(loads[src]-mean)**2-(loads[dst]-mean)**2)/mean**2</span>
+<span class="line" id="L65"><a href="#L65">  65</a>                 cut_delta=sum(w*(int(dst!=labels[v])-int(src!=labels[v])) for v,w in neighbors.items())</span>
+<span class="line" id="L66"><a href="#L66">  66</a>                 score=delta+cut_delta/max(1,total_edges)</span>
+<span class="line" id="L67"><a href="#L67">  67</a>                 if score &lt; -1e-10:choices.append((score,dst))</span>
+<span class="line" id="L68"><a href="#L68">  68</a>             if not choices:continue</span>
+<span class="line" id="L69"><a href="#L69">  69</a>             donor=set(np.flatnonzero(labels==src));donor.remove(u)</span>
+<span class="line" id="L70"><a href="#L70">  70</a>             if not donor or len(components(adj,donor))!=1:continue</span>
+<span class="line" id="L71"><a href="#L71">  71</a>             _,dst=min(choices);labels[u]=dst;loads[src]-=weights[u];loads[dst]+=weights[u];changed+=1</span>
+<span class="line" id="L72"><a href="#L72">  72</a>         moves+=changed</span>
+<span class="line" id="L73"><a href="#L73">  73</a>         if not changed:break</span>
+<span class="line" id="L74"><a href="#L74">  74</a>     events.append(dict(kind=&#x27;connectivity_preserving_balance&#x27;,moved=moves,passes=iteration+1))</span>
+<span class="line" id="L75"><a href="#L75">  75</a>     # Canonical IDs are sorted by computed centroid, not predetermined locations.</span>
+<span class="line" id="L76"><a href="#L76">  76</a>     order=sorted(range(k),key=lambda i:tuple(g[&#x27;xy&#x27;][labels==i].mean(axis=0)))</span>
+<span class="line" id="L77"><a href="#L77">  77</a>     labels=np.array([order.index(int(i)) for i in labels],dtype=int)</span>
+<span class="line" id="L78"><a href="#L78">  78</a>     return labels,dict(raw_components=raw,events=events)</span>
+<span class="line" id="L79"><a href="#L79">  79</a> </span>
+<span class="line" id="L80"><a href="#L80">  80</a> def verify(domain,g,labels,k,c,regions=None):</span>
+<span class="line" id="L81"><a href="#L81">  81</a>     labels=np.asarray(labels,dtype=int)</span>
+<span class="line" id="L82"><a href="#L82">  82</a>     if len(labels)!=len(g[&#x27;cells&#x27;]) or set(labels)!=set(range(k)):return dict(passed=False,reason=&#x27;ASSIGNMENT_OR_EMPTY_CLUSTER&#x27;)</span>
+<span class="line" id="L83"><a href="#L83">  83</a>     regions=regions if regions is not None else [union_all([g[&#x27;cells&#x27;][u] for u in np.flatnonzero(labels==i)]) for i in range(k)]</span>
+<span class="line" id="L84"><a href="#L84">  84</a>     union=union_all(regions);missing=domain.difference(union).area;outside=union.difference(domain).area</span>
+<span class="line" id="L85"><a href="#L85">  85</a>     overlaps=sum(regions[i].intersection(regions[j]).area for i in range(k) for j in range(i+1,k))</span>
+<span class="line" id="L86"><a href="#L86">  86</a>     graph_components=[len(components(g[&#x27;adj&#x27;],np.flatnonzero(labels==i))) for i in range(k)]</span>
+<span class="line" id="L87"><a href="#L87">  87</a>     geometry_components=[len(polygons(r)) for r in regions]</span>
+<span class="line" id="L88"><a href="#L88">  88</a>     cadj=[{} for _ in range(k)];shared=[]</span>
+<span class="line" id="L89"><a href="#L89">  89</a>     for i in range(k):</span>
+<span class="line" id="L90"><a href="#L90">  90</a>         for j in range(i+1,k):</span>
+<span class="line" id="L91"><a href="#L91">  91</a>             length=regions[i].boundary.intersection(regions[j].boundary).length</span>
+<span class="line" id="L92"><a href="#L92">  92</a>             if length&gt;c[&#x27;adjacency_min_shared_m&#x27;]:cadj[i][j]=1;cadj[j][i]=1;shared.append([i,j,float(length)])</span>
+<span class="line" id="L93"><a href="#L93">  93</a>     # Check each assigned polygon is actually contained in its exported owner region.</span>
+<span class="line" id="L94"><a href="#L94">  94</a>     assigned_area=max((g[&#x27;cells&#x27;][u].difference(regions[int(labels[u])]).area for u in range(len(labels))),default=0)</span>
+<span class="line" id="L95"><a href="#L95">  95</a>     ids=[p[&#x27;id&#x27;] for p in g[&#x27;points&#x27;]];point_valid=len(ids)==len(set(ids)) and all(regions[int(labels[p[&#x27;unit&#x27;]])].covers(shape({&#x27;type&#x27;:&#x27;Point&#x27;,&#x27;coordinates&#x27;:p[&#x27;xy&#x27;]})) for p in g[&#x27;points&#x27;])</span>
+<span class="line" id="L96"><a href="#L96">  96</a>     tolerance=c[&#x27;area_relative_tolerance&#x27;]*domain.area</span>
+<span class="line" id="L97"><a href="#L97">  97</a>     checks=dict(exactly_k_nonempty=len(regions)==k and all(r.area&gt;0 for r in regions),graph_connected=max(graph_components)==1,</span>
+<span class="line" id="L98"><a href="#L98">  98</a>         geometry_connected=max(geometry_components)==1 and all(r.is_valid for r in regions),cluster_adjacency_connected=len(components(cadj))==1,</span>
+<span class="line" id="L99"><a href="#L99">  99</a>         omission=missing&lt;=tolerance,overlap=overlaps&lt;=tolerance,outside=outside&lt;=tolerance,assignment_geometry=assigned_area&lt;=tolerance,points_unique=point_valid)</span>
+<span class="line" id="L100"><a href="#L100"> 100</a>     return dict(passed=all(checks.values()),checks=checks,missing_m2=missing,overlap_m2=overlaps,outside_m2=outside,</span>
+<span class="line" id="L101"><a href="#L101"> 101</a>         difference_ratio=(missing+outside)/domain.area,graph_components=graph_components,geometry_components=geometry_components,adjacency=shared,</span>
+<span class="line" id="L102"><a href="#L102"> 102</a>         assigned_unit_count=len(labels),unique_point_count=len(ids))</span>
+<span class="line" id="L103"><a href="#L103"> 103</a> </span>
+<span class="line" id="L104"><a href="#L104"> 104</a> def solve(meta,g,c,algorithm,seed,out):</span>
+<span class="line" id="L105"><a href="#L105"> 105</a>     out.mkdir(parents=True,exist_ok=True);start=time.perf_counter();k=c[&#x27;k&#x27;]</span>
+<span class="line" id="L106"><a href="#L106"> 106</a>     raw=metis(g,k,seed,c,out) if algorithm==&#x27;metis&#x27; else kmeans(g,k,seed)</span>
+<span class="line" id="L107"><a href="#L107"> 107</a>     labels,rep=repair(g,raw,k,c);partition_seconds=time.perf_counter()-start</span>
+<span class="line" id="L108"><a href="#L108"> 108</a>     regions=[union_all([g[&#x27;cells&#x27;][u] for u in np.flatnonzero(labels==i)]) for i in range(k)]</span>
+<span class="line" id="L109"><a href="#L109"> 109</a>     verification=verify(meta[&#x27;domain&#x27;],g,labels,k,c,regions)</span>
+<span class="line" id="L110"><a href="#L110"> 110</a>     if not verification[&#x27;passed&#x27;]:raise ValueError(&#x27;PARTITION_VERIFICATION_FAILED: &#x27;+json.dumps(verification))</span>
+<span class="line" id="L111"><a href="#L111"> 111</a>     loads=np.bincount(labels,weights=g[&#x27;weights&#x27;],minlength=k)+c[&#x27;cluster_setup_s&#x27;];cut=sum(e[2] for e in g[&#x27;edges&#x27;] if labels[e[0]]!=labels[e[1]])</span>
+<span class="line" id="L112"><a href="#L112"> 112</a>     cut_length=sum(e[3] for e in g[&#x27;edges&#x27;] if labels[e[0]]!=labels[e[1]])</span>
+<span class="line" id="L113"><a href="#L113"> 113</a>     lower=meta[&#x27;domain&#x27;].area/(.9*meta[&#x27;speed_mps&#x27;]) if meta[&#x27;zone&#x27;]==&#x27;B&#x27; else len(g[&#x27;points&#x27;])*meta[&#x27;service_s&#x27;]</span>
+<span class="line" id="L114"><a href="#L114"> 114</a>     props=dict(status=&#x27;PROVISIONAL&#x27;,execution_allowed=False,frame=meta[&#x27;frame&#x27;],map_id=meta[&#x27;map_id&#x27;],zone=meta[&#x27;zone&#x27;],variant=meta[&#x27;variant&#x27;],algorithm=algorithm,seed=seed)</span>
+<span class="line" id="L115"><a href="#L115"> 115</a>     fs=[]</span>
+<span class="line" id="L116"><a href="#L116"> 116</a>     for i,r in enumerate(regions):</span>
+<span class="line" id="L117"><a href="#L117"> 117</a>         us=np.flatnonzero(labels==i).tolist();unit_set=set(us);points=[p[&#x27;id&#x27;] for p in g[&#x27;points&#x27;] if p[&#x27;unit&#x27;] in unit_set]</span>
+<span class="line" id="L118"><a href="#L118"> 118</a>         fs.append(feature(r,**props,cluster=i,label_point=list(r.representative_point().coords[0]),unit_count=len(us),point_ids=points,area_m2=r.area,estimated_seconds=float(loads[i]),</span>
+<span class="line" id="L119"><a href="#L119"> 119</a>           estimate_terms={name:float(sum(g[&#x27;terms&#x27;][name][u]*g[&#x27;terms&#x27;][&#x27;terrain_factor&#x27;][u] for u in us)) for name in [&#x27;service_s&#x27;,&#x27;travel_s&#x27;,&#x27;turn_s&#x27;]},setup_s=c[&#x27;cluster_setup_s&#x27;]))</span>
+<span class="line" id="L120"><a href="#L120"> 120</a>     d=dict(**props,work_area_m2=meta[&#x27;domain&#x27;].area,clusters=collection(fs),verification=verification,repair=rep,</span>
+<span class="line" id="L121"><a href="#L121"> 121</a>         labels=labels.tolist(),raw_labels=raw.tolist(),assignment_sha256=identity(labels.tolist()),</span>
+<span class="line" id="L122"><a href="#L122"> 122</a>         metrics=dict(max_estimate_s=float(max(loads)),loads_s=loads.tolist(),imbalance=float(max(loads)/loads.mean()),weighted_cut=int(cut),cut_length_m=float(cut_length),</span>
+<span class="line" id="L123"><a href="#L123"> 123</a>           partition_wall_s=partition_seconds,geometry_build_wall_s=g[&#x27;build_wall_s&#x27;],verify_and_export_wall_s=time.perf_counter()-start-partition_seconds,</span>
+<span class="line" id="L124"><a href="#L124"> 124</a>           speed_mps=meta[&#x27;speed_mps&#x27;],width_spacing_m=meta[&#x27;swath_spacing_m&#x27;],optimistic_total_lower_bound_s=lower,</span>
+<span class="line" id="L125"><a href="#L125"> 125</a>           hard_budget_lower_bound_infeasible=lower&gt;k*c[&#x27;hard_budget_s&#x27;],estimated_budget_status=&#x27;EXCEEDS_30_MIN&#x27; if max(loads)&gt;c[&#x27;hard_budget_s&#x27;] else &#x27;ESTIMATE_ONLY_NOT_VALIDATED&#x27;,</span>
+<span class="line" id="L126"><a href="#L126"> 126</a>           lower_bound_scope=&#x27;ideal straight parallel work swaths, zero turn/transit/wait; not a general motion theorem&#x27;,actual_task_sim_seconds=None),points=[p|dict(cluster=int(labels[p[&#x27;unit&#x27;]])) for p in g[&#x27;points&#x27;]])</span>
+<span class="line" id="L127"><a href="#L127"> 127</a>     dump(out/&#x27;partition.json&#x27;,d);dump(out/&#x27;clusters.geojson&#x27;,d[&#x27;clusters&#x27;]);return d</span></code></pre></html>

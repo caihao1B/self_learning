@@ -1,0 +1,152 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>generate_scene.py</title><style>body{margin:25px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;padding:20px;border:1px solid #d6e2e3;font:13px/1.8 Consolas,monospace;overflow:auto}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff0b0}a{color:#086b71}p{overflow-wrap:anywhere}</style><a href="../../L02/index.html">← L02 教材目录</a><h1>generate_scene.py</h1><p>optimization_v2/ws/src/scenario_world/scripts/generate_scene.py</p><p>固定基线 9aff8337b7794f704c5556a973a5220e73f17808 · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/scenario_world/scripts/generate_scene.py">GitHub 原文件</a></p><p>原始文件按字节保留；显示换行不改变行号。快照用于阅读，不直接作为运行入口。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Deterministic local ENU geometry. This OFFLINE exporter may read/write truth.</span>
+<span class="line" id="L2"><a href="#L2">   2</a> Online code consumes only maps/prior and sensor_config.json, never this module.</span>
+<span class="line" id="L3"><a href="#L3">   3</a> &quot;&quot;&quot;</span>
+<span class="line" id="L4"><a href="#L4">   4</a> import argparse, hashlib, json, math, random</span>
+<span class="line" id="L5"><a href="#L5">   5</a> from pathlib import Path</span>
+<span class="line" id="L6"><a href="#L6">   6</a> from xml.etree import ElementTree as ET</span>
+<span class="line" id="L7"><a href="#L7">   7</a> import numpy as np</span>
+<span class="line" id="L8"><a href="#L8">   8</a> import yaml</span>
+<span class="line" id="L9"><a href="#L9">   9</a> from shapely import constrained_delaunay_triangles</span>
+<span class="line" id="L10"><a href="#L10">  10</a> from shapely.geometry import Polygon, LineString, Point, box, mapping</span>
+<span class="line" id="L11"><a href="#L11">  11</a> from shapely.affinity import scale, translate</span>
+<span class="line" id="L12"><a href="#L12">  12</a> ROOT=Path(__file__).resolve().parents[5]</span>
+<span class="line" id="L13"><a href="#L13">  13</a> BASE=ROOT/&#x27;optimization_v2&#x27;</span>
+<span class="line" id="L14"><a href="#L14">  14</a> def dump(p,d):</span>
+<span class="line" id="L15"><a href="#L15">  15</a>     p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+&#x27;\n&#x27;)</span>
+<span class="line" id="L16"><a href="#L16">  16</a> def feature(g,**props):return dict(type=&#x27;Feature&#x27;,geometry=mapping(g),properties=props)</span>
+<span class="line" id="L17"><a href="#L17">  17</a> def collection(fs):return dict(type=&#x27;FeatureCollection&#x27;,features=fs)</span>
+<span class="line" id="L18"><a href="#L18">  18</a> def geometries(variant=&#x27;base&#x27;,targets=(1650,1140),width=6):</span>
+<span class="line" id="L19"><a href="#L19">  19</a>     vertices=[[(8,24),(28,18),(52,22),(60,38),(54,48),(57,66),(38,77),(15,70),(10,52),(19,42)],</span>
+<span class="line" id="L20"><a href="#L20">  20</a>               [(108,42),(125,34),(143,41),(152,57),(144,76),(127,80),(112,70),(117,57),(105,52)]]</span>
+<span class="line" id="L21"><a href="#L21">  21</a>     zones=[]</span>
+<span class="line" id="L22"><a href="#L22">  22</a>     for pts,area,c in zip(vertices,targets,[(34,47),(128,58)]):</span>
+<span class="line" id="L23"><a href="#L23">  23</a>         p=Polygon(pts);s=math.sqrt(area/p.area);p=scale(p,s,s,origin=&#x27;centroid&#x27;);p=translate(p,c[0]-p.centroid.x,c[1]-p.centroid.y)</span>
+<span class="line" id="L24"><a href="#L24">  24</a>         if variant==&#x27;notch&#x27;:p=p.difference(box(c[0]-3,p.bounds[3]-8,c[0]+3,p.bounds[3]+1))</span>
+<span class="line" id="L25"><a href="#L25">  25</a>         if variant==&#x27;holes&#x27;:p=p.difference(box(c[0]-11,c[1]+5,c[0]-5,c[1]+9))</span>
+<span class="line" id="L26"><a href="#L26">  26</a>         if not (p.is_valid and p.geom_type==&#x27;Polygon&#x27; and p.area&gt;0):raise ValueError(&#x27;invalid/disconnected workspace&#x27;)</span>
+<span class="line" id="L27"><a href="#L27">  27</a>         zones.append(p)</span>
+<span class="line" id="L28"><a href="#L28">  28</a>     control=[[(49,42),(65,34),(71,32),(82,50)],[(82,50),(93,68),(101,70),(122,58)]]</span>
+<span class="line" id="L29"><a href="#L29">  29</a>     points=[]</span>
+<span class="line" id="L30"><a href="#L30">  30</a>     for part in control:</span>
+<span class="line" id="L31"><a href="#L31">  31</a>         p=np.array(part)</span>
+<span class="line" id="L32"><a href="#L32">  32</a>         for t in np.linspace(0,1,81):points.append(((1-t)**3*p[0]+3*(1-t)**2*t*p[1]+3*(1-t)*t*t*p[2]+t**3*p[3]).tolist())</span>
+<span class="line" id="L33"><a href="#L33">  33</a>     line=LineString(points);return zones,line,line.buffer(width/2,quad_segs=12)</span>
+<span class="line" id="L34"><a href="#L34">  34</a> def write_mesh(path,triangles):</span>
+<span class="line" id="L35"><a href="#L35">  35</a>     lines=[&#x27;# Original generated S02 geometry; units metre&#x27;]</span>
+<span class="line" id="L36"><a href="#L36">  36</a>     for tri in triangles:</span>
+<span class="line" id="L37"><a href="#L37">  37</a>         a,b,c=np.array(tri,dtype=float);n=np.cross(b-a,c-a);n/=np.linalg.norm(n)</span>
+<span class="line" id="L38"><a href="#L38">  38</a>         lines.extend(&#x27;v &#x27;+&#x27; &#x27;.join(f&#x27;{v:.8f}&#x27; for v in p) for p in tri)</span>
+<span class="line" id="L39"><a href="#L39">  39</a>         lines.append(&#x27;vn &#x27;+&#x27; &#x27;.join(f&#x27;{v:.8f}&#x27; for v in n))</span>
+<span class="line" id="L40"><a href="#L40">  40</a>     lines.extend(f&#x27;f {i*3+1}//{i+1} {i*3+2}//{i+1} {i*3+3}//{i+1}&#x27; for i in range(len(triangles)))</span>
+<span class="line" id="L41"><a href="#L41">  41</a>     path.parent.mkdir(parents=True,exist_ok=True);path.write_text(&#x27;\n&#x27;.join(lines)+&#x27;\n&#x27;)</span>
+<span class="line" id="L42"><a href="#L42">  42</a> def mesh_polygon(p,path,z):</span>
+<span class="line" id="L43"><a href="#L43">  43</a>     triangles=list(constrained_delaunay_triangles(p).geoms)</span>
+<span class="line" id="L44"><a href="#L44">  44</a>     if abs(sum(t.area for t in triangles)-p.area)&gt;1e-6:raise ValueError(&#x27;triangulation mismatch&#x27;)</span>
+<span class="line" id="L45"><a href="#L45">  45</a>     faces=[]</span>
+<span class="line" id="L46"><a href="#L46">  46</a>     for t in triangles:</span>
+<span class="line" id="L47"><a href="#L47">  47</a>         vs=list(t.exterior.coords)[:3]</span>
+<span class="line" id="L48"><a href="#L48">  48</a>         if not t.exterior.is_ccw:vs.reverse()</span>
+<span class="line" id="L49"><a href="#L49">  49</a>         faces.append([(x,y,z) for x,y in vs])</span>
+<span class="line" id="L50"><a href="#L50">  50</a>     write_mesh(path,faces)</span>
+<span class="line" id="L51"><a href="#L51">  51</a> def text(parent,tag,value):e=ET.SubElement(parent,tag);e.text=str(value);return e</span>
+<span class="line" id="L52"><a href="#L52">  52</a> def geom(parent,kind,data):</span>
+<span class="line" id="L53"><a href="#L53">  53</a>     g=ET.SubElement(parent,&#x27;geometry&#x27;);e=ET.SubElement(g,kind)</span>
+<span class="line" id="L54"><a href="#L54">  54</a>     if kind==&#x27;box&#x27;:text(e,&#x27;size&#x27;,&#x27; &#x27;.join(map(str,data)))</span>
+<span class="line" id="L55"><a href="#L55">  55</a>     elif kind==&#x27;sphere&#x27;:text(e,&#x27;radius&#x27;,data)</span>
+<span class="line" id="L56"><a href="#L56">  56</a>     elif kind==&#x27;cylinder&#x27;:text(e,&#x27;radius&#x27;,data[0]);text(e,&#x27;length&#x27;,data[1])</span>
+<span class="line" id="L57"><a href="#L57">  57</a>     else:text(e,&#x27;uri&#x27;,&#x27;file://&#x27;+str(data))</span>
+<span class="line" id="L58"><a href="#L58">  58</a> def part(link,name,kind,data,pose,color,collision=True):</span>
+<span class="line" id="L59"><a href="#L59">  59</a>     for tag in [&#x27;visual&#x27;,&#x27;collision&#x27;] if collision else [&#x27;visual&#x27;]:</span>
+<span class="line" id="L60"><a href="#L60">  60</a>         e=ET.SubElement(link,tag,name=name if tag==&#x27;collision&#x27; else name+&#x27;_visual&#x27;);text(e,&#x27;pose&#x27;,&#x27; &#x27;.join(map(str,pose)))</span>
+<span class="line" id="L61"><a href="#L61">  61</a>         geom(e,kind,data)</span>
+<span class="line" id="L62"><a href="#L62">  62</a>         if tag==&#x27;visual&#x27;:</span>
+<span class="line" id="L63"><a href="#L63">  63</a>             m=ET.SubElement(e,&#x27;material&#x27;);text(m,&#x27;ambient&#x27;,color);text(m,&#x27;diffuse&#x27;,color)</span>
+<span class="line" id="L64"><a href="#L64">  64</a>     return e</span>
+<span class="line" id="L65"><a href="#L65">  65</a> def model(world,name,position,dynamic=False,mass=70):</span>
+<span class="line" id="L66"><a href="#L66">  66</a>     m=ET.SubElement(world,&#x27;model&#x27;,name=name);text(m,&#x27;static&#x27;,str(not dynamic).lower());text(m,&#x27;pose&#x27;,&#x27; &#x27;.join(map(str,position))+&#x27; 0 0 0&#x27;)</span>
+<span class="line" id="L67"><a href="#L67">  67</a>     l=ET.SubElement(m,&#x27;link&#x27;,name=&#x27;body&#x27;)</span>
+<span class="line" id="L68"><a href="#L68">  68</a>     if dynamic:</span>
+<span class="line" id="L69"><a href="#L69">  69</a>         text(l,&#x27;gravity&#x27;,&#x27;false&#x27;);i=ET.SubElement(l,&#x27;inertial&#x27;);text(i,&#x27;mass&#x27;,mass);it=ET.SubElement(i,&#x27;inertia&#x27;)</span>
+<span class="line" id="L70"><a href="#L70">  70</a>         for k,v in [(&#x27;ixx&#x27;,mass*.2),(&#x27;iyy&#x27;,mass*.2),(&#x27;izz&#x27;,mass*.1),(&#x27;ixy&#x27;,0),(&#x27;ixz&#x27;,0),(&#x27;iyz&#x27;,0)]:text(it,k,v)</span>
+<span class="line" id="L71"><a href="#L71">  71</a>     return l</span>
+<span class="line" id="L72"><a href="#L72">  72</a> def target(a,t):</span>
+<span class="line" id="L73"><a href="#L73">  73</a>     q=2*math.pi*t/a[&#x27;period&#x27;]+a[&#x27;phase&#x27;];return [a[&#x27;center&#x27;][0]+a[&#x27;amplitude&#x27;][0]*math.sin(q),a[&#x27;center&#x27;][1]+a[&#x27;amplitude&#x27;][1]*math.sin(2*q),a[&#x27;center&#x27;][2]]</span>
+<span class="line" id="L74"><a href="#L74">  74</a> def generate(out,seed=41,variant=&#x27;base&#x27;,fixture=False):</span>
+<span class="line" id="L75"><a href="#L75">  75</a>     out=Path(out);cfg=yaml.safe_load((BASE/&#x27;config/scenes.yaml&#x27;).read_text());zones,line,road=geometries(variant,[cfg[&#x27;area_targets_m2&#x27;][k] for k in [&#x27;spray&#x27;,&#x27;mowing&#x27;]],cfg[&#x27;connector_width_m&#x27;])</span>
+<span class="line" id="L76"><a href="#L76">  76</a>     prior=out/&#x27;maps/prior&#x27;;assets=out/&#x27;assets&#x27;;worldpath=assets/&#x27;worlds/irregular_farm.sdf&#x27;</span>
+<span class="line" id="L77"><a href="#L77">  77</a>     zonefs=[feature(p,id=n,task=t,area_m2=p.area,connected=True) for p,n,t in zip(zones,[&#x27;A&#x27;,&#x27;B&#x27;],[&#x27;spray&#x27;,&#x27;mowing&#x27;])]</span>
+<span class="line" id="L78"><a href="#L78">  78</a>     dump(prior/&#x27;workspaces.geojson&#x27;,collection(zonefs))</span>
+<span class="line" id="L79"><a href="#L79">  79</a>     checkpoints=[[*line.interpolate(f,normalized=True).coords[0],0] for f in np.linspace(0,1,9)]</span>
+<span class="line" id="L80"><a href="#L80">  80</a>     dump(prior/&#x27;connector.geojson&#x27;,collection([feature(road,id=&#x27;road&#x27;,width_m=cfg[&#x27;connector_width_m&#x27;]),feature(line,id=&#x27;centerline&#x27;,length_m=line.length,elevation_m=0,slope_deg=0,checkpoints=checkpoints)]))</span>
+<span class="line" id="L81"><a href="#L81">  81</a>     known=[dict(id=&#x27;pump_house&#x27;,center=[35,22,1.25],size=[3,3,2.5]),dict(id=&#x27;shed&#x27;,center=[137,69,1.5],size=[5,4,3]),dict(id=&#x27;utility&#x27;,center=[49,57,.75],size=[2,2,1.5])]</span>
+<span class="line" id="L82"><a href="#L82">  82</a>     if variant==&#x27;holes&#x27;:</span>
+<span class="line" id="L83"><a href="#L83">  83</a>         for i,p in enumerate(zones):</span>
+<span class="line" id="L84"><a href="#L84">  84</a>             c=Polygon(p.interiors[0]).centroid;known.append(dict(id=&#x27;island_&#x27;+str(i),center=[c.x,c.y,1],size=[6,4,2]))</span>
+<span class="line" id="L85"><a href="#L85">  85</a>     dump(prior/&#x27;permanent.geojson&#x27;,collection([feature(box(k[&#x27;center&#x27;][0]-k[&#x27;size&#x27;][0]/2,k[&#x27;center&#x27;][1]-k[&#x27;size&#x27;][1]/2,k[&#x27;center&#x27;][0]+k[&#x27;size&#x27;][0]/2,k[&#x27;center&#x27;][1]+k[&#x27;size&#x27;][1]/2),id=k[&#x27;id&#x27;],height_m=k[&#x27;size&#x27;][2]) for k in known]))</span>
+<span class="line" id="L86"><a href="#L86">  86</a>     dump(prior/&#x27;terrain_coarse.geojson&#x27;,collection([feature(box(38,61,49,67),id=&#x27;coarse_grade_1&#x27;,slope_band_deg=[0,8],resolution_m=3,uncertainty_deg=3)]))</span>
+<span class="line" id="L87"><a href="#L87">  87</a>     public_hash=hashlib.sha256(b&#x27;&#x27;.join(p.read_bytes() for p in sorted(prior.glob(&#x27;*.geojson&#x27;)))).hexdigest()</span>
+<span class="line" id="L88"><a href="#L88">  88</a>     dump(prior/&#x27;map_metadata.json&#x27;,dict(map_version=cfg[&#x27;map_version&#x27;],map_id=public_hash,variant=variant,coordinate_system=cfg[&#x27;coordinate_system&#x27;],world_bounds=[0,0,160,112],cluster_assignment=None,clearance_status=&#x27;S03_NOT_TESTED&#x27;))</span>
+<span class="line" id="L89"><a href="#L89">  89</a>     dump(out/&#x27;config/sensor_config.json&#x27;,dict(probe=cfg[&#x27;probe&#x27;],topics=[&#x27;/clock&#x27;,&#x27;/s02/probe/lidar/points&#x27;,&#x27;/s02/probe/image&#x27;],prior_path=str(prior),ros_domain_id=119))</span>
+<span class="line" id="L90"><a href="#L90">  90</a>     rng=random.Random(seed)</span>
+<span class="line" id="L91"><a href="#L91">  91</a>     low=[dict(id=&#x27;unknown_low_&#x27;+str(i),center=[x+rng.uniform(-.15,.15),y+rng.uniform(-.15,.15),h/2],size=[.9,.8,h]) for i,(x,y,h) in enumerate([(26,23.5,.08),(28,26,.15),(30,28,.30)])]</span>
+<span class="line" id="L92"><a href="#L92">  92</a>     actors=[]</span>
+<span class="line" id="L93"><a href="#L93">  93</a>     for i,(c,a,period) in enumerate([([31,30,.9],[4,1,0],28),([77,47,.9],[3,2,0],34),([129,64,.9],[4,1.5,0],31),([44,58,.9],[3,1,0],26),([35,34,.55],[5,1.2,0],35)]):</span>
+<span class="line" id="L94"><a href="#L94">  94</a>         actors.append(dict(id=&#x27;ped_&#x27;+str(i) if i&lt;4 else &#x27;equipment&#x27;,center=c,amplitude=a,period=period,phase=rng.uniform(-.4,.4),size=[.5,.5,1.8] if i&lt;4 else [1.6,.9,1.1]))</span>
+<span class="line" id="L95"><a href="#L95">  95</a>     terrain=[dict(id=&#x27;grade_5&#x27;,origin=[39,62,0],length=8,width=3,slope_deg=5,prior=&#x27;coarse&#x27;),dict(id=&#x27;grade_10&#x27;,origin=[120,44,0],length=6,width=3,slope_deg=10,prior=&#x27;unknown&#x27;),dict(id=&#x27;grade_18&#x27;,origin=[138,54,0],length=4,width=3,slope_deg=18,prior=&#x27;unknown&#x27;)]</span>
+<span class="line" id="L96"><a href="#L96">  96</a>     truth=dict(seed=seed,variant=variant,map_id=public_hash,low_obstacles=low,permanent=known,actors=actors,terrain=terrain,fixture=fixture,policy=&#x27;SIMULATION_AND_EVALUATION_ONLY&#x27;)</span>
+<span class="line" id="L97"><a href="#L97">  97</a>     sdf=ET.Element(&#x27;sdf&#x27;,version=&#x27;1.10&#x27;);w=ET.SubElement(sdf,&#x27;world&#x27;,name=&#x27;irregular_farm&#x27;)</span>
+<span class="line" id="L98"><a href="#L98">  98</a>     physics=ET.SubElement(w,&#x27;physics&#x27;,name=&#x27;default&#x27;,type=&#x27;ignored&#x27;);text(physics,&#x27;max_step_size&#x27;,.002);text(physics,&#x27;real_time_factor&#x27;,1)</span>
+<span class="line" id="L99"><a href="#L99">  99</a>     for filename,name in [(&#x27;physics&#x27;,&#x27;Physics&#x27;),(&#x27;user-commands&#x27;,&#x27;UserCommands&#x27;),(&#x27;scene-broadcaster&#x27;,&#x27;SceneBroadcaster&#x27;),(&#x27;contact&#x27;,&#x27;Contact&#x27;)]:ET.SubElement(w,&#x27;plugin&#x27;,filename=&#x27;gz-sim-&#x27;+filename+&#x27;-system&#x27;,name=&#x27;gz::sim::systems::&#x27;+name)</span>
+<span class="line" id="L100"><a href="#L100"> 100</a>     s=ET.SubElement(w,&#x27;plugin&#x27;,filename=&#x27;gz-sim-sensors-system&#x27;,name=&#x27;gz::sim::systems::Sensors&#x27;);text(s,&#x27;render_engine&#x27;,&#x27;ogre&#x27;)</span>
+<span class="line" id="L101"><a href="#L101"> 101</a>     text(w,&#x27;gravity&#x27;,&#x27;0 0 -9.81&#x27;);scene=ET.SubElement(w,&#x27;scene&#x27;);text(scene,&#x27;ambient&#x27;,&#x27;0.6 0.6 0.6 1&#x27;);text(scene,&#x27;background&#x27;,&#x27;0.68 0.81 0.91 1&#x27;);text(scene,&#x27;shadows&#x27;,&#x27;false&#x27;)</span>
+<span class="line" id="L102"><a href="#L102"> 102</a>     sun=ET.SubElement(w,&#x27;light&#x27;,name=&#x27;sun&#x27;,type=&#x27;directional&#x27;);text(sun,&#x27;pose&#x27;,&#x27;0 0 50 0 0 0&#x27;);text(sun,&#x27;diffuse&#x27;,&#x27;.8 .8 .8 1&#x27;);text(sun,&#x27;specular&#x27;,&#x27;.1 .1 .1 1&#x27;);text(sun,&#x27;direction&#x27;,&#x27;-.3 -.4 -1&#x27;)</span>
+<span class="line" id="L103"><a href="#L103"> 103</a>     part(model(w,&#x27;ground&#x27;,[80,56,-.1]),&#x27;ground&#x27;,&#x27;box&#x27;,[160,112,.2],[0]*6,&#x27;.32 .39 .24 1&#x27;)</span>
+<span class="line" id="L104"><a href="#L104"> 104</a>     for p,name,color,z in [(zones[0],&#x27;spray_workspace&#x27;,&#x27;.57 .67 .29 1&#x27;,.006),(zones[1],&#x27;mowing_workspace&#x27;,&#x27;.23 .53 .30 1&#x27;,.006),(road,&#x27;connector&#x27;,&#x27;.63 .58 .46 1&#x27;,.012)]:</span>
+<span class="line" id="L105"><a href="#L105"> 105</a>         path=assets/&#x27;meshes&#x27;/f&#x27;{name}.obj&#x27;;mesh_polygon(p,path,z);part(model(w,name,[0,0,0]),name,&#x27;mesh&#x27;,path,[0]*6,color,False)</span>
+<span class="line" id="L106"><a href="#L106"> 106</a>     for k in known+low:</span>
+<span class="line" id="L107"><a href="#L107"> 107</a>         part(model(w,k[&#x27;id&#x27;],k[&#x27;center&#x27;]),k[&#x27;id&#x27;],&#x27;box&#x27;,k[&#x27;size&#x27;],[0]*6,&#x27;.62 .65 .69 1&#x27; if k in known else &#x27;.92 .35 .07 1&#x27;)</span>
+<span class="line" id="L108"><a href="#L108"> 108</a>     for t in terrain:</span>
+<span class="line" id="L109"><a href="#L109"> 109</a>         x,y,z=t[&#x27;origin&#x27;];l=t[&#x27;length&#x27;];b=t[&#x27;width&#x27;];h=l/2*math.tan(math.radians(t[&#x27;slope_deg&#x27;]))</span>
+<span class="line" id="L110"><a href="#L110"> 110</a>         vs=[(0,0,0),(l,0,0),(l/2,0,h),(0,b,0),(l,b,0),(l/2,b,h)]</span>
+<span class="line" id="L111"><a href="#L111"> 111</a>         # Outward winding is required by physical mesh contacts (not just rendering).</span>
+<span class="line" id="L112"><a href="#L112"> 112</a>         faces=[(2,3,1),(6,5,4),(6,4,1),(3,6,1),(5,6,3),(2,5,3),(5,2,1),(4,5,1)]</span>
+<span class="line" id="L113"><a href="#L113"> 113</a>         path=assets/&#x27;meshes&#x27;/f&#x27;{t[&quot;id&quot;]}.obj&#x27;;write_mesh(path,[[vs[i-1] for i in f] for f in faces])</span>
+<span class="line" id="L114"><a href="#L114"> 114</a>         part(model(w,t[&#x27;id&#x27;],[x,y,z]),&#x27;terrain&#x27;,&#x27;mesh&#x27;,path,[0]*6,&#x27;.51 .43 .25 1&#x27;)</span>
+<span class="line" id="L115"><a href="#L115"> 115</a>     motion=ET.SubElement(w,&#x27;plugin&#x27;,filename=&#x27;libs02_motion.so&#x27;,name=&#x27;s02::ScriptedMotion&#x27;)</span>
+<span class="line" id="L116"><a href="#L116"> 116</a>     for a in actors:</span>
+<span class="line" id="L117"><a href="#L117"> 117</a>         e=ET.SubElement(motion,&#x27;actor&#x27;);text(e,&#x27;name&#x27;,a[&#x27;id&#x27;])</span>
+<span class="line" id="L118"><a href="#L118"> 118</a>         for k in [&#x27;center&#x27;,&#x27;amplitude&#x27;]:text(e,k,&#x27; &#x27;.join(map(str,a[k])))</span>
+<span class="line" id="L119"><a href="#L119"> 119</a>         for k in [&#x27;period&#x27;,&#x27;phase&#x27;]:text(e,k,a[k])</span>
+<span class="line" id="L120"><a href="#L120"> 120</a>         l=model(w,a[&#x27;id&#x27;],target(a,0),True)</span>
+<span class="line" id="L121"><a href="#L121"> 121</a>         if a[&#x27;id&#x27;].startswith(&#x27;ped&#x27;):</span>
+<span class="line" id="L122"><a href="#L122"> 122</a>             # Every visible primitive has the SAME physical geometry and transform.</span>
+<span class="line" id="L123"><a href="#L123"> 123</a>             part(l,&#x27;torso&#x27;,&#x27;box&#x27;,[.44,.30,.7],[0,0,.1,0,0,0],&#x27;.08 .35 .85 1&#x27;)</span>
+<span class="line" id="L124"><a href="#L124"> 124</a>             part(l,&#x27;head&#x27;,&#x27;sphere&#x27;,.16,[0,0,.65,0,0,0],&#x27;.85 .64 .43 1&#x27;)</span>
+<span class="line" id="L125"><a href="#L125"> 125</a>             for y in [-.14,.14]:part(l,&#x27;leg_&#x27;+str(y),&#x27;box&#x27;,[.18,.14,.7],[0,y,-.55,0,0,0],&#x27;.12 .15 .2 1&#x27;)</span>
+<span class="line" id="L126"><a href="#L126"> 126</a>             for y in [-.24,.24]:part(l,&#x27;arm_&#x27;+str(y),&#x27;box&#x27;,[.14,.12,.65],[0,y,.08,0,0,0],&#x27;.08 .35 .85 1&#x27;)</span>
+<span class="line" id="L127"><a href="#L127"> 127</a>         else:</span>
+<span class="line" id="L128"><a href="#L128"> 128</a>             part(l,&#x27;cart&#x27;,&#x27;box&#x27;,[1.6,.9,.7],[0,0,0,0,0,0],&#x27;.95 .61 .08 1&#x27;)</span>
+<span class="line" id="L129"><a href="#L129"> 129</a>             for x in [-.5,.5]:</span>
+<span class="line" id="L130"><a href="#L130"> 130</a>                 for y in [-.45,.45]:part(l,f&#x27;wheel_{x}_{y}&#x27;,&#x27;cylinder&#x27;,[.2,.12],[x,y,-.35,math.pi/2,0,0],&#x27;.08 .09 .10 1&#x27;)</span>
+<span class="line" id="L131"><a href="#L131"> 131</a>     if fixture:</span>
+<span class="line" id="L132"><a href="#L132"> 132</a>         p=target(actors[0],3);p[2]=.45;truth[&#x27;fixture_start&#x27;]=p</span>
+<span class="line" id="L133"><a href="#L133"> 133</a>         l=model(w,&#x27;contact_fixture&#x27;,p,True,2);l.find(&#x27;gravity&#x27;).text=&#x27;true&#x27;</span>
+<span class="line" id="L134"><a href="#L134"> 134</a>         part(l,&#x27;test_cube&#x27;,&#x27;box&#x27;,[.5,.5,.9],[0]*6,&#x27;.95 .1 .5 1&#x27;)</span>
+<span class="line" id="L135"><a href="#L135"> 135</a>         s=ET.SubElement(l,&#x27;sensor&#x27;,name=&#x27;contact&#x27;,type=&#x27;contact&#x27;);c=ET.SubElement(s,&#x27;contact&#x27;);text(c,&#x27;collision&#x27;,&#x27;test_cube&#x27;);text(c,&#x27;topic&#x27;,&#x27;/s02/evaluation/contacts&#x27;);text(s,&#x27;always_on&#x27;,&#x27;true&#x27;);text(s,&#x27;update_rate&#x27;,50)</span>
+<span class="line" id="L136"><a href="#L136"> 136</a>     l=model(w,&#x27;validation_probe&#x27;,cfg[&#x27;probe&#x27;][&#x27;position&#x27;])</span>
+<span class="line" id="L137"><a href="#L137"> 137</a>     s=ET.SubElement(l,&#x27;sensor&#x27;,name=&#x27;lidar&#x27;,type=&#x27;gpu_lidar&#x27;);text(s,&#x27;topic&#x27;,&#x27;/s02/probe/lidar&#x27;);text(s,&#x27;update_rate&#x27;,10);text(s,&#x27;always_on&#x27;,&#x27;true&#x27;)</span>
+<span class="line" id="L138"><a href="#L138"> 138</a>     ld=ET.SubElement(s,&#x27;lidar&#x27;);scan=ET.SubElement(ld,&#x27;scan&#x27;)</span>
+<span class="line" id="L139"><a href="#L139"> 139</a>     for name,n,lo,hi in [(&#x27;horizontal&#x27;,512,-1.2,1.2),(&#x27;vertical&#x27;,64,-.3,.2)]:</span>
+<span class="line" id="L140"><a href="#L140"> 140</a>         sc=ET.SubElement(scan,name)</span>
+<span class="line" id="L141"><a href="#L141"> 141</a>         for k,v in [(&#x27;samples&#x27;,n),(&#x27;resolution&#x27;,1),(&#x27;min_angle&#x27;,lo),(&#x27;max_angle&#x27;,hi)]:text(sc,k,v)</span>
+<span class="line" id="L142"><a href="#L142"> 142</a>     ran=ET.SubElement(ld,&#x27;range&#x27;)</span>
+<span class="line" id="L143"><a href="#L143"> 143</a>     for k,v in [(&#x27;min&#x27;,.08),(&#x27;max&#x27;,40),(&#x27;resolution&#x27;,.01)]:text(ran,k,v)</span>
+<span class="line" id="L144"><a href="#L144"> 144</a>     s=ET.SubElement(l,&#x27;sensor&#x27;,name=&#x27;camera&#x27;,type=&#x27;camera&#x27;);text(s,&#x27;topic&#x27;,&#x27;/s02/probe/image&#x27;);text(s,&#x27;pose&#x27;,&#x27;0 0 0 0 .08 0&#x27;);text(s,&#x27;update_rate&#x27;,5);text(s,&#x27;always_on&#x27;,&#x27;true&#x27;)</span>
+<span class="line" id="L145"><a href="#L145"> 145</a>     c=ET.SubElement(s,&#x27;camera&#x27;);text(c,&#x27;horizontal_fov&#x27;,1.4);im=ET.SubElement(c,&#x27;image&#x27;);text(im,&#x27;width&#x27;,640);text(im,&#x27;height&#x27;,360);text(im,&#x27;format&#x27;,&#x27;R8G8B8&#x27;);cl=ET.SubElement(c,&#x27;clip&#x27;);text(cl,&#x27;near&#x27;,.05);text(cl,&#x27;far&#x27;,100)</span>
+<span class="line" id="L146"><a href="#L146"> 146</a>     worldpath.parent.mkdir(parents=True,exist_ok=True);ET.indent(sdf);ET.ElementTree(sdf).write(worldpath,encoding=&#x27;utf-8&#x27;,xml_declaration=True)</span>
+<span class="line" id="L147"><a href="#L147"> 147</a>     dump(out/&#x27;evaluation/truth_manifest.json&#x27;,truth)</span>
+<span class="line" id="L148"><a href="#L148"> 148</a>     resources=[dict(path=str(p.relative_to(out)),sha256=hashlib.sha256(p.read_bytes()).hexdigest()) for p in sorted(assets.rglob(&#x27;*&#x27;)) if p.is_file()]</span>
+<span class="line" id="L149"><a href="#L149"> 149</a>     dump(out/&#x27;evaluation/resource_manifest.json&#x27;,dict(resources=resources,seed=seed,variant=variant,license=&#x27;Original generated geometry; no remote model downloads&#x27;))</span>
+<span class="line" id="L150"><a href="#L150"> 150</a>     return dict(world=str(worldpath),areas=[p.area for p in zones],road_length=line.length,map_id=public_hash)</span>
+<span class="line" id="L151"><a href="#L151"> 151</a> if __name__==&#x27;__main__&#x27;:</span>
+<span class="line" id="L152"><a href="#L152"> 152</a>     p=argparse.ArgumentParser();p.add_argument(&#x27;--out&#x27;,type=Path,default=BASE);p.add_argument(&#x27;--seed&#x27;,type=int,default=41);p.add_argument(&#x27;--variant&#x27;,choices=[&#x27;base&#x27;,&#x27;notch&#x27;,&#x27;holes&#x27;],default=&#x27;base&#x27;);p.add_argument(&#x27;--fixture&#x27;,action=&#x27;store_true&#x27;);a=p.parse_args();print(json.dumps(generate(a.out,a.seed,a.variant,a.fixture),indent=2))</span></code></pre></html>

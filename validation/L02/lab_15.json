@@ -1,0 +1,12 @@
+{
+  "chapter": "15",
+  "passed": true,
+  "result": {
+    "kind": "synthetic surface samples",
+    "median_m": 0.01,
+    "mean_m": 0.25666666666666665,
+    "slope_deg": 5.710593137499643,
+    "passes_five_deg": false,
+    "empty_cell": "UNKNOWN"
+  }
+}

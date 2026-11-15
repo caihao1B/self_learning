@@ -1,0 +1,398 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>术语 命令与依赖索引</title><style>*{box-sizing:border-box}body{margin:0;background:#eff4f5;color:#17343d;font:17px/1.95 "Segoe UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif}header{background:#163c45;color:#e5f3ef;padding:22px max(20px,calc((100vw - 1080px)/2))}header a{color:#bceadf;margin-right:20px}main{max-width:1140px;margin:28px auto;padding:34px 48px;background:white;border:1px solid #dae5e8;border-radius:12px}h1{font-size:32px;line-height:1.5;color:#174b50}h2{margin-top:42px;font-size:24px;color:#256466;border-bottom:1px solid #dce9e8;padding-bottom:9px}h3{font-size:20px;color:#345b62}a{color:#08777a;text-underline-offset:3px}p,li{overflow-wrap:anywhere}pre{background:#112c38;color:#e3f0ed;padding:20px;border-radius:8px;overflow:auto;font:13px/1.8 Consolas,monospace;white-space:pre;overflow-wrap:normal}code{font-family:Consolas,monospace}p code,li code,td code{background:#edf3f4;padding:2px 4px}table{display:block;overflow:auto;border-collapse:collapse;font-size:15px;margin:22px 0}th,td{border:1px solid #cedfe1;padding:10px;min-width:100px;vertical-align:top}th{background:#e6f2ef}img{max-width:100%;height:auto;margin:22px auto;display:block}blockquote{border-left:4px solid #3c9083;padding:8px 20px;background:#f0f7f4;margin:20px 0}.toc{background:#f3f8f7;padding:12px 25px;font-size:14px}footer{max-width:1100px;margin:24px auto;padding:20px;color:#47666c}button{background:#e7f4ed;color:#245448;border:0;padding:7px 12px;border-radius:5px;cursor:pointer}@media(max-width:700px){body{font-size:16px}main{padding:22px 18px;margin:12px;border-radius:8px}h1{font-size:26px}h2{font-size:22px}header{padding:16px}pre{font-size:12px}}@media print{header,footer,button,.toc{display:none}main{border:0;max-width:none;margin:0;padding:0}pre{background:#eee;color:black;white-space:pre-wrap;overflow-wrap:anywhere}a{color:black}h2{break-after:avoid}img{max-height:230mm}}</style><header><a href="../../index.html">学习首页</a><a href="../index.html">三十章目录</a><button onclick="window.print()">打印本章</button></header><main><h1 id="_1">术语 命令与依赖索引</h1>
+<p>本页用于读章时快速返回概念。参数与源码以固定基线为准；官方资料用于理解上游概念，不能把更新版默认值直接覆盖当前项目。</p>
+<h2 id="_2">常用术语</h2>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>含义</th>
+<th>章节</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>obligation 工作义务</td>
+<td>原任务必须交代的点、面积或路径范围</td>
+<td>01、25</td>
+</tr>
+<tr>
+<td>residual 残余</td>
+<td>未被有效反馈确认的原工作</td>
+<td>01、20、25</td>
+</tr>
+<tr>
+<td>shell</td>
+<td>解释终端命令的程序</td>
+<td>02、03</td>
+</tr>
+<tr>
+<td>process 进程</td>
+<td>正在执行的程序实例</td>
+<td>03</td>
+</tr>
+<tr>
+<td>overlay</td>
+<td>叠加在基础 ROS 环境上的工作区</td>
+<td>03、26</td>
+</tr>
+<tr>
+<td>RAII</td>
+<td>通过对象生命周期管理资源</td>
+<td>04</td>
+</tr>
+<tr>
+<td>Future</td>
+<td>尚未或已经完成的异步结果容器</td>
+<td>05、24</td>
+</tr>
+<tr>
+<td>QoS</td>
+<td>通信交付质量约定</td>
+<td>05</td>
+</tr>
+<tr>
+<td>lifecycle</td>
+<td>节点配置、激活、退出状态管理</td>
+<td>05、21</td>
+</tr>
+<tr>
+<td>TF</td>
+<td>随时间描述坐标系关系</td>
+<td>06</td>
+</tr>
+<tr>
+<td>ENU</td>
+<td>局部东、北、天坐标</td>
+<td>06、14</td>
+</tr>
+<tr>
+<td>lever arm 杆臂</td>
+<td>天线/传感器相对车体参考点偏移</td>
+<td>06、14</td>
+</tr>
+<tr>
+<td>epoch</td>
+<td>区分时间重置或会话代际</td>
+<td>06、25</td>
+</tr>
+<tr>
+<td>RTF</td>
+<td>仿真时长与现实时长的比值</td>
+<td>03、06</td>
+</tr>
+<tr>
+<td>footprint 足迹</td>
+<td>车体投影的碰撞/通行几何</td>
+<td>10、20</td>
+</tr>
+<tr>
+<td>curvature 曲率</td>
+<td>单位行进距离的方向变化，单位 1/m</td>
+<td>10、22</td>
+</tr>
+<tr>
+<td>PointCloud2</td>
+<td>带字段布局的点云消息</td>
+<td>11</td>
+</tr>
+<tr>
+<td>extrinsic 外参</td>
+<td>传感器与车体之间刚体变换</td>
+<td>11、15</td>
+</tr>
+<tr>
+<td>bias 偏置</td>
+<td>非零均值测量误差</td>
+<td>11、12</td>
+</tr>
+<tr>
+<td>covariance 协方差</td>
+<td>不确定性及变量相关性</td>
+<td>12、14</td>
+</tr>
+<tr>
+<td>ICP</td>
+<td>用点云对应关系估计刚体运动</td>
+<td>12</td>
+</tr>
+<tr>
+<td>EKF</td>
+<td>非线性模型局部线性化的卡尔曼滤波</td>
+<td>12</td>
+</tr>
+<tr>
+<td>SLAM</td>
+<td>同时定位与建图</td>
+<td>13</td>
+</tr>
+<tr>
+<td>loop closure 回环</td>
+<td>重新观察旧区域形成全局约束</td>
+<td>13</td>
+</tr>
+<tr>
+<td>NIS</td>
+<td>按创新协方差归一的残差平方</td>
+<td>14</td>
+</tr>
+<tr>
+<td>voxel 体素</td>
+<td>三维空间离散单元</td>
+<td>15</td>
+</tr>
+<tr>
+<td>TTC</td>
+<td>保持当前相对运动时的碰撞时间估计</td>
+<td>16</td>
+</tr>
+<tr>
+<td>IMM</td>
+<td>交互多运动模型估计</td>
+<td>17</td>
+</tr>
+<tr>
+<td>ADE/FDE</td>
+<td>平均/末端未来位置误差</td>
+<td>17</td>
+</tr>
+<tr>
+<td>CSR</td>
+<td>压缩稀疏行图表示</td>
+<td>18</td>
+</tr>
+<tr>
+<td>METIS</td>
+<td>图划分库</td>
+<td>18</td>
+</tr>
+<tr>
+<td>TSP</td>
+<td>旅行商访问顺序优化</td>
+<td>19</td>
+</tr>
+<tr>
+<td>swath 条带</td>
+<td>工具连续工作的覆盖线/带</td>
+<td>20</td>
+</tr>
+<tr>
+<td>headland 地头</td>
+<td>用于转弯连接的区域</td>
+<td>20</td>
+</tr>
+<tr>
+<td>Reeds–Shepp</td>
+<td>允许前后运动的有界曲率连接</td>
+<td>20</td>
+</tr>
+<tr>
+<td>RPP</td>
+<td>受约束纯追踪控制</td>
+<td>22</td>
+</tr>
+<tr>
+<td>DWB</td>
+<td>动态窗口轨迹采样与评分控制</td>
+<td>22</td>
+</tr>
+<tr>
+<td>MPPI</td>
+<td>预测控制序列采样与加权更新</td>
+<td>22</td>
+</tr>
+<tr>
+<td>BT tick</td>
+<td>一次行为树评估推进</td>
+<td>23</td>
+</tr>
+<tr>
+<td>latch 锁存</td>
+<td>满足明确复位前持续保留停止状态</td>
+<td>23</td>
+</tr>
+<tr>
+<td>idempotency 幂等</td>
+<td>重复同一请求不重复产生效果</td>
+<td>25</td>
+</tr>
+<tr>
+<td>transaction 事务</td>
+<td>相关存储修改共同提交或回滚</td>
+<td>25</td>
+</tr>
+<tr>
+<td>WAL</td>
+<td>SQLite 写前日志模式</td>
+<td>25</td>
+</tr>
+<tr>
+<td>hash 摘要</td>
+<td>检查文件内容身份</td>
+<td>01、30</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_3">命令按影响分类</h2>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+<th>是否改变状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pwd、ls、rg、sed -n</td>
+<td>目录与文本观察</td>
+<td>通常只读</td>
+</tr>
+<tr>
+<td>test、sha256sum</td>
+<td>存在/权限/内容检查</td>
+<td>只读</td>
+</tr>
+<tr>
+<td>source env.sh</td>
+<td>加载当前 shell 环境</td>
+<td>改变 shell 环境，不安装包</td>
+</tr>
+<tr>
+<td>python3 examples/l02/labs.py NN</td>
+<td>离线练习</td>
+<td>仅临时内存/临时目录，不控制机器人</td>
+</tr>
+<tr>
+<td>g++ ... -o build/...</td>
+<td>编译教学 C++</td>
+<td>写学习目录 build</td>
+</tr>
+<tr>
+<td>apt install</td>
+<td>安装系统依赖</td>
+<td>改变系统，见第 26 章前置</td>
+</tr>
+<tr>
+<td>python -m pip install</td>
+<td>安装指定解释器环境依赖</td>
+<td>改变该环境</td>
+</tr>
+<tr>
+<td>colcon build</td>
+<td>构建工作区</td>
+<td>写 build/install/log，影响运行版本</td>
+</tr>
+<tr>
+<td>advance.sh R09 check</td>
+<td>检查现存回执和摘要</td>
+<td>只读检查</td>
+</tr>
+<tr>
+<td>gui.sh</td>
+<td>启动只读监视服务</td>
+<td>创建监视进程/状态文件</td>
+</tr>
+<tr>
+<td>advance.sh R12 record CASE</td>
+<td>运行真实仿真并录制</td>
+<td>创建任务进程和新结果</td>
+</tr>
+<tr>
+<td>Ctrl+C</td>
+<td>请求前台进程组中断</td>
+<td>需要等待合作收尾</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_4">库与职责</h2>
+<table>
+<thead>
+<tr>
+<th>库/工具</th>
+<th>语言边界</th>
+<th>本项目职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>rclpy / rclcpp</td>
+<td>Python / C++</td>
+<td>ROS 通信与节点</td>
+</tr>
+<tr>
+<td>Nav2</td>
+<td>主要 C++，通过 action 调用</td>
+<td>规划、路径控制与生命周期</td>
+</tr>
+<tr>
+<td>RTAB-Map</td>
+<td>C++ 节点与工具</td>
+<td>局部 ICP、既有建图流程</td>
+</tr>
+<tr>
+<td>robot_localization</td>
+<td>C++ 节点</td>
+<td>多状态局部融合</td>
+</tr>
+<tr>
+<td>NumPy / SciPy</td>
+<td>Python 接口与编译运算</td>
+<td>数组、线代、邻近与分配</td>
+</tr>
+<tr>
+<td>Shapely</td>
+<td>Python 与 GEOS</td>
+<td>多边形、扫掠、面积并集</td>
+</tr>
+<tr>
+<td>METIS</td>
+<td>C API / C++ 包装</td>
+<td>连通工作量图划分</td>
+</tr>
+<tr>
+<td>OR-Tools</td>
+<td>C++ 后端</td>
+<td>点访问顺序启发式</td>
+</tr>
+<tr>
+<td>Fields2Cover</td>
+<td>C++ 后端</td>
+<td>条带与几何生成</td>
+</tr>
+<tr>
+<td>OMPL</td>
+<td>C++ 后端</td>
+<td>非完整车辆连接候选</td>
+</tr>
+<tr>
+<td>BehaviorTree.CPP</td>
+<td>C++ 与 XML</td>
+<td>条件组合与可解释监督</td>
+</tr>
+<tr>
+<td>Eigen</td>
+<td>C++ 模板库</td>
+<td>变换、矩阵与四元数</td>
+</tr>
+<tr>
+<td>nlohmann/json</td>
+<td>C++ 头文件库</td>
+<td>配置与结构化数据</td>
+</tr>
+<tr>
+<td>SQLite / sqlite3</td>
+<td>C 引擎 / Python 接口</td>
+<td>反馈账本与事务</td>
+</tr>
+<tr>
+<td>Gazebo gz-sim8</td>
+<td>C++ 插件与 SDF</td>
+<td>物理、传感器与关节执行</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_5">官方概念资料</h2>
+<p>ROS 官方 Jazzy <a href="https://github.com/ros2/ros2_documentation/blob/jazzy/source/Installation/Ubuntu-Install-Debs.rst">安装源码</a>和 <a href="https://github.com/ros2/ros2_documentation/blob/jazzy/source/Concepts/Intermediate/About-Quality-of-Service-Settings.rst">QoS 说明</a>用于核对平台与通信兼容性。Python 3.12 <a href="https://docs.python.org/3.12/library/argparse.html">argparse</a>、<a href="https://docs.python.org/3.12/library/subprocess.html">subprocess</a>和 <a href="https://docs.python.org/3.12/library/sqlite3.html">sqlite3</a>解释命令参数、进程与数据库接口。Nav2 <a href="https://github.com/ros-navigation/navigation2/blob/jazzy/nav2_regulated_pure_pursuit_controller/README.md">Jazzy RPP 源码说明</a>用于对照控制器职责。</p>
+<p>生产参数、当前启用方案和验收状态仍以各章固定项目源码及 evidence 为依据。官方 rolling 文档可能包含基线没有的新功能，不在本教材中自动升级。</p>
+<h2 id="_6">不随学习仓库提供的内容</h2>
+<p>完整机器人运行环境、原冻结数据库、大型参考云、所有原始运行和长视频不因教材可读而自动具备。资源清单见 <a href="../../L01/09_environment.md">L01 环境说明</a> 与 <a href="../../evidence/docs/three_tasks/R12/LOCAL_REPRODUCTION.md">原项目迁移边界</a>。当前 Windows 原生阅读与新机器完整仿真需要你分别人工确认；Linux 浏览器自动检查不能代替二者。</p></main><footer>L02 内容阅读版 · 固定基线 9aff8337 · 原机器人 R10–R12 PARTIAL · L03 完整站点尚待执行</footer></html>

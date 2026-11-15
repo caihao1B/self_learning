@@ -1,0 +1,7 @@
+digraph G {
+graph [bgcolor="#f7fafb",pad="0.3",nodesep="0.4",ranksep="0.5",fontname="Noto Sans CJK SC"];
+node [shape=box,style="rounded,filled",fillcolor="#e6f3ef",color="#478276",fontname="Noto Sans CJK SC",fontsize=15,margin=".2,.15"];
+edge [color="#5d8189",fontname="Noto Sans CJK SC",fontsize=12];rankdir=TB;
+a[label="BT 中断 / 退出请求"];b[label="取消活动导航 + 关闭工具"];c[label="等待 action 结果 / 导航 idle"];d[label="实测车停 + 工具停"];e[label="新鲜证据 / 合法恢复路径"];f[label="选择挡位并重新准入"];g[label="下一个目标"];u[label="超时或停止不确定\n保留残余 / 人工处理",fillcolor="#fff0d9"];
+a->b->c->d->e->f->g;b->u[style=dashed];c->u[style=dashed];d->u[style=dashed];
+}

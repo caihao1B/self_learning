@@ -1,0 +1,81 @@
+{
+  "passed": true,
+  "checks": {
+    "frozen_entries": 113,
+    "chapters": 30,
+    "production_excerpts": 56,
+    "bash_blocks_parsed_not_executed": 47,
+    "html_pages": 73,
+    "local_links_and_anchors": 4197,
+    "external_links_present": 291,
+    "python_labs_passed": 30,
+    "cpp_direct_helper_checks": 9,
+    "python_syntax": true,
+    "historical_stage_status": {
+      "R08": "PASS",
+      "R09": "PASS",
+      "R10": "PARTIAL",
+      "R11": "PARTIAL",
+      "R12": "PARTIAL"
+    },
+    "no_robot_simulation_executed": true
+  },
+  "errors": [],
+  "commands": [
+    {
+      "name": "python_labs",
+      "args": [
+        "/home/ceihao/self_learning/.build_venv/bin/python",
+        "examples/l02/labs.py",
+        "all"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "compile_precision",
+      "args": [
+        "g++",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-pedantic",
+        "examples/precision_demo.cpp",
+        "-o",
+        "build/precision_demo"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "precision_cpp",
+      "args": [
+        "build/precision_demo"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "compile_native",
+      "args": [
+        "g++",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-pedantic",
+        "-I/usr/include/eigen3",
+        "examples/l02/native_checks.cpp",
+        "-o",
+        "build/l02_native_checks"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "native_cpp",
+      "args": [
+        "build/l02_native_checks"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "scope": "L02 manuscript, fixed source excerpts, offline labs, direct pure C++ helpers, HTML links and Bash syntax. No simulation, installs or new-machine acceptance.",
+  "windows_native_manual": "PENDING_USER",
+  "L03": "READY_FOR_IMPLEMENTATION"
+}

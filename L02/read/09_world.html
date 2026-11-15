@@ -1,0 +1,119 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>第 09 章 三维世界与先验分层</title><style>*{box-sizing:border-box}body{margin:0;background:#eff4f5;color:#17343d;font:17px/1.95 "Segoe UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif}header{background:#163c45;color:#e5f3ef;padding:22px max(20px,calc((100vw - 1080px)/2))}header a{color:#bceadf;margin-right:20px}main{max-width:1140px;margin:28px auto;padding:34px 48px;background:white;border:1px solid #dae5e8;border-radius:12px}h1{font-size:32px;line-height:1.5;color:#174b50}h2{margin-top:42px;font-size:24px;color:#256466;border-bottom:1px solid #dce9e8;padding-bottom:9px}h3{font-size:20px;color:#345b62}a{color:#08777a;text-underline-offset:3px}p,li{overflow-wrap:anywhere}pre{background:#112c38;color:#e3f0ed;padding:20px;border-radius:8px;overflow:auto;font:13px/1.8 Consolas,monospace;white-space:pre;overflow-wrap:normal}code{font-family:Consolas,monospace}p code,li code,td code{background:#edf3f4;padding:2px 4px}table{display:block;overflow:auto;border-collapse:collapse;font-size:15px;margin:22px 0}th,td{border:1px solid #cedfe1;padding:10px;min-width:100px;vertical-align:top}th{background:#e6f2ef}img{max-width:100%;height:auto;margin:22px auto;display:block}blockquote{border-left:4px solid #3c9083;padding:8px 20px;background:#f0f7f4;margin:20px 0}.toc{background:#f3f8f7;padding:12px 25px;font-size:14px}footer{max-width:1100px;margin:24px auto;padding:20px;color:#47666c}button{background:#e7f4ed;color:#245448;border:0;padding:7px 12px;border-radius:5px;cursor:pointer}@media(max-width:700px){body{font-size:16px}main{padding:22px 18px;margin:12px;border-radius:8px}h1{font-size:26px}h2{font-size:22px}header{padding:16px}pre{font-size:12px}}@media print{header,footer,button,.toc{display:none}main{border:0;max-width:none;margin:0;padding:0}pre{background:#eee;color:black;white-space:pre-wrap;overflow-wrap:anywhere}a{color:black}h2{break-after:avoid}img{max-height:230mm}}</style><header><a href="../../index.html">学习首页</a><a href="../index.html">三十章目录</a><a href="08_spray_walkthrough.html">← 上一章</a><a href="10_kinematics.html">下一章 →</a><button onclick="window.print()">打印本章</button></header><main><details class="toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#09">第 09 章 三维世界与先验分层</a><ul>
+<li><a href="#_1">世界 工作区 通行区和任务簇</a></li>
+<li><a href="#_2">不规则区域怎样表示</a></li>
+<li><a href="#_3">哪些信息可提前知道</a></li>
+<li><a href="#_4">固定生产代码逐段阅读</a><ul>
+<li><a href="#generate_scenepy-18-33">generate_scene.py 第 18 至 33 行</a></li>
+<li><a href="#generate_scenepy-58-64">generate_scene.py 第 58 至 64 行</a></li>
+</ul>
+</li>
+<li><a href="#_5">从坡度到通行代价</a></li>
+<li><a href="#_6">世界尺寸与三十分钟预算</a></li>
+<li><a href="#_7">实际查看命令</a><ul>
+<li><a href="#_8">本章练习核心代码与实际输出</a></li>
+</ul>
+</li>
+<li><a href="#_9">常见故障与自测</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details><h1 id="09">第 09 章 三维世界与先验分层</h1>
+<p>三维仿真世界承担物理实验场，先验地图承担规划输入。两者相关但不相同：世界可以包含机器人尚未观察到的低障碍、运动目标和坡面细节；先验只暴露任务允许提前知道的部分。若把完整世界答案直接送给在线系统，感知价值便难以评估。</p>
+<h2 id="_1">世界 工作区 通行区和任务簇</h2>
+<p>世界是 Gazebo 中的地面、模型、碰撞、灯光和传感器。工作区是需要产生有效作业的区域；通行区是车辆被允许经过的空间，可能包含道路和地头；簇是算法分配的工作义务集合。车辆可以经过不计工作量的连接区域，也可能为了转弯短暂离开工作条带但仍处于合法通行区。</p>
+<p>因此“轨迹比作业区大”不一定错误。需要检查是否在授权地头内、是否满足车体扫掠与坡度、工具是否在连接段关闭、是否把非工作区域错误计入覆盖。若轨迹超出通行边界，则是几何或执行问题，不能用阿克曼本来就要大转弯解释一切。</p>
+<h2 id="_2">不规则区域怎样表示</h2>
+<p>GeoJSON Polygon 使用一组闭合环表示外边界与洞。坐标单位取决于项目约定；本项目局部地图的数字不能直接当经纬度。多边形有洞时，路径与覆盖不能穿过洞；几何自交或环未闭合可能让面积和裁剪结果异常。</p>
+<p>SDF 描述 Gazebo 世界、link、joint、visual、collision 和传感器。visual 决定看起来怎样，collision 决定物理接触。漂亮贴图不会自动改善碰撞几何；过于精细的碰撞网格反而增加计算成本。当前轻量结构与视觉外壳分离，适合在固定物理合同下改善展示。</p>
+<h2 id="_3">哪些信息可提前知道</h2>
+<p>工作边界、道路、永久设施和粗地形可作为离线先验。临时放置物、行人、运动障碍、近地细节和当次观测质量需要实时获取。已知坡度可以用于排除明确不可行区域；不确定地形保留为待观测，而不是默认平地。</p>
+<p>把未知保留为未知会降低完成率，但能暴露真实传感器覆盖和定位问题。为了演示把未知格直接清空，会使结果失去原先的解释力。合理改进是增加实际观测、调整采样或重新设计任务范围，并记录新版本。</p>
+<!-- generated-production-start -->
+<h2 id="_4">固定生产代码逐段阅读</h2>
+<p>下面是固定提交中的原样节选。完整文件有离线行号页；片段可能省略上下文，不能单独当成可运行脚本。读完每段后，回到调用者确认它在当前任务中如何使用。</p>
+<h3 id="generate_scenepy-18-33">generate_scene.py 第 18 至 33 行</h3>
+<p><a href="../../baseline/l02_views/d71792794a9f-generate_scene.py.html#L18">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/scenario_world/scripts/generate_scene.py#L18">固定 Git 提交</a></p>
+<pre><code class="language-python">def geometries(variant='base',targets=(1650,1140),width=6):
+    vertices=[[(8,24),(28,18),(52,22),(60,38),(54,48),(57,66),(38,77),(15,70),(10,52),(19,42)],
+              [(108,42),(125,34),(143,41),(152,57),(144,76),(127,80),(112,70),(117,57),(105,52)]]
+    zones=[]
+    for pts,area,c in zip(vertices,targets,[(34,47),(128,58)]):
+        p=Polygon(pts);s=math.sqrt(area/p.area);p=scale(p,s,s,origin='centroid');p=translate(p,c[0]-p.centroid.x,c[1]-p.centroid.y)
+        if variant=='notch':p=p.difference(box(c[0]-3,p.bounds[3]-8,c[0]+3,p.bounds[3]+1))
+        if variant=='holes':p=p.difference(box(c[0]-11,c[1]+5,c[0]-5,c[1]+9))
+        if not (p.is_valid and p.geom_type=='Polygon' and p.area&gt;0):raise ValueError('invalid/disconnected workspace')
+        zones.append(p)
+    control=[[(49,42),(65,34),(71,32),(82,50)],[(82,50),(93,68),(101,70),(122,58)]]
+    points=[]
+    for part in control:
+        p=np.array(part)
+        for t in np.linspace(0,1,81):points.append(((1-t)**3*p[0]+3*(1-t)**2*t*p[1]+3*(1-t)*t*t*p[2]+t**3*p[3]).tolist())
+    line=LineString(points);return zones,line,line.buffer(width/2,quad_segs=12)
+</code></pre>
+<p>Polygon 从不规则顶点构造，面积缩放使用平方根，因为面积随线性尺度平方变化；translate 放到指定中心。两个三次 Bézier 段生成连接中心线，再 buffer 成道路区域。此函数属于离线世界生成，不能当在线感知入口。</p>
+<h3 id="generate_scenepy-58-64">generate_scene.py 第 58 至 64 行</h3>
+<p><a href="../../baseline/l02_views/d71792794a9f-generate_scene.py.html#L58">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/scenario_world/scripts/generate_scene.py#L58">固定 Git 提交</a></p>
+<pre><code class="language-python">def part(link,name,kind,data,pose,color,collision=True):
+    for tag in ['visual','collision'] if collision else ['visual']:
+        e=ET.SubElement(link,tag,name=name if tag=='collision' else name+'_visual');text(e,'pose',' '.join(map(str,pose)))
+        geom(e,kind,data)
+        if tag=='visual':
+            m=ET.SubElement(e,'material');text(m,'ambient',color);text(m,'diffuse',color)
+    return e
+</code></pre>
+<p>同一 geometry 可以分别写 visual 与 collision。collision=False 只改变可见外观，不影响物理接触；这正是理解贴图和碰撞模型分离的入口。</p>
+<!-- generated-production-end -->
+
+<h2 id="_5">从坡度到通行代价</h2>
+<p>平面 <code>z=ax+by+c</code> 的坡度大小可由 <code>atan(sqrt(a²+b²))</code> 计算，a、b 是高程变化与水平距离之比。低矮台阶的高度可能不大，却有陡直边缘；粗糙度高的区域也可能让轮速与姿态估计失真。因此代价不应只由绝对 z 决定。</p>
+<p>当前安全路径讨论涉及 5° 通行限制与部分 10° 坡面。地图保持原样，新执行版本裁剪不适合的段，原工作区域分母不变。这种处理暴露残余，便于后续真实机器人或人工接管，而不是通过改分母让覆盖率看起来更高。</p>
+<h2 id="_6">世界尺寸与三十分钟预算</h2>
+<p>粗估工作时间为 <code>T≈路径长度/有效速度 + 点停留 + 转弯换挡 + 预期等待 + 收尾储备</code>。条带长度可以用面积/有效幅宽近似，但不规则边界和障碍会增加连接成本。等面积簇未必等时间；分簇后还要重新计算路径并检查预算。</p>
+<p>学习时先在小案例证明输入、决策、反馈和停止链路，再扩大任务。小案例必须明示选择范围，不能替代正式分母。连续三个簇允许形状不同，只要连通与工作量合同满足即可。</p>
+<h2 id="_7">实际查看命令</h2>
+<pre><code class="language-bash">cd /home/ceihao/self_learning
+python3 -m json.tool baseline/l02_source/optimization_v2/maps/prior/workspaces.geojson
+python3 examples/l02/labs.py 09
+</code></pre>
+<p><code>python3 -m json.tool</code> 使用标准库模块格式化并检查 JSON 语法，不计算几何合法性。后者需要 Shapely 等几何工具进一步检查面积、洞、连通与自交。不能把 JSON 可解析当作地图可通行。</p>
+<!-- generated-lab-start -->
+<h3 id="_8">本章练习核心代码与实际输出</h3>
+<p><a href="../../examples/l02/labs.py">完整教学脚本</a> · <a href="../../validation/L02/lab_09.json">本章完整输出</a></p>
+<p>代码只使用 Python 标准库；合成输入与历史记录在输出 kind 中区分。公共 ROOT、read、wrap、connected 等辅助函数在完整脚本中定义。</p>
+<pre><code class="language-python">def lab09():
+    &quot;&quot;&quot;Cell ownership and occupancy are different layers.&quot;&quot;&quot;
+    cells=[dict(id=i,zone='A',permanent=(i==2),observed=None) for i in range(6)]
+    cells[3]['observed']='low_obstacle'
+    statuses={c['id']:('BLOCKED_PRIOR' if c['permanent'] else
+                     'BLOCKED_OBSERVED' if c['observed'] else 'UNKNOWN_OBSERVATION') for c in cells}
+    assert statuses[0]=='UNKNOWN_OBSERVATION' and statuses[3]=='BLOCKED_OBSERVED'
+    return dict(kind='synthetic layer example',status=statuses,
+                lesson='Permitted prior does not imply currently observed free.')
+</code></pre>
+<pre><code class="language-text">{
+  &quot;chapter&quot;: &quot;09&quot;,
+  &quot;passed&quot;: true,
+  &quot;result&quot;: {
+    &quot;kind&quot;: &quot;synthetic layer example&quot;,
+    &quot;status&quot;: {
+      &quot;0&quot;: &quot;UNKNOWN_OBSERVATION&quot;,
+      &quot;1&quot;: &quot;UNKNOWN_OBSERVATION&quot;,
+      &quot;2&quot;: &quot;BLOCKED_PRIOR&quot;,
+      &quot;3&quot;: &quot;BLOCKED_OBSERVED&quot;,
+      &quot;4&quot;: &quot;UNKNOWN_OBSERVATION&quot;,
+      &quot;5&quot;: &quot;UNKNOWN_OBSERVATION&quot;
+    },
+    &quot;lesson&quot;: &quot;Permitted prior does not imply currently observed free.&quot;
+  }
+}
+</code></pre>
+<p>本章例子可以在 Windows 使用 <code>py -3</code> 或在 Linux 使用 <code>python3</code> 重跑。它验证局部概念或读取历史证据，不对机器人全任务提供新通过结论。</p>
+<!-- generated-lab-end -->
+
+<h2 id="_9">常见故障与自测</h2>
+<p>模型有外观无碰撞：核查 SDF collision；车辆漂浮或陷地：检查碰撞尺寸、惯量、接触参数和初始高度；地图整体偏移：检查地图原点与 world/map 转换；条带落入洞：检查多边形内部环和裁剪逻辑；坡面漏检：检查观测点数、坐标与地面模型。</p>
+<p>问：能不能把实时检测的障碍永久写进先验？答：需要定义持续性、证据、版本和更新策略。一次传感器误报不应永久污染地图，动态障碍也不应自动变成永久设施。</p>
+<p>练习：分别列出一个固定高障碍、低台阶、移动人和未观察区域在“世界、先验、实时感知、评估”四层的表示。四层完全相同时，应检查是否把真值意外暴露给控制链路。</p></main><footer>L02 内容阅读版 · 固定基线 9aff8337 · 原机器人 R10–R12 PARTIAL · L03 完整站点尚待执行</footer></html>

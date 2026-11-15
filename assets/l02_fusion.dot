@@ -1,0 +1,7 @@
+digraph G {
+graph [bgcolor="#f7fafb",pad="0.3",nodesep="0.4",ranksep="0.5",fontname="Noto Sans CJK SC"];
+node [shape=box,style="rounded,filled",fillcolor="#e6f3ef",color="#478276",fontname="Noto Sans CJK SC",fontsize=15,margin=".2,.15"];
+edge [color="#5d8189",fontname="Noto Sans CJK SC",fontsize=12];rankdir=LR;
+wheel[label="轮速 / 编码器"];imu[label="IMU"];cloud[label="点云"];icp[label="RTAB ICP"];gate[label="配准质量 / 时间 / 几何"];ekf[label="EKF\n预测 + 校正"];odom[label="连续局部 odom"];health[label="健康与失效状态"];
+wheel->ekf;imu->ekf;cloud->icp;icp->gate;gate->ekf[label="合格增量"];ekf->odom;gate->health;ekf->health;
+}

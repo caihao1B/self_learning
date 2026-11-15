@@ -1,0 +1,10 @@
+{
+  "chapter": "25",
+  "passed": true,
+  "result": {
+    "kind": "teaching transaction, production has richer feedback checks",
+    "first": 1.2,
+    "replay": 1.2,
+    "after_new_feedback": 2.0
+  }
+}

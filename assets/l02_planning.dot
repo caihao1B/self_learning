@@ -1,0 +1,7 @@
+digraph G {
+graph [bgcolor="#f7fafb",pad="0.3",nodesep="0.4",ranksep="0.5",fontname="Noto Sans CJK SC"];
+node [shape=box,style="rounded,filled",fillcolor="#e6f3ef",color="#478276",fontname="Noto Sans CJK SC",fontsize=15,margin=".2,.15"];
+edge [color="#5d8189",fontname="Noto Sans CJK SC",fontsize=12];rankdir=TB;
+zone[label="连续不规则工作区 + 授权通行区"];network[label="单元图 + 工作量权重"];metis[label="METIS 三簇"];verify[label="独立连通 / 覆盖 / 负载检查"];paths[label="点序或条带 + 合法连接"];time[label="反算工时 + 储备"];execute[label="版本化计划 / 在线执行"];
+zone->network->metis->verify->paths->time->execute;time->network[label="超预算时调整",style=dashed];
+}

@@ -1,0 +1,56 @@
+{
+  "chapter": "27",
+  "passed": true,
+  "result": {
+    "kind": "actual source, parsed not imported",
+    "cases": {
+      "spray": {
+        "task": "spray",
+        "case": "tool_jam",
+        "point_limit": 3,
+        "seconds": 300
+      },
+      "spray_full_A1": {
+        "task": "spray",
+        "case": "nominal",
+        "point_limit": 0,
+        "seconds": 1800
+      },
+      "inspection": {
+        "task": "inspection",
+        "case": "nominal",
+        "seconds": 480
+      },
+      "inspection_leader": {
+        "task": "inspection",
+        "case": "leader",
+        "distance_limit": 20.0,
+        "seconds": 150
+      },
+      "inspection_blocked": {
+        "task": "inspection",
+        "case": "blocked",
+        "distance_limit": 20.0,
+        "seconds": 120
+      },
+      "mowing": {
+        "task": "mowing",
+        "case": "nominal",
+        "segment_limit": 5,
+        "seconds": 420
+      },
+      "mowing_full_B1": {
+        "task": "mowing",
+        "case": "nominal",
+        "segment_limit": 0,
+        "seconds": 1800
+      },
+      "mowing_startup_perception_loss": {
+        "task": "mowing",
+        "case": "startup_perception_loss",
+        "segment_limit": 5,
+        "seconds": 420
+      }
+    }
+  }
+}

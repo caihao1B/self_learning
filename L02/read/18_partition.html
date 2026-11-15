@@ -1,0 +1,146 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>第 18 章 连通工作量分簇</title><style>*{box-sizing:border-box}body{margin:0;background:#eff4f5;color:#17343d;font:17px/1.95 "Segoe UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif}header{background:#163c45;color:#e5f3ef;padding:22px max(20px,calc((100vw - 1080px)/2))}header a{color:#bceadf;margin-right:20px}main{max-width:1140px;margin:28px auto;padding:34px 48px;background:white;border:1px solid #dae5e8;border-radius:12px}h1{font-size:32px;line-height:1.5;color:#174b50}h2{margin-top:42px;font-size:24px;color:#256466;border-bottom:1px solid #dce9e8;padding-bottom:9px}h3{font-size:20px;color:#345b62}a{color:#08777a;text-underline-offset:3px}p,li{overflow-wrap:anywhere}pre{background:#112c38;color:#e3f0ed;padding:20px;border-radius:8px;overflow:auto;font:13px/1.8 Consolas,monospace;white-space:pre;overflow-wrap:normal}code{font-family:Consolas,monospace}p code,li code,td code{background:#edf3f4;padding:2px 4px}table{display:block;overflow:auto;border-collapse:collapse;font-size:15px;margin:22px 0}th,td{border:1px solid #cedfe1;padding:10px;min-width:100px;vertical-align:top}th{background:#e6f2ef}img{max-width:100%;height:auto;margin:22px auto;display:block}blockquote{border-left:4px solid #3c9083;padding:8px 20px;background:#f0f7f4;margin:20px 0}.toc{background:#f3f8f7;padding:12px 25px;font-size:14px}footer{max-width:1100px;margin:24px auto;padding:20px;color:#47666c}button{background:#e7f4ed;color:#245448;border:0;padding:7px 12px;border-radius:5px;cursor:pointer}@media(max-width:700px){body{font-size:16px}main{padding:22px 18px;margin:12px;border-radius:8px}h1{font-size:26px}h2{font-size:22px}header{padding:16px}pre{font-size:12px}}@media print{header,footer,button,.toc{display:none}main{border:0;max-width:none;margin:0;padding:0}pre{background:#eee;color:black;white-space:pre-wrap;overflow-wrap:anywhere}a{color:black}h2{break-after:avoid}img{max-height:230mm}}</style><header><a href="../../index.html">学习首页</a><a href="../index.html">三十章目录</a><a href="17_prediction_cache.html">← 上一章</a><a href="19_tsp.html">下一章 →</a><button onclick="window.print()">打印本章</button></header><main><details class="toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#18">第 18 章 连通工作量分簇</a><ul>
+<li><a href="#_1">从区域到图</a></li>
+<li><a href="#metis">METIS 的目标</a></li>
+<li><a href="#csr">CSR 结构如何阅读</a></li>
+<li><a href="#_2">固定生产代码逐段阅读</a><ul>
+<li><a href="#partition_metiscpp-25-66">partition_metis.cpp 第 25 至 66 行</a></li>
+<li><a href="#partition11py-9-19">partition11.py 第 9 至 19 行</a></li>
+</ul>
+</li>
+<li><a href="#python">Python 负责的几何验证</a></li>
+<li><a href="#_3">分簇与工时需要闭环</a></li>
+<li><a href="#_4">可运行练习</a><ul>
+<li><a href="#_5">本章练习核心代码与实际输出</a></li>
+</ul>
+</li>
+<li><a href="#_6">常见失败与自测</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details><h1 id="18">第 18 章 连通工作量分簇</h1>
+<p>用户要求的三个簇来自一个连续不规则工作区的算法划分。目标是把大任务变成三个时间可控、连通且可执行的子任务，而不是先画三个等面积方块。METIS 负责图上的划分，几何与车辆验证负责确认它是否能真正工作。</p>
+<!-- l02-figure-planning -->
+<p><img alt="从整区到可执行簇的闭环" src="../../assets/l02_planning.svg" /></p>
+<h2 id="_1">从区域到图</h2>
+<p>将有效区域离散为单元，单元是图节点，共享可通行邻接关系是图边。节点权重表示预期工作量，例如点数量、停留时间、面积或近似条带时间。边权可表达切断相邻单元的代价。</p>
+<p>图的连通不等于车辆可通行。两个格共享边，但狭窄处可能放不下整车；两个单元在拓扑上连通，连接姿态可能超出阿克曼曲率。因此建图前需要可通行几何，划分后仍需路径与足迹检查。</p>
+<h2 id="metis">METIS 的目标</h2>
+<p>多路图划分通常希望各簇权重接近目标，同时减少跨簇边。当前 C++ 后端调用 <code>METIS_PartGraphKway</code>，使用固定 seed、CONTIG、MINCONN 和不平衡参数。连续选项能帮助生成连通结果，但工程仍需独立遍历验证、检查空簇与面积覆盖。</p>
+<p>均衡指标可写 <code>max(load_k)/(total/k)−1</code>。总权重 18、三个簇各 6 时为 0；若 9、5、4，则最大簇高出平均 50%。均衡很好也不代表都小于 1800 s，绝对预算和相对均衡需要同时满足。</p>
+<h2 id="csr">CSR 结构如何阅读</h2>
+<p>压缩稀疏行 CSR 用 xadj 表示每个节点的邻接起止，adjncy 保存邻居，vwgt 保存节点权重，adjwgt 保存边权。例如 xadj[i] 到 xadj[i+1] 的区间就是节点 i 的边。最后一个偏移应等于邻接数组长度。</p>
+<p>C++ 使用 <code>idx_t</code> 匹配 METIS 的整数宽度，检查输入范围、对称边、重复边、正权重和总和溢出。<code>std::vector</code> 提供连续存储，<code>.data()</code> 把底层数组传给 C API。若 Python 输出浮点权重，需要先约定整数缩放，不能无意截断小工作量成零。</p>
+<!-- generated-production-start -->
+<h2 id="_2">固定生产代码逐段阅读</h2>
+<p>下面是固定提交中的原样节选。完整文件有离线行号页；片段可能省略上下文，不能单独当成可运行脚本。读完每段后，回到调用者确认它在当前任务中如何使用。</p>
+<h3 id="partition_metiscpp-25-66">partition_metis.cpp 第 25 至 66 行</h3>
+<p><a href="../../baseline/l02_views/87cb09ce9ea7-partition_metis.cpp.html#L25">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/coverage_partition/src/partition_metis.cpp#L25">固定 Git 提交</a></p>
+<pre><code class="language-cpp">      std::cout&lt;&lt;json{{&quot;metis&quot;,std::to_string(METIS_VER_MAJOR)+&quot;.&quot;+std::to_string(METIS_VER_MINOR)+&quot;.&quot;+std::to_string(METIS_VER_SUBMINOR)},
+        {&quot;idx_bits&quot;,8*sizeof(idx_t)},{&quot;real_bits&quot;,8*sizeof(real_t)}}.dump()&lt;&lt;&quot;\n&quot;;return 0;
+    }
+    require(argc==3,&quot;USAGE input.json output.json&quot;); std::ifstream f(argv[1]);require(f.good(),&quot;NO_INPUT&quot;);json j;f&gt;&gt;j;
+    auto x=integers(j.at(&quot;xadj&quot;)), a=integers(j.at(&quot;adjncy&quot;)), v=integers(j.at(&quot;vwgt&quot;)), w=integers(j.at(&quot;adjwgt&quot;));
+    require(j.at(&quot;k&quot;).is_number_integer() &amp;&amp; j.at(&quot;seed&quot;).is_number_integer() &amp;&amp; j.at(&quot;ufactor&quot;).is_number_integer(),&quot;INTEGER_OPTIONS_REQUIRED&quot;);
+    auto numbers=integers(json::array({j.at(&quot;k&quot;),j.at(&quot;seed&quot;),j.at(&quot;ufactor&quot;)}));
+    idx_t n=static_cast&lt;idx_t&gt;(v.size()),k=numbers[0],seed=numbers[1],ufactor=numbers[2];
+    require(n&gt;=k &amp;&amp; k&gt;=2 &amp;&amp; n&lt;=10000 &amp;&amp; a.size()&lt;=100000,&quot;GRAPH_SIZE&quot;);
+    require(seed&gt;=0 &amp;&amp; ufactor&gt;=1 &amp;&amp; ufactor&lt;=500,&quot;OPTIONS&quot;);
+    require(x.size()==static_cast&lt;size_t&gt;(n+1) &amp;&amp; x.front()==0 &amp;&amp; x.back()==static_cast&lt;idx_t&gt;(a.size()) &amp;&amp; w.size()==a.size(),&quot;CSR_SIZE&quot;);
+    std::vector&lt;std::map&lt;idx_t,idx_t&gt;&gt; edges(n);int64_t total=0;
+    for(idx_t i=0;i&lt;n;i++) {
+      require(v[i]&gt;0 &amp;&amp; x[i]&lt;=x[i+1] &amp;&amp; x[i+1]&lt;=static_cast&lt;idx_t&gt;(a.size()),&quot;BAD_WEIGHT_OR_OFFSET&quot;);total+=v[i];
+      for(idx_t e=x[i];e&lt;x[i+1];e++) {
+        require(a[e]&lt;n &amp;&amp; a[e]!=i &amp;&amp; w[e]&gt;0,&quot;BAD_EDGE&quot;);
+        require(edges[i].emplace(a[e],w[e]).second,&quot;DUPLICATE_EDGE&quot;);
+      }
+    }
+    require(total&lt;std::numeric_limits&lt;idx_t&gt;::max()/4,&quot;WEIGHT_OVERFLOW&quot;);
+    int64_t edge_total=0;
+    for(idx_t i=0;i&lt;n;i++) for(auto [b,weight]:edges[i]) {
+      require(edges[b].count(i) &amp;&amp; edges[b].at(i)==weight,&quot;ASYMMETRIC_GRAPH&quot;);edge_total+=weight;
+    }
+    require(edge_total&lt;std::numeric_limits&lt;idx_t&gt;::max()/4,&quot;EDGE_WEIGHT_OVERFLOW&quot;);
+    std::vector&lt;bool&gt; seen(n,false);std::queue&lt;idx_t&gt; q;q.push(0);seen[0]=true;idx_t reached=0;
+    while(!q.empty()){auto i=q.front();q.pop();reached++;for(auto [b,weight]:edges[i])if(!seen[b]){seen[b]=true;q.push(b);}}
+    require(reached==n,&quot;DISCONNECTED_INPUT&quot;);
+    idx_t opts[METIS_NOPTIONS];METIS_SetDefaultOptions(opts);
+    opts[METIS_OPTION_NUMBERING]=0;opts[METIS_OPTION_SEED]=seed;
+    opts[METIS_OPTION_OBJTYPE]=METIS_OBJTYPE_CUT;opts[METIS_OPTION_CONTIG]=1;
+    opts[METIS_OPTION_MINCONN]=1;opts[METIS_OPTION_UFACTOR]=ufactor;
+    opts[METIS_OPTION_NCUTS]=1;opts[METIS_OPTION_NITER]=20;
+    idx_t ncon=1,cut=0;std::vector&lt;idx_t&gt; labels(n);
+    int status=METIS_PartGraphKway(&amp;n,&amp;ncon,x.data(),a.data(),v.data(),nullptr,w.data(),&amp;k,nullptr,nullptr,opts,&amp;cut,labels.data());
+    require(status==METIS_OK,&quot;METIS_FAILED&quot;);std::vector&lt;int&gt; counts(k,0);
+    for(auto c:labels){require(c&gt;=0 &amp;&amp; c&lt;k,&quot;BAD_LABEL&quot;);counts[c]++;}
+    for(auto c:counts)require(c&gt;0,&quot;EMPTY_PART&quot;);
+    json out={{&quot;status&quot;,&quot;OK&quot;},{&quot;labels&quot;,labels},{&quot;edge_cut&quot;,cut},{&quot;counts&quot;,counts},{&quot;seed&quot;,seed},{&quot;contig&quot;,true},{&quot;ufactor&quot;,ufactor}};
+    std::ofstream o(argv[2]);require(o.good(),&quot;NO_OUTPUT&quot;);o&lt;&lt;out.dump()&lt;&lt;&quot;\n&quot;;std::cout&lt;&lt;&quot;METIS_OK vertices=&quot;&lt;&lt;n&lt;&lt;&quot; cut=&quot;&lt;&lt;cut&lt;&lt;&quot;\n&quot;;return 0;
+  }catch(const std::exception&amp; e){std::cerr&lt;&lt;e.what()&lt;&lt;&quot;\n&quot;;return 2;}
+}
+</code></pre>
+<p>CSR 输入验证包括数组长度、整数范围、无重复对称边和输入连通。opts 设置 CONTIG、seed 与 UFACTOR，再调用真实 METIS。返回 labels 后检查每簇非空；车辆几何仍归 Python 后验。</p>
+<h3 id="partition11py-9-19">partition11.py 第 9 至 19 行</h3>
+<p><a href="../../baseline/l02_views/e654921ca2a1-partition11.py.html#L9">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/coverage_partition/scripts/partition11.py#L9">固定 Git 提交</a></p>
+<pre><code class="language-python">def metis(g,k,seed,c,out):
+    x=[0];a=[];ew=[]
+    for neighbors in g['adj']:
+        for j,w in sorted(neighbors.items()):a.append(j);ew.append(w)
+        x.append(len(a))
+    request=dict(xadj=x,adjncy=a,adjwgt=ew,vwgt=g['iw'].tolist(),k=k,seed=seed,ufactor=c['metis_ufactor'])
+    dump(out/'csr.json',request)
+    r=subprocess.run([str(BIN),str(out/'csr.json'),str(out/'metis.json')],capture_output=True,text=True,timeout=25)
+    dump(out/'metis_command.json',dict(command=r.args,exit_code=r.returncode,stdout=r.stdout,stderr=r.stderr))
+    if r.returncode:raise ValueError('METIS_REJECTED: '+r.stderr.strip())
+    return np.array(read(out/'metis.json')['labels'],dtype=int)
+</code></pre>
+<p>Python 将 CSR 和整数权重序列化为 JSON，运行已构建后端并检查退出码。这个边界让 C++ 负责图算法、Python 负责几何与报告，输出文件不是自动可信输入。</p>
+<!-- generated-production-end -->
+
+<h2 id="python">Python 负责的几何验证</h2>
+<p><code>geometry11.py</code> 构造几何单元和图，<code>partition11.py</code> 调后端、收集标签并进行后验检查。Shapely 处理多边形 union/intersection，NumPy 组织数组；C++ 后端并不知道每个单元的完整车体通行含义。</p>
+<p>簇的形状可以不统一，也可以共享边界。簇边界是任务分工，不应该在同一个工作区中制造三个虚构障碍隔离带。条带最好在全工作区确定一致相位后再按簇归属裁剪，减少边界缝隙。</p>
+<h2 id="_3">分簇与工时需要闭环</h2>
+<p>初始权重只是估计。生成点序或条带后，计算转弯、连接、倒车、点服务与储备时间；超预算则调整权重、分区或任务规模。不要只把节点权重凑到 1800 就宣布真实任务不会超时，动态等待和定位恢复都可能增加时间。</p>
+<h2 id="_4">可运行练习</h2>
+<p>执行 <code>python3 examples/l02/labs.py 18</code>。它检查一个九节点线图的三个连通集合，显示负载均衡，并故意验证 [0,2] 不连通。它是划分结果验证器，不是 METIS 替代实现。生产代码的完整调用见本章摘录。</p>
+<!-- generated-lab-start -->
+<h3 id="_5">本章练习核心代码与实际输出</h3>
+<p><a href="../../examples/l02/labs.py">完整教学脚本</a> · <a href="../../validation/L02/lab_18.json">本章完整输出</a></p>
+<p>代码只使用 Python 标准库；合成输入与历史记录在输出 kind 中区分。公共 ROOT、read、wrap、connected 等辅助函数在完整脚本中定义。</p>
+<pre><code class="language-python">def lab18():
+    &quot;&quot;&quot;Validate partition outputs; this small lab does not implement METIS.&quot;&quot;&quot;
+    edges={i:[j for j in [i-1,i+1] if 0&lt;=j&lt;9] for i in range(9)}
+    weights=[1,1,4,2,2,2,3,1,2]
+    labels=[0,0,0,1,1,1,2,2,2]
+    clusters=[[i for i,x in enumerate(labels) if x==k] for k in range(3)]
+    loads=[sum(weights[i] for i in c) for c in clusters]
+    assert all(connected(c,edges) for c in clusters)
+    assert not connected([0,2],edges)
+    return dict(kind='synthetic checked partition',loads=loads,
+                imbalance=max(loads)/(sum(loads)/3)-1,connected=True)
+</code></pre>
+<pre><code class="language-text">{
+  &quot;chapter&quot;: &quot;18&quot;,
+  &quot;passed&quot;: true,
+  &quot;result&quot;: {
+    &quot;kind&quot;: &quot;synthetic checked partition&quot;,
+    &quot;loads&quot;: [
+      6,
+      6,
+      6
+    ],
+    &quot;imbalance&quot;: 0.0,
+    &quot;connected&quot;: true
+  }
+}
+</code></pre>
+<p>本章例子可以在 Windows 使用 <code>py -3</code> 或在 Linux 使用 <code>python3</code> 重跑。它验证局部概念或读取历史证据，不对机器人全任务提供新通过结论。</p>
+<!-- generated-lab-end -->
+
+<h2 id="_6">常见失败与自测</h2>
+<p>输入图不连通：先查永久障碍裁剪与邻接构造，不能把 CONTIG 当修复断图的魔法；空簇：检查有效单元数与权重；簇面积有洞或重叠：查几何并集与标签映射；工时不平衡：查转弯/停留成本是否进入权重；算法重跑形状改变：核查 seed、输入排序和库版本。</p>
+<p>问：等面积是否适合点喷？答：如果点密度和停留时间不同，等面积不等工作量。问：路径经过另一个簇是否一定非法？答：取决于通行权限与任务组织，计账归属与物理通行边界应分别定义。</p>
+<p>练习：给三个等面积区域加入不同数量的服务点，计算含每点三秒停留的工作量，再提出权重。能解释权重来源，比只展示彩色分区图更有说服力。</p></main><footer>L02 内容阅读版 · 固定基线 9aff8337 · 原机器人 R10–R12 PARTIAL · L03 完整站点尚待执行</footer></html>

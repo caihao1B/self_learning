@@ -1,0 +1,36 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>tracker.py</title><style>body{margin:25px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;padding:20px;border:1px solid #d6e2e3;font:13px/1.8 Consolas,monospace;overflow:auto}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff0b0}a{color:#086b71}p{overflow-wrap:anywhere}</style><a href="../../L02/index.html">← L02 教材目录</a><h1>tracker.py</h1><p>optimization_v2/ws/src/object_fusion/scripts/tracker.py</p><p>固定基线 9aff8337b7794f704c5556a973a5220e73f17808 · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/object_fusion/scripts/tracker.py">GitHub 原文件</a></p><p>原始文件按字节保留；显示换行不改变行号。快照用于阅读，不直接作为运行入口。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Short-horizon association only; S15 future behavior prediction is separate.&quot;&quot;&quot;</span>
+<span class="line" id="L2"><a href="#L2">   2</a> import numpy as np</span>
+<span class="line" id="L3"><a href="#L3">   3</a> from scipy.optimize import linear_sum_assignment</span>
+<span class="line" id="L4"><a href="#L4">   4</a> class Tracker:</span>
+<span class="line" id="L5"><a href="#L5">   5</a>  def __init__(self):self.tracks={};self.next_id=1;self.last=None</span>
+<span class="line" id="L6"><a href="#L6">   6</a>  def update(self,t,observations):</span>
+<span class="line" id="L7"><a href="#L7">   7</a>   if self.last is not None and t&lt;=self.last:raise ValueError(&#x27;nonmonotonic tracking time&#x27;)</span>
+<span class="line" id="L8"><a href="#L8">   8</a>   self.last=t</span>
+<span class="line" id="L9"><a href="#L9">   9</a>   for tr in self.tracks.values():</span>
+<span class="line" id="L10"><a href="#L10">  10</a>    dt=min(2.,t-tr[&#x27;t&#x27;]);F=np.eye(4);F[0,2]=F[1,3]=dt;G=np.array([[dt*dt/2,0],[0,dt*dt/2],[dt,0],[0,dt]]);tr[&#x27;x&#x27;]=F@tr[&#x27;x&#x27;];tr[&#x27;P&#x27;]=F@tr[&#x27;P&#x27;]@F.T+G@G.T*.8;tr[&#x27;t&#x27;]=t;tr[&#x27;state&#x27;]=&#x27;COASTING&#x27;</span>
+<span class="line" id="L11"><a href="#L11">  11</a>   ids=list(self.tracks);cost=np.full((len(ids),len(observations)),1e5);H=np.eye(4)[:2]</span>
+<span class="line" id="L12"><a href="#L12">  12</a>   for i,k in enumerate(ids):</span>
+<span class="line" id="L13"><a href="#L13">  13</a>    tr=self.tracks[k]</span>
+<span class="line" id="L14"><a href="#L14">  14</a>    for j,o in enumerate(observations):</span>
+<span class="line" id="L15"><a href="#L15">  15</a>     delta=np.array(o[&#x27;position&#x27;][:2])-tr[&#x27;x&#x27;][:2];S=tr[&#x27;P&#x27;][:2,:2]+np.array(o[&#x27;covariance&#x27;]).reshape(3,3)[:2,:2];nis=float(delta@np.linalg.solve(S,delta));size=np.linalg.norm(np.array(o[&#x27;size&#x27;])-tr[&#x27;size&#x27;])</span>
+<span class="line" id="L16"><a href="#L16">  16</a>     if np.linalg.norm(delta)&lt;1.5 and nis&lt;9.21 and size&lt;1.0:cost[i,j]=nis+size</span>
+<span class="line" id="L17"><a href="#L17">  17</a>   matches=[];ambiguous=set()</span>
+<span class="line" id="L18"><a href="#L18">  18</a>   if cost.size:</span>
+<span class="line" id="L19"><a href="#L19">  19</a>    rr,cc=linear_sum_assignment(cost)</span>
+<span class="line" id="L20"><a href="#L20">  20</a>    for i,j in zip(rr,cc):</span>
+<span class="line" id="L21"><a href="#L21">  21</a>     if cost[i,j]&gt;=1e5:continue</span>
+<span class="line" id="L22"><a href="#L22">  22</a>     alternatives=np.sort(cost[:,j]);row=np.sort(cost[i]);uncertain=(len(alternatives)&gt;1 and alternatives[1]-alternatives[0]&lt;.5) or (len(row)&gt;1 and row[1]-row[0]&lt;.5)</span>
+<span class="line" id="L23"><a href="#L23">  23</a>     if uncertain:ambiguous.add(j);self.tracks[ids[i]][&#x27;state&#x27;]=&#x27;AMBIGUOUS_COAST&#x27;;continue</span>
+<span class="line" id="L24"><a href="#L24">  24</a>     matches.append((ids[i],j))</span>
+<span class="line" id="L25"><a href="#L25">  25</a>   used=set()</span>
+<span class="line" id="L26"><a href="#L26">  26</a>   for k,j in matches:</span>
+<span class="line" id="L27"><a href="#L27">  27</a>    tr=self.tracks[k];o=observations[j];R=np.array(o[&#x27;covariance&#x27;]).reshape(3,3)[:2,:2];K=tr[&#x27;P&#x27;]@H.T@np.linalg.inv(H@tr[&#x27;P&#x27;]@H.T+R);tr[&#x27;x&#x27;]+=K@(np.array(o[&#x27;position&#x27;][:2])-H@tr[&#x27;x&#x27;]);I=np.eye(4)-K@H;tr[&#x27;P&#x27;]=I@tr[&#x27;P&#x27;]@I.T+K@R@K.T;tr[&#x27;size&#x27;]=.7*tr[&#x27;size&#x27;]+.3*np.array(o[&#x27;size&#x27;]);tr[&#x27;obs&#x27;]=o;tr[&#x27;last_seen&#x27;]=t;tr[&#x27;state&#x27;]=&#x27;OBSERVED&#x27;;tr[&#x27;hits&#x27;]+=1;used.add(j)</span>
+<span class="line" id="L28"><a href="#L28">  28</a>   for j,o in enumerate(observations):</span>
+<span class="line" id="L29"><a href="#L29">  29</a>    if j in used or j in ambiguous:continue</span>
+<span class="line" id="L30"><a href="#L30">  30</a>    k=self.next_id;self.next_id+=1;self.tracks[k]=dict(id=k,t=t,last_seen=t,x=np.array([*o[&#x27;position&#x27;][:2],0.,0.]),P=np.diag([.0036,.0036,.5,.5]),size=np.array(o[&#x27;size&#x27;]),obs=o,state=&#x27;TENTATIVE&#x27;,hits=1)</span>
+<span class="line" id="L31"><a href="#L31">  31</a>   for k in list(self.tracks):</span>
+<span class="line" id="L32"><a href="#L32">  32</a>    if t-self.tracks[k][&#x27;last_seen&#x27;]&gt;1.2:del self.tracks[k]</span>
+<span class="line" id="L33"><a href="#L33">  33</a>   result=[]</span>
+<span class="line" id="L34"><a href="#L34">  34</a>   for k,tr in self.tracks.items():</span>
+<span class="line" id="L35"><a href="#L35">  35</a>    o=tr[&#x27;obs&#x27;];age=t-tr[&#x27;last_seen&#x27;];result.append(dict(id=k,t=t,observation_t=tr[&#x27;last_seen&#x27;],frame=&#x27;odom&#x27;,position=[*tr[&#x27;x&#x27;][:2].tolist(),o[&#x27;position&#x27;][2]],velocity=tr[&#x27;x&#x27;][2:].tolist(),size=tr[&#x27;size&#x27;].tolist(),covariance=tr[&#x27;P&#x27;].reshape(-1).tolist(),classification=o.get(&#x27;classification&#x27;,&#x27;unknown_obstacle&#x27;) if age&lt;.6 else &#x27;unknown_obstacle&#x27;,confidence=o.get(&#x27;confidence&#x27;,0.) if age&lt;.6 else 0.,state=tr[&#x27;state&#x27;],confirmed=tr[&#x27;hits&#x27;]&gt;=3,observed_age_s=age,semantic=o.get(&#x27;semantic&#x27;,{})))</span>
+<span class="line" id="L36"><a href="#L36">  36</a>   return result,[int(j) for j in sorted(ambiguous)]</span></code></pre></html>

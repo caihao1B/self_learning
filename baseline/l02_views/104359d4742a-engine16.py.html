@@ -1,0 +1,43 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>engine16.py</title><style>body{margin:25px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;padding:20px;border:1px solid #d6e2e3;font:13px/1.8 Consolas,monospace;overflow:auto}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff0b0}a{color:#086b71}p{overflow-wrap:anywhere}</style><a href="../../L02/index.html">← L02 教材目录</a><h1>engine16.py</h1><p>optimization_v2/ws/src/experience_memory/scripts/engine16.py</p><p>固定基线 9aff8337b7794f704c5556a973a5220e73f17808 · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/experience_memory/scripts/engine16.py">GitHub 原文件</a></p><p>原始文件按字节保留；显示换行不改变行号。快照用于阅读，不直接作为运行入口。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Candidate only: model selection memory never replays old predictions.&quot;&quot;&quot;</span>
+<span class="line" id="L2"><a href="#L2">   2</a> import time</span>
+<span class="line" id="L3"><a href="#L3">   3</a> import numpy as np</span>
+<span class="line" id="L4"><a href="#L4">   4</a> from common16 import config</span>
+<span class="line" id="L5"><a href="#L5">   5</a> from engine15 import Engine</span>
+<span class="line" id="L6"><a href="#L6">   6</a> from features16 import context,Trigger</span>
+<span class="line" id="L7"><a href="#L7">   7</a> class MemoryEngine:</span>
+<span class="line" id="L8"><a href="#L8">   8</a>  def __init__(self,group,store,learned=None):</span>
+<span class="line" id="L9"><a href="#L9">   9</a>   if group not in [&#x27;full&#x27;,&#x27;event&#x27;,&#x27;cache&#x27;]:raise ValueError(&#x27;GROUP&#x27;)</span>
+<span class="line" id="L10"><a href="#L10">  10</a>   self.group=group;self.store=store;self.cfg=config();self.base=Engine(&#x27;imm&#x27;);self.trigger=Trigger(self.cfg)</span>
+<span class="line" id="L11"><a href="#L11">  11</a>   if learned is None:</span>
+<span class="line" id="L12"><a href="#L12">  12</a>    from trajectron15 import Trajectron</span>
+<span class="line" id="L13"><a href="#L13">  13</a>    learned=Trajectron()</span>
+<span class="line" id="L14"><a href="#L14">  14</a>   self.learned=learned</span>
+<span class="line" id="L15"><a href="#L15">  15</a>  def predict(self,frames,now=None):</span>
+<span class="line" id="L16"><a href="#L16">  16</a>   start=time.perf_counter();cpu=time.process_time();observe=time.perf_counter()</span>
+<span class="line" id="L17"><a href="#L17">  17</a>   for frame in frames:self.base.observe(frame)</span>
+<span class="line" id="L18"><a href="#L18">  18</a>   observe_ms=(time.perf_counter()-observe)*1000;frame=frames[-1]</span>
+<span class="line" id="L19"><a href="#L19">  19</a>   feature_start=time.perf_counter();fs=self.base.history.features(frame[&#x27;t&#x27;]);items=[]</span>
+<span class="line" id="L20"><a href="#L20">  20</a>   for f in fs:</span>
+<span class="line" id="L21"><a href="#L21">  21</a>    if frame[&#x27;t&#x27;]-f[&#x27;t&#x27;]&gt;.6:continue</span>
+<span class="line" id="L22"><a href="#L22">  22</a>    r=self.base.history.tracks[f[&#x27;id&#x27;]][-1]</span>
+<span class="line" id="L23"><a href="#L23">  23</a>    if f[&#x27;classification&#x27;]!=&#x27;person&#x27; and np.linalg.norm(r[&#x27;velocity&#x27;])&lt;.05:continue</span>
+<span class="line" id="L24"><a href="#L24">  24</a>    if len(items)&gt;=6:break</span>
+<span class="line" id="L25"><a href="#L25">  25</a>    x=context(f,fs,frame);event,reasons=self.trigger.event(f[&#x27;id&#x27;],frame[&#x27;t&#x27;],x);items.append((f,x,event,reasons))</span>
+<span class="line" id="L26"><a href="#L26">  26</a>   for key in list(self.trigger.last):</span>
+<span class="line" id="L27"><a href="#L27">  27</a>    if key not in self.base.history.tracks:del self.trigger.last[key]</span>
+<span class="line" id="L28"><a href="#L28">  28</a>   feature_ms=(time.perf_counter()-feature_start)*1000</span>
+<span class="line" id="L29"><a href="#L29">  29</a>   predictions=[];decisions=[];infer_ms=query_ms=maintenance_ms=0.;learned_calls=imm_calls=0</span>
+<span class="line" id="L30"><a href="#L30">  30</a>   for f,x,event,reasons in items:</span>
+<span class="line" id="L31"><a href="#L31">  31</a>    answer=dict(hit=False,reason=&#x27;NOT_QUERIED&#x27;,query_ms=0.,maintenance_ms=0.)</span>
+<span class="line" id="L32"><a href="#L32">  32</a>    if self.group==&#x27;cache&#x27; and event and f[&#x27;classification&#x27;]==&#x27;person&#x27;:answer=self.store.lookup(x,time.time() if now is None else now)</span>
+<span class="line" id="L33"><a href="#L33">  33</a>    full=f[&#x27;classification&#x27;]==&#x27;person&#x27; and (self.group==&#x27;full&#x27; or (event and not answer[&#x27;hit&#x27;]))</span>
+<span class="line" id="L34"><a href="#L34">  34</a>    ts=time.perf_counter()</span>
+<span class="line" id="L35"><a href="#L35">  35</a>    if full:prediction=self.learned.predict(f,fs,3.2);learned_calls+=1</span>
+<span class="line" id="L36"><a href="#L36">  36</a>    else:prediction=self.base.filters[f[&#x27;id&#x27;]].predict(3.2);imm_calls+=1</span>
+<span class="line" id="L37"><a href="#L37">  37</a>    infer_ms+=(time.perf_counter()-ts)*1000</span>
+<span class="line" id="L38"><a href="#L38">  38</a>    prediction.update(id=f[&#x27;id&#x27;],size=f[&#x27;size&#x27;],classification=f[&#x27;classification&#x27;],observed_age_s=frame[&#x27;t&#x27;]-f[&#x27;t&#x27;],candidate_status=&#x27;LEARNED_PERSON&#x27; if full else &#x27;IMM_CURRENT_STATE&#x27;)</span>
+<span class="line" id="L39"><a href="#L39">  39</a>    predictions.append(prediction);query_ms+=answer[&#x27;query_ms&#x27;];maintenance_ms+=answer[&#x27;maintenance_ms&#x27;]</span>
+<span class="line" id="L40"><a href="#L40">  40</a>    decisions.append(dict(id=f[&#x27;id&#x27;],t=f[&#x27;t&#x27;],event=event,event_reasons=reasons,selected=&#x27;learned&#x27; if full else &#x27;fresh_imm&#x27;,context=x,lookup=answer))</span>
+<span class="line" id="L41"><a href="#L41">  41</a>   return dict(t=frame[&#x27;t&#x27;],frame=&#x27;odom&#x27;,method=self.group,status=&#x27;OK&#x27;,forecasts=predictions,future_labels_used=False,</span>
+<span class="line" id="L42"><a href="#L42">  42</a>    memory=dict(decisions=decisions,observe_ms=observe_ms,feature_ms=feature_ms,query_ms=query_ms,maintenance_ms=maintenance_ms,inference_ms=infer_ms,learned_calls=learned_calls,imm_calls=imm_calls),</span>
+<span class="line" id="L43"><a href="#L43">  43</a>    wall_ms=(time.perf_counter()-start)*1000,cpu_ms=(time.process_time()-cpu)*1000)</span></code></pre></html>

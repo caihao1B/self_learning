@@ -1,0 +1,224 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>第 29 章 失败案例与诊断方法</title><style>*{box-sizing:border-box}body{margin:0;background:#eff4f5;color:#17343d;font:17px/1.95 "Segoe UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif}header{background:#163c45;color:#e5f3ef;padding:22px max(20px,calc((100vw - 1080px)/2))}header a{color:#bceadf;margin-right:20px}main{max-width:1140px;margin:28px auto;padding:34px 48px;background:white;border:1px solid #dae5e8;border-radius:12px}h1{font-size:32px;line-height:1.5;color:#174b50}h2{margin-top:42px;font-size:24px;color:#256466;border-bottom:1px solid #dce9e8;padding-bottom:9px}h3{font-size:20px;color:#345b62}a{color:#08777a;text-underline-offset:3px}p,li{overflow-wrap:anywhere}pre{background:#112c38;color:#e3f0ed;padding:20px;border-radius:8px;overflow:auto;font:13px/1.8 Consolas,monospace;white-space:pre;overflow-wrap:normal}code{font-family:Consolas,monospace}p code,li code,td code{background:#edf3f4;padding:2px 4px}table{display:block;overflow:auto;border-collapse:collapse;font-size:15px;margin:22px 0}th,td{border:1px solid #cedfe1;padding:10px;min-width:100px;vertical-align:top}th{background:#e6f2ef}img{max-width:100%;height:auto;margin:22px auto;display:block}blockquote{border-left:4px solid #3c9083;padding:8px 20px;background:#f0f7f4;margin:20px 0}.toc{background:#f3f8f7;padding:12px 25px;font-size:14px}footer{max-width:1100px;margin:24px auto;padding:20px;color:#47666c}button{background:#e7f4ed;color:#245448;border:0;padding:7px 12px;border-radius:5px;cursor:pointer}@media(max-width:700px){body{font-size:16px}main{padding:22px 18px;margin:12px;border-radius:8px}h1{font-size:26px}h2{font-size:22px}header{padding:16px}pre{font-size:12px}}@media print{header,footer,button,.toc{display:none}main{border:0;max-width:none;margin:0;padding:0}pre{background:#eee;color:black;white-space:pre-wrap;overflow-wrap:anywhere}a{color:black}h2{break-after:avoid}img{max-height:230mm}}</style><header><a href="../../index.html">学习首页</a><a href="../index.html">三十章目录</a><a href="28_gui.html">← 上一章</a><a href="30_research.html">下一章 →</a><button onclick="window.print()">打印本章</button></header><main><details class="toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#29">第 29 章 失败案例与诊断方法</a><ul>
+<li><a href="#_1">哪些问题最常见</a></li>
+<li><a href="#_2">按层建立排查表</a></li>
+<li><a href="#_3">案例一 精停与全局抖动</a></li>
+<li><a href="#_4">案例二 坡面与末端不可兼容</a></li>
+<li><a href="#_5">案例三 工具启动与取消</a></li>
+<li><a href="#_6">案例四 时间戳被误用</a></li>
+<li><a href="#_7">案例五 假障碍和自车返回</a></li>
+<li><a href="#_8">固定生产代码逐段阅读</a><ul>
+<li><a href="#tool_build_r09py-5-36">tool_build_r09.py 第 5 至 36 行</a></li>
+<li><a href="#commonpy-8-12">common.py 第 8 至 12 行</a></li>
+</ul>
+</li>
+<li><a href="#_9">诊断记录模板</a></li>
+<li><a href="#_10">离线分析</a><ul>
+<li><a href="#_11">本章练习核心代码与实际输出</a></li>
+</ul>
+</li>
+<li><a href="#_12">自测</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details><h1 id="29">第 29 章 失败案例与诊断方法</h1>
+<p>工程调试不是看见一个异常名就修改相关参数。正确顺序是固定失败版本、限定任务范围、定位第一处异常、提出可检验假设、做最小修复、复验影响范围。本章总结现存记录中值得重点学习的问题，也保留尚未确定的根因。</p>
+<h2 id="_1">哪些问题最常见</h2>
+<p>L01 汇总的 42 条独立历史尝试中，31 条在执行时未通过，包含有界停止和人工中断。记录中的 WAIT_DEADLINE 出现 6 次，部分精停重对齐耗尽和末端恢复耗尽各出现多次。这个样本不是随机抽样，跨越多个代码版本，因此不能推出“系统有多少百分比时间因某根因失败”。</p>
+<p>停止码通常是最后保护动作，根因可能更早。WAIT_DEADLINE 可能等待的是工具、定位、动作结果或观察恢复；LOCALIZATION_REVALIDATION_BOUND 表示重验证耗尽，不自动证明 GNSS 硬件有问题。</p>
+<h2 id="_2">按层建立排查表</h2>
+<table>
+<thead>
+<tr>
+<th>表现</th>
+<th>先看证据</th>
+<th>可能原因</th>
+<th>合理下一步</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>启动 ImportError</td>
+<td>解释器路径、模块位置</td>
+<td>错误 venv、依赖缺失</td>
+<td>固定解释器并检查导入</td>
+</tr>
+<tr>
+<td>有 topic 无数据</td>
+<td>QoS、domain、发布频率</td>
+<td>不兼容、错域、未激活</td>
+<td>检查通信合同</td>
+</tr>
+<tr>
+<td>定位跳变</td>
+<td>raw correction、stamp、GNSS</td>
+<td>外参/基准、时差、配准歧义</td>
+<td>区分几何与时间假设</td>
+</tr>
+<tr>
+<td>静止精停反复失败</td>
+<td>窗口 median/latest/p95</td>
+<td>全局抖动、目标偏差、采样间断</td>
+<td>保留门限分析原始窗口</td>
+</tr>
+<tr>
+<td>阿克曼绕大圈</td>
+<td>足迹、曲率、地头、坡面</td>
+<td>几何约束或目标姿态</td>
+<td>验证合法连接与残余</td>
+</tr>
+<tr>
+<td>START_WORK 不响应 WAIT</td>
+<td>阶段事件、BT 时间</td>
+<td>启动等待未处理决策</td>
+<td>修复等待循环与取消</td>
+</tr>
+<tr>
+<td>工具量不增长</td>
+<td>ledger 拒绝原因</td>
+<td>反馈断档、未停稳、无效定位</td>
+<td>先修反馈与准入</td>
+</tr>
+<tr>
+<td>重复执行</td>
+<td>工作键、指纹、attempt</td>
+<td>身份变化或重启不确定</td>
+<td>查询账本并恢复</td>
+</tr>
+<tr>
+<td>录像旧帧</td>
+<td>采集/接收年龄、编码结果</td>
+<td>传输或显示落后</td>
+<td>检查媒体链路</td>
+</tr>
+<tr>
+<td>任务结束进程异常</td>
+<td>runtime 退出列表</td>
+<td>清理或插件崩溃</td>
+<td>单独记录并检查收尾</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_3">案例一 精停与全局抖动</h2>
+<p>现象是导航接近目标，但静止窗口或重对齐无法稳定通过。处理链包含原始 map→odom 修正检查、修正滤波、静止窗口、中位与最新距离、局部 odom 精停以及有界恢复。它们解决不同问题：滤波降低合格修正的高频抖动，局部精停提供连续参考，门限保留作业要求。</p>
+<p>不能因为最终三点成功，就认为完整 A1 定位问题全部解决。保存的完整 A1 仍在 28/56 后因重验证上限停止。学习时把成功子例与失败长例并排，看触发分支和时间范围差异。</p>
+<h2 id="_4">案例二 坡面与末端不可兼容</h2>
+<p>原 B1 的部分末端与 10° 坡面重叠，允许条件为 5°。继续要求逐个原末端到达会与通行合同冲突。经用户批准，建立安全执行版本，保留原工作多边形、面积分母和原 PARTIAL。修复位置是计划版本与几何合同，不是改控制器让车硬开。</p>
+<p>新安全版本仍有完整任务未通过记录，说明几何改进不等于全部动态和执行问题已经解决。后续应继续区分连接可行性、观测风险和状态机，不把所有剩余失败都归成同一坡面问题。</p>
+<h2 id="_5">案例三 工具启动与取消</h2>
+<p>START_WORK 期间等待工作反馈，如果不持续检查 BT，就可能在感知失效时仍等待或继续工具启动。修复让启动等待可中断，调用统一 stop_all，确认车和工具停止，再决定恢复。这是所有异步前置阶段都应检查的模式。</p>
+<h2 id="_6">案例四 时间戳被误用</h2>
+<p>工具反馈可能比对应时钟回调先到。若立即按旧时钟拒绝，或把反馈重写为当前时间，会分别造成假失效或隐藏延迟。派生工具服务器保留原采集时间，把到达数据暂存到有界队列，等时钟推进后处理，并继续使用真实到达年龄。</p>
+<h2 id="_7">案例五 假障碍和自车返回</h2>
+<p>高密度射线、体素等权与自车扩展区域曾影响近地风险。改进按真实射线支持统计表面、保留低台阶并区分物理车体与不确定环。修复必须保留真实低障碍测试，不能只用“这次终于能走”证明过滤正确。</p>
+<!-- generated-production-start -->
+<h2 id="_8">固定生产代码逐段阅读</h2>
+<p>下面是固定提交中的原样节选。完整文件有离线行号页；片段可能省略上下文，不能单独当成可运行脚本。读完每段后，回到调用者确认它在当前任务中如何使用。</p>
+<h3 id="tool_build_r09py-5-36">tool_build_r09.py 第 5 至 36 行</h3>
+<p><a href="../../baseline/l02_views/ecf3df28b853-tool_build_r09.py.html#L5">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/tool_build_r09.py#L5">固定 Git 提交</a></p>
+<pre><code class="language-python">def generate_tool(out):
+ s=(BASE/'ws/src/tool_sim/src/action_server.cpp').read_text()
+ s='#include &lt;deque&gt;\n'+s
+ s=s.replace(' bool fresh(){',' std::deque&lt;std::pair&lt;J,Wall::time_point&gt;&gt; incoming_;\n bool fresh(){')
+ start=s.index('try{auto d=J::parse(m-&gt;data);double t=d.at(&quot;t&quot;);bool ordered=')
+ end=s.index(');\n  ledger_sub_',start)
+ original=s[start:end]
+ assert original.endswith('}}')
+ body=original[len('try{auto d=J::parse(m-&gt;data);'): -len('catch(...){stopped_since_=-1;}}')]
+ assert body.endswith('}')
+ body=body[:-1].replace('feedback_wall_=Wall::now();','feedback_wall_=arrival;')
+ helper=' void consume(J d,Wall::time_point arrival){'+body+'}\n void drain(){while(!incoming_.empty()&amp;&amp;incoming_.front().first.value(&quot;t&quot;,1e99)&lt;=t_+.001){auto p=incoming_.front();incoming_.pop_front();if(p.first.value(&quot;t&quot;,-1.)&gt;last_sensor_)consume(p.first,p.second);}}\n'
+ s=s[:start]+'try{auto d=J::parse(m-&gt;data);incoming_.push_back({d,Wall::now()});if(incoming_.size()&gt;30)incoming_.pop_front();drain();}catch(...){stopped_since_=-1;}}'+s[end:]
+ s=s.replace(' void tick(){',helper+' void tick(){\n  drain();')
+ s=s.replace('t_=t;});','t_=t;drain();});')
+ s=s.replace('begin_stop(&quot;LOST&quot;,&quot;FEEDBACK_LOST&quot;,true);','{RCLCPP_ERROR(get_logger(), &quot;Feedback freshness failure sim=%.6f sensor=%.6f wall_age=%.6f queued=%zu&quot;,t_,feedback_.value(&quot;t&quot;,-100.),age(feedback_wall_),incoming_.size());begin_stop(&quot;LOST&quot;,&quot;FEEDBACK_LOST&quot;,true);}')
+ put(out/'tool_action_server.cpp',s)
+ plugin=(BASE/'ws/src/tool_sim/src/ToolActuator.cc').read_text().replace('t-last_pub_&gt;=.049','t-last_pub_&gt;=cfg_.value(&quot;feedback_period_s&quot;,.049)')
+ put(out/'ToolActuator.cc',plugin)
+ return &quot;&quot;&quot;\nset(Protobuf_PROTOC_EXECUTABLE /usr/bin/protoc CACHE FILEPATH &quot;Gazebo ABI&quot; FORCE)
+find_package(Protobuf MODULE REQUIRED)
+find_package(gz-sim8 REQUIRED)
+find_package(gz-plugin2 REQUIRED COMPONENTS register)
+find_package(gz-transport13 REQUIRED)
+add_library(s10_tool_r09 SHARED ToolActuator.cc)
+target_link_libraries(s10_tool_r09 gz-sim8::gz-sim8 gz-plugin2::gz-plugin2 gz-transport13::gz-transport13 nlohmann_json::nlohmann_json)
+find_package(rclcpp_action REQUIRED)
+find_package(mission_interfaces REQUIRED)
+add_executable(r09_tool_action_server tool_action_server.cpp)
+ament_target_dependencies(r09_tool_action_server rclcpp rclcpp_action mission_interfaces std_msgs rosgraph_msgs)
+target_link_libraries(r09_tool_action_server nlohmann_json::nlohmann_json)
+&quot;&quot;&quot;
+</code></pre>
+<p>派生器定位原 C++ 接收逻辑，将反馈入队并在时钟追上后消费。保留 arrival 用于墙钟年龄，不重新打采集戳。字符串断言用于发现上游源码变化，不能静默生成错误派生版本。</p>
+<h3 id="commonpy-8-12">common.py 第 8 至 12 行</h3>
+<p><a href="../../baseline/l02_views/e9ad013f1962-common.py.html#L8">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/common.py#L8">固定 Git 提交</a></p>
+<pre><code class="language-python">def check(stage):
+ p=APP/'results'/stage/'latest.json'
+ if not p.exists():return dict(passed=False,stage=stage,reason='NOT_RUN')
+ d=read(p);bad=[x['path'] for x in d['artifacts'] if not (ROOT/x['path']).is_file() or sha(ROOT/x['path'])!=x['sha256']]
+ return dict(passed=d['automated_status']=='PASS' and not bad,stage=stage,changed=bad,status=d['automated_status'])
+</code></pre>
+<p>失败复验前先查内容是否仍匹配回执。某阶段 status 为 PASS 但 bound 文件 changed，也不能复用为当前证据。这个短函数是版本问题与行为问题分开的入口。</p>
+<!-- generated-production-end -->
+
+<h2 id="_9">诊断记录模板</h2>
+<p>每次实验写：固定提交与制品哈希；任务/选择范围；最早异常时间；当时输入及年龄；触发判据；两个候选根因；能区分二者的最小检查；修改内容；复验结果与残余。没有独立证据时使用“假设”，不要写成已确诊。</p>
+<p>只改变一个主要因素更容易解释，但某些修复涉及坐标、计划和外参的连锁更新，必须明确列出依赖范围。组件检查通过后先跑有界短例，证明新分支确实触发，再跑受影响完整任务。</p>
+<h2 id="_10">离线分析</h2>
+<p>执行 <code>python3 examples/l02/labs.py 29</code> 查看真实失败分类。把出现次数最多的停止码列出来，然后为每种写出需要进一步读取的文件。不要把频次表标题写成“根因概率”。</p>
+<!-- generated-lab-start -->
+<h3 id="_11">本章练习核心代码与实际输出</h3>
+<p><a href="../../examples/l02/labs.py">完整教学脚本</a> · <a href="../../validation/L02/lab_29.json">本章完整输出</a></p>
+<p>代码只使用 Python 标准库；合成输入与历史记录在输出 kind 中区分。公共 ROOT、read、wrap、connected 等辅助函数在完整脚本中定义。</p>
+<pre><code class="language-python">def lab29():
+    &quot;&quot;&quot;Inspect the shipped failure summary without inventing cause counts.&quot;&quot;&quot;
+    p=E/'failure_summary.json'
+    d=json.loads(p.read_text(encoding='utf-8'))
+    return dict(kind='historical classified attempts',summary=d,
+                limitation='Stop-code frequency is not an independently diagnosed root-cause frequency.')
+</code></pre>
+<pre><code class="language-text">{
+  &quot;chapter&quot;: &quot;29&quot;,
+  &quot;passed&quot;: true,
+  &quot;result&quot;: {
+    &quot;kind&quot;: &quot;historical classified attempts&quot;,
+    &quot;summary&quot;: {
+      &quot;total_records&quot;: 42,
+      &quot;unique_runs&quot;: 42,
+      &quot;not_passed_at_execution&quot;: 31,
+      &quot;stop_code_counts&quot;: {
+        &quot;TimeoutError('WAIT_DEADLINE')&quot;: 6,
+        &quot;RuntimeError('TOOL_STOP_UNCONFIRMED')&quot;: 1,
+        &quot;TimeoutError('ENDPOINT_RECOVERY_BUDGET')&quot;: 1,
+        &quot;RuntimeError('ENDPOINT_RECOVERY_MANUAL_LATCH_RETAINED')&quot;: 1,
+        &quot;RuntimeError('ALTERNATE_ROUTE_REQUIRES_COVERAGE_RESEQUENCING_RETAIN_RESIDUAL')&quot;: 2,
+        &quot;RuntimeError('MANUAL_OR_SAFETY_HOLD MOTION_WITHOUT_OBSERVED_PROGRESS')&quot;: 1,
+        &quot;UNSPECIFIED&quot;: 1,
+        &quot;RuntimeError('REDOCK_INTERRUPTED_OR_TIMEOUT')&quot;: 1,
+        &quot;TimeoutError('TASK_BOUND_OR_STOP_REQUEST')&quot;: 3,
+        &quot;RuntimeError('TOOL_STOP_UNCERTAIN')&quot;: 1,
+        &quot;RuntimeError('DOCKING_REALIGNMENT_EXHAUSTED')&quot;: 3,
+        &quot;ModuleNotFoundError(\&quot;No module named 'shapely'\&quot;)&quot;: 1,
+        &quot;RuntimeError('TOOL_ADMISSION_FAILED')&quot;: 1,
+        &quot;RuntimeError('SEGMENT_RETRY_BOUND')&quot;: 1,
+        &quot;InterruptedError('SESSION_STOP')&quot;: 1,
+        &quot;RuntimeError('ENDPOINT_RECOVERY_EXHAUSTED')&quot;: 3,
+        &quot;TypeError(\&quot;dict() got multiple values for keyword argument 't'\&quot;)&quot;: 1,
+        &quot;RuntimeError('DOCKING_MANUAL_OR_SAFETY_HOLD MOTION_WITHOUT_OBSERVED_PROGRESS')&quot;: 1,
+        &quot;RuntimeError('LOCALIZATION_REVALIDATION_BOUND')&quot;: 1
+      },
+      &quot;warning&quot;: &quot;Not a random sample or root-cause frequency; includes interrupted/bounded sessions and multiple software versions.&quot;
+    },
+    &quot;limitation&quot;: &quot;Stop-code frequency is not an independently diagnosed root-cause frequency.&quot;
+  }
+}
+</code></pre>
+<p>本章例子可以在 Windows 使用 <code>py -3</code> 或在 Linux 使用 <code>python3</code> 重跑。它验证局部概念或读取历史证据，不对机器人全任务提供新通过结论。</p>
+<!-- generated-lab-end -->
+
+<h2 id="_12">自测</h2>
+<p>问：一次成功能否删除全部历史失败？答：不能用删除来消除未解释的行为；可整理精简证据，但需要保留与当前判断有关的版本和残余。</p>
+<p>问：如何证明修复了 START_WORK 中断？答：需要在该阶段实际注入或观察中断，记录取消、停车、工具停止及后续行为；仅静态看到 if 语句不够。</p>
+<p>练习：选择 WAIT_DEADLINE，提出“消息没有到”和“消息到了但不满足条件”两个假设，分别写一个只读观察方法。能区分二者，才有针对性修复方向。</p></main><footer>L02 内容阅读版 · 固定基线 9aff8337 · 原机器人 R10–R12 PARTIAL · L03 完整站点尚待执行</footer></html>

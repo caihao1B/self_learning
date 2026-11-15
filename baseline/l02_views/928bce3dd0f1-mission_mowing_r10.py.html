@@ -1,0 +1,395 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>mission_mowing_r10.py</title><style>body{margin:25px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;padding:20px;border:1px solid #d6e2e3;font:13px/1.8 Consolas,monospace;overflow:auto}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff0b0}a{color:#086b71}p{overflow-wrap:anywhere}</style><a href="../../L02/index.html">← L02 教材目录</a><h1>mission_mowing_r10.py</h1><p>optimization_v2/ws/src/task_platform/scripts/mission_mowing_r10.py</p><p>固定基线 9aff8337b7794f704c5556a973a5220e73f17808 · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/mission_mowing_r10.py">GitHub 原文件</a></p><p>原始文件按字节保留；显示换行不改变行号。快照用于阅读，不直接作为运行入口。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Segment-aware Ackermann worker; real Nav2/ToolTask actions, feedback-only credit.&quot;&quot;&quot;</span>
+<span class="line" id="L2"><a href="#L2">   2</a> import argparse,json,time,signal,math</span>
+<span class="line" id="L3"><a href="#L3">   3</a> from pathlib import Path</span>
+<span class="line" id="L4"><a href="#L4">   4</a> import numpy as np</span>
+<span class="line" id="L5"><a href="#L5">   5</a> import rclpy</span>
+<span class="line" id="L6"><a href="#L6">   6</a> from rclpy.action import ActionClient</span>
+<span class="line" id="L7"><a href="#L7">   7</a> from rclpy.qos import qos_profile_sensor_data</span>
+<span class="line" id="L8"><a href="#L8">   8</a> from nav2_msgs.action import FollowPath,ComputePathToPose</span>
+<span class="line" id="L9"><a href="#L9">   9</a> from nav2_msgs.srv import IsPathValid</span>
+<span class="line" id="L10"><a href="#L10">  10</a> from nav_msgs.msg import Path as NavPath</span>
+<span class="line" id="L11"><a href="#L11">  11</a> import ompl_endpoint_r10</span>
+<span class="line" id="L12"><a href="#L12">  12</a> from mission_interfaces.action import ToolTask</span>
+<span class="line" id="L13"><a href="#L13">  13</a> from geometry_msgs.msg import PoseStamped,PoseWithCovarianceStamped,Point32</span>
+<span class="line" id="L14"><a href="#L14">  14</a> from std_msgs.msg import String</span>
+<span class="line" id="L15"><a href="#L15">  15</a> from rosgraph_msgs.msg import Clock</span>
+<span class="line" id="L16"><a href="#L16">  16</a> from std_srvs.srv import Trigger</span>
+<span class="line" id="L17"><a href="#L17">  17</a> from groups_mowing_r10 import execution_groups,passage,retry_exhausted</span>
+<span class="line" id="L18"><a href="#L18">  18</a> from recovery_mowing_r10 import validate_candidate,yaw_error,observed_cursor,gear_runs,tracking_distance,retreat_prefix,terminal_straight</span>
+<span class="line" id="L19"><a href="#L19">  19</a> from arrival_mowing_r10 import stable_arrival</span>
+<span class="line" id="L20"><a href="#L20">  20</a> from start_work_r10 import wait_startup,working_feedback_ready</span>
+<span class="line" id="L21"><a href="#L21">  21</a> from coverage_rejoin_r10 import rejoin_candidates,forward_window</span>
+<span class="line" id="L22"><a href="#L22">  22</a> from revalidation_spray_r10 import path_hash</span>
+<span class="line" id="L23"><a href="#L23">  23</a> from progress_spray_r10 import stopped_decision</span>
+<span class="line" id="L24"><a href="#L24">  24</a> from safe_plan_r10 import work_identity</span>
+<span class="line" id="L25"><a href="#L25">  25</a> </span>
+<span class="line" id="L26"><a href="#L26">  26</a> def main():</span>
+<span class="line" id="L27"><a href="#L27">  27</a>  ap=argparse.ArgumentParser();ap.add_argument(&#x27;--out&#x27;,type=Path,required=True);out=ap.parse_args().out;cfg=json.loads((out/&#x27;mission.json&#x27;).read_text());spec=json.loads((out/&#x27;spec.json&#x27;).read_text());toolcfg=json.loads((out/&#x27;scene/tool.json&#x27;).read_text());cluster=next(x for x in cfg[&#x27;clusters&#x27;] if x[&#x27;cluster&#x27;]==spec[&#x27;cluster&#x27;]);allsegments=cluster[&#x27;segments&#x27;];eligible=allsegments[spec.get(&#x27;segment_start&#x27;,0):];selected=eligible[:spec[&#x27;segment_limit&#x27;]] if spec[&#x27;segment_limit&#x27;] else eligible;segments=execution_groups(selected,cfg[&#x27;navigation_execution&#x27;][&#x27;mode&#x27;])</span>
+<span class="line" id="L28"><a href="#L28">  28</a>  rclpy.init();n=rclpy.create_node(&#x27;r10_mowing_task&#x27;,parameter_overrides=[rclpy.parameter.Parameter(&#x27;use_sim_time&#x27;,value=True)]);nav=ActionClient(n,FollowPath,&#x27;/follow_path&#x27;);planner=ActionClient(n,ComputePathToPose,&#x27;/compute_path_to_pose&#x27;);pathcheck=n.create_client(IsPathValid,&#x27;/is_path_valid&#x27;);tool=ActionClient(n,ToolTask,&#x27;/s10/tool_task&#x27;);manager=n.create_client(Trigger,&#x27;/lifecycle_manager/is_active&#x27;);pub=n.create_publisher(String,&#x27;/r07/mission&#x27;,10);hintpub=n.create_publisher(PoseWithCovarianceStamped,&#x27;/s07/rtabmap/initialpose&#x27;,10)</span>
+<span class="line" id="L29"><a href="#L29">  29</a>  st=dict(t=0.,stop=False,phase=&#x27;STARTUP&#x27;,nav_idle=True,complete=False,nav_failed=False,replans=0,deferrals=0,alternative=False,index=0,segment=&#x27;TRANSIT&#x27;,segment_id=&#x27;&#x27;,direction=1,work_complete=False,bt=None,gate=None,loc=None,tool=None);active=None;active_tool=None;tool_future=None;start=time.monotonic();hinted=False;terminal=&#x27;FAULT&#x27;;error=None;completed=[];work_results=[];last_progress_t=None;last_p=None;active_group=None;checkpoint_index=0;passages=[]</span>
+<span class="line" id="L30"><a href="#L30">  30</a>  prepare=n.create_client(Trigger,&#x27;/r10/localization/prepare_revalidation&#x27;);commit=n.create_client(Trigger,&#x27;/r10/localization/commit_revalidation&#x27;);proofpub=n.create_publisher(String,&#x27;/r10/localization/plan_proof&#x27;,10);revalidations={}</span>
+<span class="line" id="L31"><a href="#L31">  31</a>  def log(event,**d):</span>
+<span class="line" id="L32"><a href="#L32">  32</a>   with (out/&#x27;mission_events.jsonl&#x27;).open(&#x27;a&#x27;) as f:f.write(json.dumps(dict(t=st[&#x27;t&#x27;],event=event,**d))+&#x27;\n&#x27;)</span>
+<span class="line" id="L33"><a href="#L33">  33</a>  n.create_subscription(Clock,&#x27;/clock&#x27;,lambda m:st.update(t=m.clock.sec+m.clock.nanosec*1e-9),qos_profile_sensor_data)</span>
+<span class="line" id="L34"><a href="#L34">  34</a>  for topic,key in [(&#x27;/r06/directive&#x27;,&#x27;bt&#x27;),(&#x27;/r07/gate&#x27;,&#x27;gate&#x27;),(&#x27;/r07/localization&#x27;,&#x27;loc&#x27;),(&#x27;/s10/action/state&#x27;,&#x27;tool&#x27;),(&#x27;/r07/safety&#x27;,&#x27;safety&#x27;)]:n.create_subscription(String,topic,lambda m,k=key:st.update({k:json.loads(m.data)}),20)</span>
+<span class="line" id="L35"><a href="#L35">  35</a>  def publish():</span>
+<span class="line" id="L36"><a href="#L36">  36</a>   d={k:st[k] for k in [&#x27;t&#x27;,&#x27;phase&#x27;,&#x27;nav_idle&#x27;,&#x27;complete&#x27;,&#x27;nav_failed&#x27;,&#x27;replans&#x27;,&#x27;deferrals&#x27;,&#x27;alternative&#x27;,&#x27;index&#x27;,&#x27;segment&#x27;,&#x27;segment_id&#x27;,&#x27;direction&#x27;,&#x27;work_complete&#x27;]};d[&#x27;endpoint_recovery&#x27;]=st.get(&#x27;endpoint_recovery&#x27;,False);d[&#x27;execution_segment_id&#x27;]=st[&#x27;segment_id&#x27;];d[&#x27;segment_id&#x27;]=work_identity(active_group)[0] if active_group and st[&#x27;segment&#x27;]==&#x27;COVERAGE&#x27; else st[&#x27;segment_id&#x27;];pub.publish(String(data=json.dumps(d)));tmp=out/&#x27;live.tmp&#x27;;tmp.write_text(json.dumps(dict(d,bt=st[&#x27;bt&#x27;],gate=st[&#x27;gate&#x27;],loc=st[&#x27;loc&#x27;],tool=st[&#x27;tool&#x27;])));tmp.replace(out/&#x27;live.json&#x27;)</span>
+<span class="line" id="L37"><a href="#L37">  37</a>  n.create_timer(.03,publish)</span>
+<span class="line" id="L38"><a href="#L38">  38</a>  def record_passage():</span>
+<span class="line" id="L39"><a href="#L39">  39</a>   nonlocal checkpoint_index</span>
+<span class="line" id="L40"><a href="#L40">  40</a>   loc=st[&#x27;loc&#x27;] or {}</span>
+<span class="line" id="L41"><a href="#L41">  41</a>   if active_group is None or not loc.get(&#x27;valid&#x27;) or checkpoint_index&gt;=len(active_group[&#x27;members&#x27;]):return</span>
+<span class="line" id="L42"><a href="#L42">  42</a>   member=active_group[&#x27;members&#x27;][checkpoint_index];ok,d,h=passage(loc[&#x27;pose&#x27;],member[&#x27;endpoint&#x27;])</span>
+<span class="line" id="L43"><a href="#L43">  43</a>   if ok:</span>
+<span class="line" id="L44"><a href="#L44">  44</a>    record=dict(segment=member[&#x27;id&#x27;],xy_error_m=d,yaw_error_rad=h,t=st[&#x27;t&#x27;]);passages.append(record);checkpoint_index+=1;log(&#x27;ORIGINAL_SEGMENT_PASSAGE&#x27;,segment=member[&#x27;id&#x27;],xy_error_m=d,yaw_error_rad=h,stop_required=checkpoint_index==len(active_group[&#x27;members&#x27;]))</span>
+<span class="line" id="L45"><a href="#L45">  45</a>  def tick(allow_stop=False):</span>
+<span class="line" id="L46"><a href="#L46">  46</a>   nonlocal hinted,last_progress_t,last_p</span>
+<span class="line" id="L47"><a href="#L47">  47</a>   rclpy.spin_once(n,timeout_sec=.01)</span>
+<span class="line" id="L48"><a href="#L48">  48</a>   if st[&#x27;t&#x27;]&gt;8 and not hinted:</span>
+<span class="line" id="L49"><a href="#L49">  49</a>    h=spec[&#x27;operator_hint&#x27;];m=PoseWithCovarianceStamped();m.header.frame_id=&#x27;map&#x27;;m.pose.pose.position.x=h[0];m.pose.pose.position.y=h[1];m.pose.pose.orientation.z=math.sin(h[2]/2);m.pose.pose.orientation.w=math.cos(h[2]/2);m.pose.covariance=[1. if i in [0,7,14] else .25 if i in [21,28,35] else 0. for i in range(36)];hintpub.publish(m);hinted=True;log(&#x27;COARSE_PUBLIC_CLUSTER_HINT&#x27;)</span>
+<span class="line" id="L50"><a href="#L50">  50</a>   loc=st[&#x27;loc&#x27;] or {}</span>
+<span class="line" id="L51"><a href="#L51">  51</a>   if loc.get(&#x27;valid&#x27;):</span>
+<span class="line" id="L52"><a href="#L52">  52</a>    if last_p is None or math.dist(last_p,loc[&#x27;pose&#x27;][:2])&gt;.1:last_p=loc[&#x27;pose&#x27;][:2];last_progress_t=st[&#x27;t&#x27;]</span>
+<span class="line" id="L53"><a href="#L53">  53</a>   if st[&#x27;phase&#x27;]==&#x27;NAVIGATING&#x27;:record_passage()</span>
+<span class="line" id="L54"><a href="#L54">  54</a>   if not allow_stop:</span>
+<span class="line" id="L55"><a href="#L55">  55</a>    if st[&#x27;stop&#x27;]:raise InterruptedError(&#x27;SESSION_STOP&#x27;)</span>
+<span class="line" id="L56"><a href="#L56">  56</a>    if st[&#x27;t&#x27;]&gt;spec[&#x27;sim_seconds&#x27;] or time.monotonic()-start&gt;spec[&#x27;wall_budget&#x27;]-30:raise TimeoutError(&#x27;TASK_BUDGET&#x27;)</span>
+<span class="line" id="L57"><a href="#L57">  57</a>    if active and last_progress_t is not None and st[&#x27;t&#x27;]-last_progress_t&gt;45:raise TimeoutError(&#x27;NO_OBSERVED_PROGRESS&#x27;)</span>
+<span class="line" id="L58"><a href="#L58">  58</a>  def wait(pred,seconds=20,allow_stop=False):</span>
+<span class="line" id="L59"><a href="#L59">  59</a>   t=st[&#x27;t&#x27;];wall=time.monotonic()</span>
+<span class="line" id="L60"><a href="#L60">  60</a>   while not pred():</span>
+<span class="line" id="L61"><a href="#L61">  61</a>    tick(allow_stop)</span>
+<span class="line" id="L62"><a href="#L62">  62</a>    if st[&#x27;t&#x27;]-t&gt;seconds or time.monotonic()-wall&gt;max(20,seconds*4):raise TimeoutError(&#x27;WAIT_DEADLINE&#x27;)</span>
+<span class="line" id="L63"><a href="#L63">  63</a>  def result(f,seconds=20):wait(f.done,seconds);return f.result()</span>
+<span class="line" id="L64"><a href="#L64">  64</a>  def pose(p):</span>
+<span class="line" id="L65"><a href="#L65">  65</a>   m=PoseStamped();m.header.frame_id=&#x27;map&#x27;;m.pose.position.x=float(p[0]);m.pose.position.y=float(p[1]);m.pose.orientation.z=math.sin(p[2]/2);m.pose.orientation.w=math.cos(p[2]/2);return m</span>
+<span class="line" id="L66"><a href="#L66">  66</a>  def tool_finish_result():</span>
+<span class="line" id="L67"><a href="#L67">  67</a>   nonlocal active_tool,tool_future</span>
+<span class="line" id="L68"><a href="#L68">  68</a>   if tool_future is not None:</span>
+<span class="line" id="L69"><a href="#L69">  69</a>    wait(tool_future.done,5,True);r=tool_future.result().result;d=dict(segment=st[&#x27;segment_id&#x27;],state=r.state,reason=r.reason,confirmed=r.confirmed_quantity,remaining=r.remaining_quantity,uncertain=r.uncertainty_pending);work_results.append(d);log(&#x27;TOOL_RESULT&#x27;,**d);active_tool=None;tool_future=None</span>
+<span class="line" id="L70"><a href="#L70">  70</a>    if d[&#x27;uncertain&#x27;]:raise RuntimeError(&#x27;TOOL_STOP_UNCONFIRMED&#x27;)</span>
+<span class="line" id="L71"><a href="#L71">  71</a>    return d</span>
+<span class="line" id="L72"><a href="#L72">  72</a>  def stop_all():</span>
+<span class="line" id="L73"><a href="#L73">  73</a>   nonlocal active</span>
+<span class="line" id="L74"><a href="#L74">  74</a>   st[&#x27;phase&#x27;]=&#x27;STOPPING&#x27;;nav_cancel=active.cancel_goal_async() if active else None;tool_cancel=active_tool.cancel_goal_async() if active_tool else None</span>
+<span class="line" id="L75"><a href="#L75">  75</a>   for f in [nav_cancel,tool_cancel]:</span>
+<span class="line" id="L76"><a href="#L76">  76</a>    if f is not None:wait(f.done,5,True)</span>
+<span class="line" id="L77"><a href="#L77">  77</a>   if active:</span>
+<span class="line" id="L78"><a href="#L78">  78</a>    f=active.get_result_async();wait(f.done,5,True);active=None</span>
+<span class="line" id="L79"><a href="#L79">  79</a>   st[&#x27;nav_idle&#x27;]=True;tool_finish_result();wait(lambda:bool(st[&#x27;gate&#x27;] and st[&#x27;gate&#x27;][&#x27;stopped&#x27;] and st[&#x27;gate&#x27;][&#x27;tool_stopped&#x27;]),5,True);log(&#x27;BOTH_PHYSICAL_STOPS_CONFIRMED&#x27;,segment=st[&#x27;segment_id&#x27;])</span>
+<span class="line" id="L80"><a href="#L80">  80</a>  def localization_hold():return bool((st[&#x27;loc&#x27;] or {}).get(&#x27;native_supervisor&#x27;,{}).get(&#x27;plan_revalidation_required&#x27;))</span>
+<span class="line" id="L81"><a href="#L81">  81</a>  def recover_localization(s):</span>
+<span class="line" id="L82"><a href="#L82">  82</a>   if not localization_hold():return</span>
+<span class="line" id="L83"><a href="#L83">  83</a>   if (st[&#x27;bt&#x27;] or {}).get(&#x27;action&#x27;) in [&#x27;HUMAN&#x27;,&#x27;STOP&#x27;]:raise RuntimeError(&#x27;LOCALIZATION_MANUAL_LATCH_RETAINED&#x27;)</span>
+<span class="line" id="L84"><a href="#L84">  84</a>   revalidations[s[&#x27;id&#x27;]]=revalidations.get(s[&#x27;id&#x27;],0)+1</span>
+<span class="line" id="L85"><a href="#L85">  85</a>   if revalidations[s[&#x27;id&#x27;]]&gt;cfg[&#x27;stopped_revalidation&#x27;][&#x27;max_attempts_per_segment&#x27;]:raise RuntimeError(&#x27;LOCALIZATION_REVALIDATION_BOUND&#x27;)</span>
+<span class="line" id="L86"><a href="#L86">  86</a>   stop_all();st.update(phase=&#x27;RELOCALIZING&#x27;,nav_idle=True);log(&#x27;STOPPED_RELOCALIZATION_REQUEST&#x27;,segment=s[&#x27;id&#x27;],attempt=revalidations[s[&#x27;id&#x27;]])</span>
+<span class="line" id="L87"><a href="#L87">  87</a>   wait(lambda:bool((st[&#x27;loc&#x27;] or {}).get(&#x27;native_supervisor&#x27;,{}).get(&#x27;recovery_ready&#x27;)),cfg[&#x27;stopped_revalidation&#x27;][&#x27;observation_window_s&#x27;])</span>
+<span class="line" id="L88"><a href="#L88">  88</a>   if (st[&#x27;bt&#x27;] or {}).get(&#x27;action&#x27;) in [&#x27;HUMAN&#x27;,&#x27;STOP&#x27;]:raise RuntimeError(&#x27;LOCALIZATION_MANUAL_LATCH_RETAINED&#x27;)</span>
+<span class="line" id="L89"><a href="#L89">  89</a>   wait(prepare.service_is_ready,3);answer=result(prepare.call_async(Trigger.Request()),3)</span>
+<span class="line" id="L90"><a href="#L90">  90</a>   if not answer.success:raise RuntimeError(&#x27;LOCALIZATION_PREPARE_REJECTED &#x27;+answer.message)</span>
+<span class="line" id="L91"><a href="#L91">  91</a>   prepared=json.loads(answer.message);epoch=prepared[&#x27;epoch&#x27;];log(&#x27;LOCALIZATION_PREVIEW_PREPARED&#x27;,prepared_t=prepared[&#x27;t&#x27;],epoch=epoch,reason=prepared[&#x27;reason&#x27;])</span>
+<span class="line" id="L92"><a href="#L92">  92</a>   wait(lambda:bool(st[&#x27;loc&#x27;].get(&#x27;planning_valid&#x27;) and st.get(&#x27;safety&#x27;) and st[&#x27;safety&#x27;].get(&#x27;valid&#x27;) and st[&#x27;safety&#x27;].get(&#x27;localization_epoch&#x27;)==epoch and st[&#x27;safety&#x27;][&#x27;t&#x27;]&gt;prepared[&#x27;t&#x27;]),8)</span>
+<span class="line" id="L93"><a href="#L93">  93</a>   start_pose=list(st[&#x27;loc&#x27;][&#x27;pose&#x27;]);target=s[&#x27;poses&#x27;][-1];g=ComputePathToPose.Goal();g.planner_id=&#x27;GridBased&#x27;;g.use_start=True;g.start=pose(start_pose);g.goal=pose(target)</span>
+<span class="line" id="L94"><a href="#L94">  94</a>   wait(planner.server_is_ready,5);h=result(planner.send_goal_async(g),5)</span>
+<span class="line" id="L95"><a href="#L95">  95</a>   if not h.accepted:raise RuntimeError(&#x27;REVALIDATION_PLANNER_REJECTED&#x27;)</span>
+<span class="line" id="L96"><a href="#L96">  96</a>   answer=result(h.get_result_async(),12)</span>
+<span class="line" id="L97"><a href="#L97">  97</a>   if answer.status!=4:raise RuntimeError(&#x27;REVALIDATION_PLANNER_FAILED&#x27;)</span>
+<span class="line" id="L98"><a href="#L98">  98</a>   path=answer.result.path;points=[]</span>
+<span class="line" id="L99"><a href="#L99">  99</a>   for m in path.poses:</span>
+<span class="line" id="L100"><a href="#L100"> 100</a>    q=m.pose.orientation;points.append([m.pose.position.x,m.pose.position.y,math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y*q.y+q.z*q.z))])</span>
+<span class="line" id="L101"><a href="#L101"> 101</a>   geometric,why=validate_candidate(points,start_pose,target,cfg,cfg[&#x27;stopped_revalidation&#x27;][&#x27;maximum_path_m&#x27;])</span>
+<span class="line" id="L102"><a href="#L102"> 102</a>   if not geometric:raise RuntimeError(&#x27;REVALIDATION_GEOMETRY_&#x27;+why)</span>
+<span class="line" id="L103"><a href="#L103"> 103</a>   gear_runs(points);wait(pathcheck.service_is_ready,5);req=IsPathValid.Request();req.path=path;collision=result(pathcheck.call_async(req),5)</span>
+<span class="line" id="L104"><a href="#L104"> 104</a>   log(&#x27;STOPPED_PLAN_REVALIDATION&#x27;,segment=s[&#x27;id&#x27;],epoch=epoch,path_valid=collision.is_valid,footprint_valid=geometric,path=points,path_sha256=path_hash(points),original_goal=target)</span>
+<span class="line" id="L105"><a href="#L105"> 105</a>   if not collision.is_valid:raise RuntimeError(&#x27;REVALIDATION_OBSERVED_PATH_BLOCKED&#x27;)</span>
+<span class="line" id="L106"><a href="#L106"> 106</a>   proof=dict(epoch=epoch,plan_revision=cfg[&#x27;version&#x27;],map_revision=cfg[&#x27;map_revision&#x27;],path_valid=True,footprint_valid=True,path_sha256=path_hash(points),segment=s[&#x27;id&#x27;]);wait(commit.service_is_ready,3);accepted=False</span>
+<span class="line" id="L107"><a href="#L107"> 107</a>   for _ in range(3):</span>
+<span class="line" id="L108"><a href="#L108"> 108</a>    if (st[&#x27;bt&#x27;] or {}).get(&#x27;action&#x27;) in [&#x27;HUMAN&#x27;,&#x27;STOP&#x27;]:raise RuntimeError(&#x27;LOCALIZATION_MANUAL_LATCH_RETAINED&#x27;)</span>
+<span class="line" id="L109"><a href="#L109"> 109</a>    proof[&#x27;t&#x27;]=st[&#x27;t&#x27;];proofpub.publish(String(data=json.dumps(proof)));sent=st[&#x27;t&#x27;];wait(lambda:st[&#x27;t&#x27;]&gt;sent+.08,2);answer=result(commit.call_async(Trigger.Request()),3)</span>
+<span class="line" id="L110"><a href="#L110"> 110</a>    if answer.success:accepted=True;break</span>
+<span class="line" id="L111"><a href="#L111"> 111</a>   if not accepted:raise RuntimeError(&#x27;REVALIDATION_COMMIT_REJECTED &#x27;+answer.message)</span>
+<span class="line" id="L112"><a href="#L112"> 112</a>   log(&#x27;LOCALIZATION_PLAN_COMMITTED&#x27;,segment=s[&#x27;id&#x27;],epoch=epoch,proof=proof)</span>
+<span class="line" id="L113"><a href="#L113"> 113</a>   wait(lambda:bool(st[&#x27;loc&#x27;] and st[&#x27;loc&#x27;][&#x27;valid&#x27;]),12);st.update(phase=&#x27;READY&#x27;,nav_failed=False);log(&#x27;LOCALIZATION_REVALIDATED_RESUME&#x27;,segment=s[&#x27;id&#x27;],epoch=epoch)</span>
+<span class="line" id="L114"><a href="#L114"> 114</a>  def observation_decision(s,choices,seconds,after=None):</span>
+<span class="line" id="L115"><a href="#L115"> 115</a>   def decision():</span>
+<span class="line" id="L116"><a href="#L116"> 116</a>    bt=st[&#x27;bt&#x27;] or {};action=stopped_decision(bt.get(&#x27;action&#x27;),localization_hold(),choices)</span>
+<span class="line" id="L117"><a href="#L117"> 117</a>    if action in [&#x27;HUMAN&#x27;,&#x27;STOP&#x27;,&#x27;RECOVER_LOCALIZATION&#x27;]:return action</span>
+<span class="line" id="L118"><a href="#L118"> 118</a>    return action if after is None or bt.get(&#x27;evidence&#x27;,{}).get(&#x27;stamp&#x27;,-1)&gt;after else None</span>
+<span class="line" id="L119"><a href="#L119"> 119</a>   wait(lambda:decision() is not None,seconds);action=decision()</span>
+<span class="line" id="L120"><a href="#L120"> 120</a>   if action==&#x27;RECOVER_LOCALIZATION&#x27;:</span>
+<span class="line" id="L121"><a href="#L121"> 121</a>    log(&#x27;LATE_LOCALIZATION_HOLD_DISPATCHED&#x27;,segment=s[&#x27;id&#x27;],phase=st[&#x27;phase&#x27;]);recover_localization(s);barrier=st[&#x27;t&#x27;]</span>
+<span class="line" id="L122"><a href="#L122"> 122</a>    wait(lambda:bool(st[&#x27;bt&#x27;] and st[&#x27;bt&#x27;].get(&#x27;evidence&#x27;,{}).get(&#x27;stamp&#x27;,-1)&gt;barrier and st[&#x27;bt&#x27;][&#x27;action&#x27;] in list(choices)+[&#x27;HUMAN&#x27;,&#x27;STOP&#x27;]),seconds);action=st[&#x27;bt&#x27;][&#x27;action&#x27;]</span>
+<span class="line" id="L123"><a href="#L123"> 123</a>   if action in [&#x27;HUMAN&#x27;,&#x27;STOP&#x27;]:raise RuntimeError(&#x27;MANUAL_OR_SAFETY_HOLD &#x27;+str((st[&#x27;bt&#x27;] or {}).get(&#x27;reason_code&#x27;)))</span>
+<span class="line" id="L124"><a href="#L124"> 124</a>   return action</span>
+<span class="line" id="L125"><a href="#L125"> 125</a>  def begin_tool(s):</span>
+<span class="line" id="L126"><a href="#L126"> 126</a>   nonlocal active_tool,tool_future</span>
+<span class="line" id="L127"><a href="#L127"> 127</a>   work_key,work_target=work_identity(s)</span>
+<span class="line" id="L128"><a href="#L128"> 128</a>   g=ToolTask.Goal();g.operation=ToolTask.Goal.START_WORK;g.task_id=&#x27;R09_&#x27;+cluster[&#x27;cluster&#x27;];g.idempotency_key=cfg[&#x27;version&#x27;]+&#x27;:&#x27;+work_key;g.segment_id=work_key;g.map_id=cfg[&#x27;map_id&#x27;];g.map_revision=cfg[&#x27;map_revision&#x27;];g.frame_epoch=cfg[&#x27;frame_epoch&#x27;];g.plan_revision=cfg[&#x27;version&#x27;];g.tool_revision=toolcfg[&#x27;tool_revision&#x27;];g.target=pose(work_target);wire=np.asarray(s[&#x27;target_area&#x27;],dtype=np.float32).astype(float);g.target_area.points=[Point32(x=float(x),y=float(y),z=0.) for x,y in wire];g.requested_quantity=float(abs(np.dot(wire[:,0],np.roll(wire[:,1],-1))-np.dot(wire[:,1],np.roll(wire[:,0],-1)))/2);g.timeout_sim_s=300.</span>
+<span class="line" id="L129"><a href="#L129"> 129</a>   st[&#x27;phase&#x27;]=&#x27;START_WORK&#x27;;log(&#x27;START_WORK_REQUEST&#x27;,segment=s[&#x27;id&#x27;]);publish()</span>
+<span class="line" id="L130"><a href="#L130"> 130</a>   active_tool=result(tool.send_goal_async(g),5)</span>
+<span class="line" id="L131"><a href="#L131"> 131</a>   if not active_tool.accepted:active_tool=None;raise RuntimeError(&#x27;TOOL_ACTION_REJECTED&#x27;)</span>
+<span class="line" id="L132"><a href="#L132"> 132</a>   tool_future=active_tool.get_result_async()</span>
+<span class="line" id="L133"><a href="#L133"> 133</a>   interrupted=wait_startup(tick,lambda:st[&#x27;t&#x27;],lambda:st[&#x27;bt&#x27;],lambda:tool_future.done() or working_feedback_ready(st[&#x27;tool&#x27;],st[&#x27;t&#x27;],g.idempotency_key))</span>
+<span class="line" id="L134"><a href="#L134"> 134</a>   if interrupted:</span>
+<span class="line" id="L135"><a href="#L135"> 135</a>    log(&#x27;BT_INTERRUPTS_START_WORK&#x27;,action=(st[&#x27;bt&#x27;] or {}).get(&#x27;action&#x27;),reason=interrupted,segment=s[&#x27;id&#x27;]);stop_all();return False</span>
+<span class="line" id="L136"><a href="#L136"> 136</a>   if tool_future.done():</span>
+<span class="line" id="L137"><a href="#L137"> 137</a>    d=tool_finish_result()</span>
+<span class="line" id="L138"><a href="#L138"> 138</a>    if d[&#x27;state&#x27;]==&#x27;SUCCEEDED&#x27;:st[&#x27;work_complete&#x27;]=True;return True</span>
+<span class="line" id="L139"><a href="#L139"> 139</a>    raise RuntimeError(&#x27;TOOL_ADMISSION_FAILED&#x27;)</span>
+<span class="line" id="L140"><a href="#L140"> 140</a>   log(&#x27;TOOL_WORKING_CONFIRMED&#x27;,segment=s[&#x27;id&#x27;],requested_area_m2=g.requested_quantity)</span>
+<span class="line" id="L141"><a href="#L141"> 141</a>   return True</span>
+<span class="line" id="L142"><a href="#L142"> 142</a>  def replan_evidence(s):</span>
+<span class="line" id="L143"><a href="#L143"> 143</a>   # An alternative must retain the fixed swath entry and nonholonomic geometry.</span>
+<span class="line" id="L144"><a href="#L144"> 144</a>   # No silent replacement of coverage work by a free-space drive.</span>
+<span class="line" id="L145"><a href="#L145"> 145</a>   st.update(phase=&#x27;REPLANNING&#x27;,replans=st[&#x27;replans&#x27;]+1)</span>
+<span class="line" id="L146"><a href="#L146"> 146</a>   if s[&#x27;kind&#x27;]==&#x27;COVERAGE&#x27;:return coverage_rejoin(s)</span>
+<span class="line" id="L147"><a href="#L147"> 147</a>   wait(planner.server_is_ready,5);g=ComputePathToPose.Goal();g.planner_id=&#x27;GridBased&#x27;;g.goal=pose(s[&#x27;poses&#x27;][-1]);h=result(planner.send_goal_async(g),5)</span>
+<span class="line" id="L148"><a href="#L148"> 148</a>   if not h.accepted:log(&#x27;ACK_PLANNER_REJECTED&#x27;,attempt=st[&#x27;replans&#x27;]);return</span>
+<span class="line" id="L149"><a href="#L149"> 149</a>   r=result(h.get_result_async(),12);log(&#x27;ACK_PLANNER_RESULT&#x27;,attempt=st[&#x27;replans&#x27;],status=r.status,candidate_poses=len(r.result.path.poses),claim=&#x27;bounded current observed search only; no global impossibility claim&#x27;)</span>
+<span class="line" id="L150"><a href="#L150"> 150</a>   if r.status==4 and len(r.result.path.poses)&gt;1:</span>
+<span class="line" id="L151"><a href="#L151"> 151</a>    if s[&#x27;kind&#x27;]==&#x27;TURN_TOOL_OFF&#x27; and len(s[&#x27;members&#x27;])==1:</span>
+<span class="line" id="L152"><a href="#L152"> 152</a>     log(&#x27;TOOL_OFF_ALTERNATE_ADMITTED_FOR_VALIDATION&#x27;,segment=s[&#x27;id&#x27;],same_original_endpoint=s[&#x27;poses&#x27;][-1],work_credit=False)</span>
+<span class="line" id="L153"><a href="#L153"> 153</a>     return &#x27;SEGMENT_COMPLETE&#x27; if recover_endpoint(s,obstruction=True) else None</span>
+<span class="line" id="L154"><a href="#L154"> 154</a>    raise RuntimeError(&#x27;ALTERNATE_ROUTE_REQUIRES_COVERAGE_RESEQUENCING_RETAIN_RESIDUAL&#x27;)</span>
+<span class="line" id="L155"><a href="#L155"> 155</a>   return False</span>
+<span class="line" id="L156"><a href="#L156"> 156</a>  def coverage_rejoin(s):</span>
+<span class="line" id="L157"><a href="#L157"> 157</a>   if len(s[&#x27;members&#x27;])!=1:raise RuntimeError(&#x27;COVERAGE_REJOIN_REQUIRES_ORIGINAL_SINGLE_STRIP&#x27;)</span>
+<span class="line" id="L158"><a href="#L158"> 158</a>   stop_all();st[&#x27;phase&#x27;]=&#x27;REPLANNING&#x27;;policy=cfg[&#x27;coverage_recovery&#x27;];points=s[&#x27;poses&#x27;];start=list(st[&#x27;loc&#x27;][&#x27;pose&#x27;])</span>
+<span class="line" id="L159"><a href="#L159"> 159</a>   def checked(points):</span>
+<span class="line" id="L160"><a href="#L160"> 160</a>    path=NavPath();path.header.frame_id=&#x27;map&#x27;;path.poses=[pose(p) for p in points]</span>
+<span class="line" id="L161"><a href="#L161"> 161</a>    wait(pathcheck.service_is_ready,4);request=IsPathValid.Request();request.path=path;answer=result(pathcheck.call_async(request),4)</span>
+<span class="line" id="L162"><a href="#L162"> 162</a>    return answer.is_valid,list(answer.invalid_pose_indices)</span>
+<span class="line" id="L163"><a href="#L163"> 163</a>   current=min(range(len(points)),key=lambda i:math.dist(points[i][:2],start[:2]))</span>
+<span class="line" id="L164"><a href="#L164"> 164</a>   ok,bad=checked(forward_window(points,current,policy[&#x27;resume_window_m&#x27;]))</span>
+<span class="line" id="L165"><a href="#L165"> 165</a>   log(&#x27;ORIGINAL_WORK_WINDOW_RECHECK&#x27;,segment=s[&#x27;id&#x27;],cursor=current,accepted=ok,invalid_pose_indices=bad,scope=&#x27;observed near prefix only; does not claim whole strip is clear&#x27;)</span>
+<span class="line" id="L166"><a href="#L166"> 166</a>   if ok:</span>
+<span class="line" id="L167"><a href="#L167"> 167</a>    st.update(nav_failed=False,phase=&#x27;READY&#x27;);return &#x27;ORIGINAL_REVALIDATED&#x27;</span>
+<span class="line" id="L168"><a href="#L168"> 168</a>   for proposal in rejoin_candidates(points,start,policy[&#x27;candidate_spacing_m&#x27;],policy[&#x27;maximum_advance_m&#x27;],policy[&#x27;maximum_candidates&#x27;]):</span>
+<span class="line" id="L169"><a href="#L169"> 169</a>    goal=proposal[&#x27;pose&#x27;];ok,bad=checked(forward_window(points,proposal[&#x27;index&#x27;],policy[&#x27;resume_window_m&#x27;]))</span>
+<span class="line" id="L170"><a href="#L170"> 170</a>    log(&#x27;COVERAGE_REJOIN_WINDOW&#x27;,segment=s[&#x27;id&#x27;],**proposal,accepted=ok,invalid_pose_indices=bad)</span>
+<span class="line" id="L171"><a href="#L171"> 171</a>    if not ok:continue</span>
+<span class="line" id="L172"><a href="#L172"> 172</a>    wait(planner.server_is_ready,5);g=ComputePathToPose.Goal();g.planner_id=&#x27;GridBased&#x27;;g.use_start=True;g.start=pose(start);g.goal=pose(goal)</span>
+<span class="line" id="L173"><a href="#L173"> 173</a>    h=result(planner.send_goal_async(g),5);st[&#x27;coverage_planner_queries&#x27;]=st.get(&#x27;coverage_planner_queries&#x27;,0)+1</span>
+<span class="line" id="L174"><a href="#L174"> 174</a>    if not h.accepted:continue</span>
+<span class="line" id="L175"><a href="#L175"> 175</a>    answer=result(h.get_result_async(),12);candidate=[]</span>
+<span class="line" id="L176"><a href="#L176"> 176</a>    for m in answer.result.path.poses:</span>
+<span class="line" id="L177"><a href="#L177"> 177</a>     q=m.pose.orientation;candidate.append([m.pose.position.x,m.pose.position.y,math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y*q.y+q.z*q.z))])</span>
+<span class="line" id="L178"><a href="#L178"> 178</a>    ok,why=validate_candidate(candidate,start,goal,cfg,policy[&#x27;maximum_connector_m&#x27;]) if answer.status==4 else (False,&#x27;PLANNER_FAILED&#x27;)</span>
+<span class="line" id="L179"><a href="#L179"> 179</a>    log(&#x27;COVERAGE_REJOIN_PLAN&#x27;,segment=s[&#x27;id&#x27;],target_index=proposal[&#x27;index&#x27;],status=answer.status,accepted=ok,reason=why,poses=candidate)</span>
+<span class="line" id="L180"><a href="#L180"> 180</a>    if not ok:continue</span>
+<span class="line" id="L181"><a href="#L181"> 181</a>    try:gear_runs(candidate)</span>
+<span class="line" id="L182"><a href="#L182"> 182</a>    except ValueError as ex:log(&#x27;COVERAGE_REJOIN_KINEMATICS_REFUSED&#x27;,reason=str(ex));continue</span>
+<span class="line" id="L183"><a href="#L183"> 183</a>    ok,bad=checked(candidate);log(&#x27;COVERAGE_REJOIN_FULL_COSTMAP&#x27;,accepted=ok,invalid_pose_indices=bad)</span>
+<span class="line" id="L184"><a href="#L184"> 184</a>    if not ok:continue</span>
+<span class="line" id="L185"><a href="#L185"> 185</a>    transit=dict(s,id=s[&#x27;id&#x27;]+&#x27;:rejoin:&#x27;+str(proposal[&#x27;index&#x27;]),kind=&#x27;TURN_TOOL_OFF&#x27;,tool_on=False,poses=candidate,members=[dict(id=s[&#x27;id&#x27;],endpoint=goal)])</span>
+<span class="line" id="L186"><a href="#L186"> 186</a>    st.update(segment=&#x27;TURN_TOOL_OFF&#x27;,nav_failed=False)</span>
+<span class="line" id="L187"><a href="#L187"> 187</a>    try:recover_endpoint(transit,coverage_mode=True,prepared=candidate)</span>
+<span class="line" id="L188"><a href="#L188"> 188</a>    finally:st.update(segment=s[&#x27;kind&#x27;],segment_id=s[&#x27;id&#x27;],direction=s[&#x27;direction&#x27;])</span>
+<span class="line" id="L189"><a href="#L189"> 189</a>    st.update(nav_failed=False,phase=&#x27;READY&#x27;,coverage_rejoins=st.get(&#x27;coverage_rejoins&#x27;,0)+1)</span>
+<span class="line" id="L190"><a href="#L190"> 190</a>    log(&#x27;COVERAGE_REJOIN_CONFIRMED&#x27;,segment=s[&#x27;id&#x27;],original_cursor=current,rejoin_index=proposal[&#x27;index&#x27;],same_idempotency_key=cfg[&#x27;version&#x27;]+&#x27;:&#x27;+work_identity(s)[0],skipped_work_credit=False,residual_policy=&#x27;original target area minus actual confirmed feedback; no area removed&#x27;)</span>
+<span class="line" id="L191"><a href="#L191"> 191</a>    return &#x27;COVERAGE_REJOINED&#x27;</span>
+<span class="line" id="L192"><a href="#L192"> 192</a>   raise RuntimeError(&#x27;NO_ADMITTED_COVERAGE_REJOIN_RETAIN_RESIDUAL&#x27;)</span>
+<span class="line" id="L193"><a href="#L193"> 193</a>  def stopped_original_arrival(s,window=1.5):</span>
+<span class="line" id="L194"><a href="#L194"> 194</a>   samples=[];began=st[&#x27;t&#x27;]</span>
+<span class="line" id="L195"><a href="#L195"> 195</a>   while st[&#x27;t&#x27;]-began&lt;window:</span>
+<span class="line" id="L196"><a href="#L196"> 196</a>    tick();loc=st[&#x27;loc&#x27;] or {};gate=st[&#x27;gate&#x27;] or {}</span>
+<span class="line" id="L197"><a href="#L197"> 197</a>    if (st[&#x27;bt&#x27;] or {}).get(&#x27;action&#x27;) in [&#x27;HUMAN&#x27;,&#x27;STOP&#x27;]:raise RuntimeError(&#x27;RECOVERY_MANUAL_LATCH_RETAINED&#x27;)</span>
+<span class="line" id="L198"><a href="#L198"> 198</a>    if not (loc.get(&#x27;valid&#x27;) and -.03&lt;=st[&#x27;t&#x27;]-loc.get(&#x27;t&#x27;,-100)&lt;.15 and gate.get(&#x27;stopped&#x27;) and gate.get(&#x27;tool_stopped&#x27;)):</span>
+<span class="line" id="L199"><a href="#L199"> 199</a>     samples=[];continue</span>
+<span class="line" id="L200"><a href="#L200"> 200</a>    if not samples or loc[&#x27;t&#x27;]&gt;samples[-1][0]:samples.append((loc[&#x27;t&#x27;],loc[&#x27;pose&#x27;]))</span>
+<span class="line" id="L201"><a href="#L201"> 201</a>    samples=[x for x in samples if loc[&#x27;t&#x27;]-x[0]&lt;=.75]</span>
+<span class="line" id="L202"><a href="#L202"> 202</a>    if stable_arrival(samples,s[&#x27;poses&#x27;][-1],cfg[&#x27;navigation_execution&#x27;][&#x27;intermediate_xy_tolerance_m&#x27;],cfg[&#x27;navigation_execution&#x27;][&#x27;intermediate_yaw_tolerance_rad&#x27;]):</span>
+<span class="line" id="L203"><a href="#L203"> 203</a>     log(&#x27;STOPPED_ORIGINAL_ARRIVAL_CONFIRMED&#x27;,segment=s[&#x27;id&#x27;],samples=len(samples),span_s=samples[-1][0]-samples[0][0],xy_error_m=math.dist(loc[&#x27;pose&#x27;][:2],s[&#x27;poses&#x27;][-1][:2]),yaw_error_rad=yaw_error(loc[&#x27;pose&#x27;][2],s[&#x27;poses&#x27;][-1][2]),limits=[.10,.12]);return True</span>
+<span class="line" id="L204"><a href="#L204"> 204</a>   log(&#x27;STOPPED_ORIGINAL_ARRIVAL_NOT_CONFIRMED&#x27;,segment=s[&#x27;id&#x27;]);return False</span>
+<span class="line" id="L205"><a href="#L205"> 205</a>  def recover_endpoint(s,obstruction=False,coverage_mode=False,prepared=None):</span>
+<span class="line" id="L206"><a href="#L206"> 206</a>   nonlocal active</span>
+<span class="line" id="L207"><a href="#L207"> 207</a>   if s[&#x27;kind&#x27;]!=&#x27;TURN_TOOL_OFF&#x27; or checkpoint_index&lt;len(s[&#x27;members&#x27;])-1:raise RuntimeError(&#x27;RECOVERY_NOT_ADMITTED&#x27;)</span>
+<span class="line" id="L208"><a href="#L208"> 208</a>   stop_all();deadline=st[&#x27;t&#x27;]+(cfg[&#x27;coverage_recovery&#x27;][&#x27;maximum_sim_seconds&#x27;] if coverage_mode else 90.);length_limit=cfg[&#x27;coverage_recovery&#x27;][&#x27;maximum_connector_m&#x27;] if coverage_mode else 12.</span>
+<span class="line" id="L209"><a href="#L209"> 209</a>   if localization_hold():recover_localization(s)</span>
+<span class="line" id="L210"><a href="#L210"> 210</a>   if stopped_original_arrival(s):</span>
+<span class="line" id="L211"><a href="#L211"> 211</a>    log(&#x27;ENDPOINT_RECOVERY_SUCCESS&#x27;,segment=s[&#x27;id&#x27;],attempt=0,pause_restarts=0,method=&#x27;measured stopped original segment admission; no extra motion&#x27;);return True</span>
+<span class="line" id="L212"><a href="#L212"> 212</a>   old_direction=st[&#x27;direction&#x27;];st.update(endpoint_recovery=True,direction=0,nav_failed=False,endpoint_recoveries=st.get(&#x27;endpoint_recoveries&#x27;,0)+1);query_count=0;pause_restarts=0</span>
+<span class="line" id="L213"><a href="#L213"> 213</a>   try:</span>
+<span class="line" id="L214"><a href="#L214"> 214</a>    for attempt in range(2):</span>
+<span class="line" id="L215"><a href="#L215"> 215</a>     if st[&#x27;t&#x27;]&gt;=deadline:raise TimeoutError(&#x27;ENDPOINT_RECOVERY_BUDGET&#x27;)</span>
+<span class="line" id="L216"><a href="#L216"> 216</a>     if (st[&#x27;bt&#x27;] or {}).get(&#x27;action&#x27;) in [&#x27;HUMAN&#x27;,&#x27;STOP&#x27;]:raise RuntimeError(&#x27;RECOVERY_MANUAL_LATCH_RETAINED&#x27;)</span>
+<span class="line" id="L217"><a href="#L217"> 217</a>     st[&#x27;phase&#x27;]=&#x27;REPLANNING&#x27;;wait(planner.server_is_ready,5)</span>
+<span class="line" id="L218"><a href="#L218"> 218</a>     def plan_to(target,start_pose=None):</span>
+<span class="line" id="L219"><a href="#L219"> 219</a>      nonlocal query_count</span>
+<span class="line" id="L220"><a href="#L220"> 220</a>      if query_count&gt;=6 or st[&#x27;t&#x27;]&gt;=deadline:raise TimeoutError(&#x27;ENDPOINT_PLANNING_BUDGET&#x27;)</span>
+<span class="line" id="L221"><a href="#L221"> 221</a>      query_count+=1;st[&#x27;endpoint_planner_queries&#x27;]=st.get(&#x27;endpoint_planner_queries&#x27;,0)+1;log(&#x27;ENDPOINT_PLANNER_QUERY&#x27;,sequence=st[&#x27;endpoint_planner_queries&#x27;],local_query=query_count,target=target,explicit_start=start_pose)</span>
+<span class="line" id="L222"><a href="#L222"> 222</a>      g=ComputePathToPose.Goal();g.planner_id=&#x27;GridBased&#x27;;g.goal=pose(target)</span>
+<span class="line" id="L223"><a href="#L223"> 223</a>      if start_pose is not None:g.use_start=True;g.start=pose(start_pose)</span>
+<span class="line" id="L224"><a href="#L224"> 224</a>      h=result(planner.send_goal_async(g),5)</span>
+<span class="line" id="L225"><a href="#L225"> 225</a>      if not h.accepted:raise RuntimeError(&#x27;ENDPOINT_PLANNER_REJECTED&#x27;)</span>
+<span class="line" id="L226"><a href="#L226"> 226</a>      return result(h.get_result_async(),min(12.,max(.1,deadline-st[&#x27;t&#x27;])))</span>
+<span class="line" id="L227"><a href="#L227"> 227</a>     actual_start=list(st[&#x27;loc&#x27;][&#x27;pose&#x27;]);prefix=retreat_prefix(actual_start,cfg[&#x27;navigation_execution&#x27;][&#x27;endpoint_recovery&#x27;][&#x27;obstruction_retreat_m&#x27;]) if obstruction else []</span>
+<span class="line" id="L228"><a href="#L228"> 228</a>     planning_start=prefix[-1] if prefix else actual_start</span>
+<span class="line" id="L229"><a href="#L229"> 229</a>     if prefix:log(&#x27;TOOL_OFF_RETREAT_CANDIDATE&#x27;,segment=s[&#x27;id&#x27;],distance_m=cfg[&#x27;navigation_execution&#x27;][&#x27;endpoint_recovery&#x27;][&#x27;obstruction_retreat_m&#x27;],start=actual_start,retreat_goal=planning_start,claim=&#x27;candidate only; whole swept geometry and live costmap still required&#x27;)</span>
+<span class="line" id="L230"><a href="#L230"> 230</a>     if prepared is not None and attempt==0:candidate=prepared;plan_status=4</span>
+<span class="line" id="L231"><a href="#L231"> 231</a>     else:</span>
+<span class="line" id="L232"><a href="#L232"> 232</a>      answer=plan_to(s[&#x27;poses&#x27;][-1],planning_start if prefix else None);path=answer.result.path;plan_status=answer.status;candidate=[]</span>
+<span class="line" id="L233"><a href="#L233"> 233</a>      for m in path.poses:</span>
+<span class="line" id="L234"><a href="#L234"> 234</a>       q=m.pose.orientation;candidate.append([m.pose.position.x,m.pose.position.y,math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y*q.y+q.z*q.z))])</span>
+<span class="line" id="L235"><a href="#L235"> 235</a>      if prefix and candidate:candidate=prefix[:-1]+candidate</span>
+<span class="line" id="L236"><a href="#L236"> 236</a>     ok,why=validate_candidate(candidate,actual_start,s[&#x27;poses&#x27;][-1],cfg,length_limit) if plan_status==4 else (False,&#x27;PLANNER_FAILED&#x27;)</span>
+<span class="line" id="L237"><a href="#L237"> 237</a>     log(&#x27;ENDPOINT_RECOVERY_PLAN&#x27;,attempt=attempt,status=plan_status,accepted=ok,reason=why,poses=candidate,segment=s[&#x27;id&#x27;],coverage_rejoin=coverage_mode)</span>
+<span class="line" id="L238"><a href="#L238"> 238</a>     if not ok:</span>
+<span class="line" id="L239"><a href="#L239"> 239</a>      start_pose=planning_start;folder=out/&#x27;endpoint_candidates&#x27;/f&quot;{st[&#x27;endpoint_recoveries&#x27;]}_{attempt}&quot;</span>
+<span class="line" id="L240"><a href="#L240"> 240</a>      tail=terminal_straight(s[&#x27;poses&#x27;][-1],cfg[&#x27;navigation_execution&#x27;][&#x27;endpoint_recovery&#x27;][&#x27;terminal_straight_approach_m&#x27;]) if attempt==0 else []</span>
+<span class="line" id="L241"><a href="#L241"> 241</a>      child,response=ompl_endpoint_r10.launch(start_pose,tail[0] if tail else s[&#x27;poses&#x27;][-1],1/cfg[&#x27;vehicle&#x27;][&#x27;steering&#x27;][&#x27;max_curvature&#x27;]+.10,folder)</span>
+<span class="line" id="L242"><a href="#L242"> 242</a>      try:wait(lambda:child.poll() is not None,3)</span>
+<span class="line" id="L243"><a href="#L243"> 243</a>      finally:</span>
+<span class="line" id="L244"><a href="#L244"> 244</a>       if child.poll() is None:child.kill();child.wait(timeout=2)</span>
+<span class="line" id="L245"><a href="#L245"> 245</a>      stdout,stderr=child.communicate()</span>
+<span class="line" id="L246"><a href="#L246"> 246</a>      if child.returncode:log(&#x27;CONTINUOUS_RECOVERY_SOLVER_FAILED&#x27;,exit=child.returncode,stderr=stderr.decode()[-500:]);continue</span>
+<span class="line" id="L247"><a href="#L247"> 247</a>      candidate,details=ompl_endpoint_r10.sample(start_pose,response)</span>
+<span class="line" id="L248"><a href="#L248"> 248</a>      if tail:</span>
+<span class="line" id="L249"><a href="#L249"> 249</a>       candidate=candidate+tail[1:];details[&#x27;terminal_straight_approach_m&#x27;]=cfg[&#x27;navigation_execution&#x27;][&#x27;endpoint_recovery&#x27;][&#x27;terminal_straight_approach_m&#x27;]</span>
+<span class="line" id="L250"><a href="#L250"> 250</a>      candidate=prefix[:-1]+candidate if prefix else candidate;ok,why=validate_candidate(candidate,actual_start,s[&#x27;poses&#x27;][-1],cfg,length_limit);st[&#x27;continuous_recovery_queries&#x27;]=st.get(&#x27;continuous_recovery_queries&#x27;,0)+1;log(&#x27;CONTINUOUS_RECOVERY_CANDIDATE&#x27;,attempt=attempt,accepted=ok,reason=why,poses=candidate,details=details)</span>
+<span class="line" id="L251"><a href="#L251"> 251</a>      if not ok:continue</span>
+<span class="line" id="L252"><a href="#L252"> 252</a>      path=NavPath();path.header.frame_id=&#x27;map&#x27;;path.header.stamp=n.get_clock().now().to_msg();path.poses=[pose(p) for p in candidate]</span>
+<span class="line" id="L253"><a href="#L253"> 253</a>     # Every gear run has its own action goal and measured stop. A whole mixed</span>
+<span class="line" id="L254"><a href="#L254"> 254</a>     # Reeds-Shepp path must never be pruned past a cusp by a local controller.</span>
+<span class="line" id="L255"><a href="#L255"> 255</a>     full=NavPath();full.header.frame_id=&#x27;map&#x27;;full.header.stamp=n.get_clock().now().to_msg();full.poses=[pose(p) for p in candidate]</span>
+<span class="line" id="L256"><a href="#L256"> 256</a>     wait(pathcheck.service_is_ready,5);request=IsPathValid.Request();request.path=full;collision=result(pathcheck.call_async(request),5)</span>
+<span class="line" id="L257"><a href="#L257"> 257</a>     log(&#x27;ENDPOINT_WHOLE_CANDIDATE_COSTMAP&#x27;,accepted=collision.is_valid,poses=len(full.poses))</span>
+<span class="line" id="L258"><a href="#L258"> 258</a>     if not collision.is_valid:continue</span>
+<span class="line" id="L259"><a href="#L259"> 259</a>     runs=gear_runs(candidate);candidate_ok=True</span>
+<span class="line" id="L260"><a href="#L260"> 260</a>     log(&#x27;ENDPOINT_GEAR_RUNS&#x27;,attempt=attempt,runs=runs)</span>
+<span class="line" id="L261"><a href="#L261"> 261</a>     for gear_index,run in enumerate(runs):</span>
+<span class="line" id="L262"><a href="#L262"> 262</a>      gear_path=run[&#x27;poses&#x27;];cursor=0;gear_done=False</span>
+<span class="line" id="L263"><a href="#L263"> 263</a>      while not gear_done:</span>
+<span class="line" id="L264"><a href="#L264"> 264</a>       if st[&#x27;t&#x27;]&gt;=deadline:raise TimeoutError(&#x27;ENDPOINT_RECOVERY_BUDGET&#x27;)</span>
+<span class="line" id="L265"><a href="#L265"> 265</a>       # Gear selection has no motion authority. While physically stopped, it</span>
+<span class="line" id="L266"><a href="#L266"> 266</a>       # makes the unchanged directional risk envelope inspect the intended side.</span>
+<span class="line" id="L267"><a href="#L267"> 267</a>       st.update(phase=&#x27;READY&#x27;,direction=run[&#x27;direction&#x27;],nav_failed=False)</span>
+<span class="line" id="L268"><a href="#L268"> 268</a>       wait(lambda:bool(st[&#x27;gate&#x27;] and st[&#x27;gate&#x27;].get(&#x27;armed_direction&#x27;)==run[&#x27;direction&#x27;] and st[&#x27;gate&#x27;][&#x27;stopped&#x27;] and st[&#x27;gate&#x27;][&#x27;tool_stopped&#x27;]),3)</span>
+<span class="line" id="L269"><a href="#L269"> 269</a>       barrier=st[&#x27;t&#x27;]</span>
+<span class="line" id="L270"><a href="#L270"> 270</a>       wait(lambda:bool(st[&#x27;loc&#x27;] and st[&#x27;loc&#x27;][&#x27;valid&#x27;] and st[&#x27;bt&#x27;] and st[&#x27;bt&#x27;].get(&#x27;evidence&#x27;,{}).get(&#x27;stamp&#x27;,-1)&gt;barrier and st[&#x27;bt&#x27;][&#x27;action&#x27;]==&#x27;EXECUTE&#x27; and st[&#x27;gate&#x27;][&#x27;stopped&#x27;] and st[&#x27;gate&#x27;][&#x27;tool_stopped&#x27;]),min(8.,max(.1,deadline-st[&#x27;t&#x27;])))</span>
+<span class="line" id="L271"><a href="#L271"> 271</a>       remaining=gear_path[min(cursor,len(gear_path)-2):]</span>
+<span class="line" id="L272"><a href="#L272"> 272</a>       ok,why=validate_candidate(remaining,st[&#x27;loc&#x27;][&#x27;pose&#x27;],gear_path[-1],cfg,length_limit)</span>
+<span class="line" id="L273"><a href="#L273"> 273</a>       if not ok:log(&#x27;ENDPOINT_RESUME_REJECTED&#x27;,reason=why,cursor=cursor,gear_index=gear_index);candidate_ok=False;break</span>
+<span class="line" id="L274"><a href="#L274"> 274</a>       path=NavPath();path.header.frame_id=&#x27;map&#x27;;path.header.stamp=n.get_clock().now().to_msg();path.poses=[pose(p) for p in remaining]</span>
+<span class="line" id="L275"><a href="#L275"> 275</a>       wait(pathcheck.service_is_ready,5);request=IsPathValid.Request();request.path=path;collision=result(pathcheck.call_async(request),5);log(&#x27;ENDPOINT_FULL_COSTMAP_VALIDATION&#x27;,accepted=collision.is_valid,invalid_pose_indices=list(collision.invalid_pose_indices),poses=len(path.poses),cursor=cursor,gear_index=gear_index)</span>
+<span class="line" id="L276"><a href="#L276"> 276</a>       if not collision.is_valid:candidate_ok=False;break</span>
+<span class="line" id="L277"><a href="#L277"> 277</a>       st.update(phase=&#x27;READY&#x27;,direction=run[&#x27;direction&#x27;]);wait(lambda:bool(st[&#x27;gate&#x27;] and st[&#x27;gate&#x27;].get(&#x27;armed_direction&#x27;)==run[&#x27;direction&#x27;] and st[&#x27;gate&#x27;][&#x27;stopped&#x27;] and st[&#x27;gate&#x27;][&#x27;tool_stopped&#x27;]),3)</span>
+<span class="line" id="L278"><a href="#L278"> 278</a>       log(&#x27;RECOVERY_GEAR_ARMED&#x27;,gear_index=gear_index,direction=run[&#x27;direction&#x27;],candidate_attempt=attempt)</span>
+<span class="line" id="L279"><a href="#L279"> 279</a>       goal=FollowPath.Goal();goal.controller_id=&#x27;RecoveryRPP&#x27;;goal.goal_checker_id=&#x27;goal&#x27;;goal.progress_checker_id=&#x27;progress&#x27;;goal.path=path;st.update(phase=&#x27;NAVIGATING&#x27;,nav_idle=False);active=result(nav.send_goal_async(goal),5)</span>
+<span class="line" id="L280"><a href="#L280"> 280</a>       if not active.accepted:active=None;raise RuntimeError(&#x27;ENDPOINT_CONTROLLER_REJECTED&#x27;)</span>
+<span class="line" id="L281"><a href="#L281"> 281</a>       f=active.get_result_async();began=st[&#x27;t&#x27;];temporary_interrupt=False;tracking_failed=False;wrong_gear_since=None</span>
+<span class="line" id="L282"><a href="#L282"> 282</a>       while not f.done():</span>
+<span class="line" id="L283"><a href="#L283"> 283</a>        tick()</span>
+<span class="line" id="L284"><a href="#L284"> 284</a>        if (st[&#x27;loc&#x27;] or {}).get(&#x27;valid&#x27;):</span>
+<span class="line" id="L285"><a href="#L285"> 285</a>         cursor=observed_cursor(gear_path,st[&#x27;loc&#x27;][&#x27;pose&#x27;],cursor);distance=tracking_distance(gear_path,st[&#x27;loc&#x27;][&#x27;pose&#x27;],cursor)</span>
+<span class="line" id="L286"><a href="#L286"> 286</a>         if distance&gt;cfg[&#x27;navigation_execution&#x27;][&#x27;endpoint_recovery&#x27;][&#x27;max_tracking_error_m&#x27;]:</span>
+<span class="line" id="L287"><a href="#L287"> 287</a>          log(&#x27;RECOVERY_TRACKING_STOP&#x27;,distance_m=distance,gear_index=gear_index,cursor=cursor,pose=st[&#x27;loc&#x27;][&#x27;pose&#x27;]);stop_all();tracking_failed=True;break</span>
+<span class="line" id="L288"><a href="#L288"> 288</a>        raw=(st[&#x27;gate&#x27;] or {}).get(&#x27;raw_nav_v&#x27;) or 0.</span>
+<span class="line" id="L289"><a href="#L289"> 289</a>        wrong=raw*run[&#x27;direction&#x27;]&lt;-.001</span>
+<span class="line" id="L290"><a href="#L290"> 290</a>        if not wrong:wrong_gear_since=None</span>
+<span class="line" id="L291"><a href="#L291"> 291</a>        elif wrong_gear_since is None:wrong_gear_since=st[&#x27;t&#x27;]</span>
+<span class="line" id="L292"><a href="#L292"> 292</a>        if wrong_gear_since is not None and st[&#x27;t&#x27;]-wrong_gear_since&gt;.6:</span>
+<span class="line" id="L293"><a href="#L293"> 293</a>         log(&#x27;RECOVERY_TERMINAL_GEAR_CONFLICT&#x27;,gear_index=gear_index,raw_v=raw);stop_all()</span>
+<span class="line" id="L294"><a href="#L294"> 294</a>         if gear_index==len(runs)-1 and stopped_original_arrival(s):</span>
+<span class="line" id="L295"><a href="#L295"> 295</a>          log(&#x27;ENDPOINT_RECOVERY_SUCCESS&#x27;,segment=s[&#x27;id&#x27;],attempt=attempt,pause_restarts=pause_restarts,method=&#x27;stopped original arrival after terminal gear conflict&#x27;);return True</span>
+<span class="line" id="L296"><a href="#L296"> 296</a>         tracking_failed=True;break</span>
+<span class="line" id="L297"><a href="#L297"> 297</a>        if st[&#x27;t&#x27;]&gt;deadline:raise TimeoutError(&#x27;ENDPOINT_RECOVERY_BUDGET&#x27;)</span>
+<span class="line" id="L298"><a href="#L298"> 298</a>        if st[&#x27;t&#x27;]-began&gt;.4 and (st[&#x27;bt&#x27;] or {}).get(&#x27;action&#x27;)!=&#x27;EXECUTE&#x27;:</span>
+<span class="line" id="L299"><a href="#L299"> 299</a>         action=(st[&#x27;bt&#x27;] or {}).get(&#x27;action&#x27;);log(&#x27;ENDPOINT_RECOVERY_INTERRUPTED&#x27;,action=action,reason=(st[&#x27;bt&#x27;] or {}).get(&#x27;reason_code&#x27;),cursor=cursor,gear_index=gear_index);stop_all()</span>
+<span class="line" id="L300"><a href="#L300"> 300</a>         if action in [&#x27;HUMAN&#x27;,&#x27;STOP&#x27;]:raise RuntimeError(&#x27;ENDPOINT_RECOVERY_MANUAL_LATCH_RETAINED&#x27;)</span>
+<span class="line" id="L301"><a href="#L301"> 301</a>         temporary_interrupt=True;break</span>
+<span class="line" id="L302"><a href="#L302"> 302</a>       success=f.done() and f.result().status==4;stop_all()</span>
+<span class="line" id="L303"><a href="#L303"> 303</a>       if success:</span>
+<span class="line" id="L304"><a href="#L304"> 304</a>        p=st[&#x27;loc&#x27;][&#x27;pose&#x27;];q=gear_path[-1];xy=math.dist(p[:2],q[:2]);heading=yaw_error(p[2],q[2])</span>
+<span class="line" id="L305"><a href="#L305"> 305</a>        if xy&gt;.05 or heading&gt;.08:</span>
+<span class="line" id="L306"><a href="#L306"> 306</a>         log(&#x27;RECOVERY_CUSP_NOT_CONFIRMED&#x27;,gear_index=gear_index,xy_m=xy,yaw_rad=heading);candidate_ok=False;break</span>
+<span class="line" id="L307"><a href="#L307"> 307</a>        log(&#x27;RECOVERY_CUSP_STOP_CONFIRMED&#x27;,gear_index=gear_index,direction=run[&#x27;direction&#x27;],xy_m=xy,yaw_rad=heading);gear_done=True;continue</span>
+<span class="line" id="L308"><a href="#L308"> 308</a>       if tracking_failed or not temporary_interrupt:candidate_ok=False;break</span>
+<span class="line" id="L309"><a href="#L309"> 309</a>       pause_restarts+=1</span>
+<span class="line" id="L310"><a href="#L310"> 310</a>       if pause_restarts&gt;cfg[&#x27;navigation_execution&#x27;][&#x27;endpoint_recovery&#x27;][&#x27;max_observation_resumes&#x27;]:raise RuntimeError(&#x27;ENDPOINT_OBSERVATION_RESUME_BOUND&#x27;)</span>
+<span class="line" id="L311"><a href="#L311"> 311</a>       barrier=st[&#x27;t&#x27;];st[&#x27;phase&#x27;]=&#x27;OBSERVATION_HOLD&#x27;</span>
+<span class="line" id="L312"><a href="#L312"> 312</a>       observation_decision(s,[&#x27;EXECUTE&#x27;,&#x27;HUMAN&#x27;,&#x27;STOP&#x27;],min(12.,max(.1,deadline-st[&#x27;t&#x27;])),after=barrier)</span>
+<span class="line" id="L313"><a href="#L313"> 313</a>       if st[&#x27;bt&#x27;][&#x27;action&#x27;] in [&#x27;HUMAN&#x27;,&#x27;STOP&#x27;]:raise RuntimeError(&#x27;ENDPOINT_RECOVERY_MANUAL_LATCH_RETAINED&#x27;)</span>
+<span class="line" id="L314"><a href="#L314"> 314</a>       log(&#x27;ENDPOINT_OBSERVATION_RESUME&#x27;,attempt=attempt,cursor=cursor,gear_index=gear_index,pause_restarts=pause_restarts,remaining_budget_s=deadline-st[&#x27;t&#x27;])</span>
+<span class="line" id="L315"><a href="#L315"> 315</a>      if not candidate_ok:break</span>
+<span class="line" id="L316"><a href="#L316"> 316</a>     if candidate_ok:</span>
+<span class="line" id="L317"><a href="#L317"> 317</a>      p=st[&#x27;loc&#x27;][&#x27;pose&#x27;];q=s[&#x27;poses&#x27;][-1]</span>
+<span class="line" id="L318"><a href="#L318"> 318</a>      if math.dist(p[:2],q[:2])&gt;.10 or yaw_error(p[2],q[2])&gt;.12:raise RuntimeError(&#x27;RECOVERY_ARRIVAL_NOT_CONFIRMED&#x27;)</span>
+<span class="line" id="L319"><a href="#L319"> 319</a>      log(&#x27;ENDPOINT_RECOVERY_SUCCESS&#x27;,segment=s[&#x27;id&#x27;],attempt=attempt,pause_restarts=pause_restarts);return True</span>
+<span class="line" id="L320"><a href="#L320"> 320</a>    raise RuntimeError(&#x27;ENDPOINT_RECOVERY_EXHAUSTED&#x27;)</span>
+<span class="line" id="L321"><a href="#L321"> 321</a>   finally:st.update(endpoint_recovery=False,direction=old_direction)</span>
+<span class="line" id="L322"><a href="#L322"> 322</a>  def end(s,f):st[&#x27;stop&#x27;]=True</span>
+<span class="line" id="L323"><a href="#L323"> 323</a>  for sig in [signal.SIGINT,signal.SIGTERM]:signal.signal(sig,end)</span>
+<span class="line" id="L324"><a href="#L324"> 324</a>  (out/&#x27;observer_ready&#x27;).write_text(&#x27;Ackermann FollowPath + actual ToolTask feedback; no actuator or truth authority&#x27;)</span>
+<span class="line" id="L325"><a href="#L325"> 325</a>  try:</span>
+<span class="line" id="L326"><a href="#L326"> 326</a>   wait(lambda:nav.server_is_ready() and tool.server_is_ready() and bool(st[&#x27;loc&#x27;] and st[&#x27;loc&#x27;][&#x27;valid&#x27;] and st[&#x27;gate&#x27;] and st[&#x27;gate&#x27;][&#x27;tool_stopped&#x27;]),75);wait(manager.service_is_ready,15)</span>
+<span class="line" id="L327"><a href="#L327"> 327</a>   while not result(manager.call_async(Trigger.Request()),5).success:</span>
+<span class="line" id="L328"><a href="#L328"> 328</a>    t=st[&#x27;t&#x27;];wait(lambda:st[&#x27;t&#x27;]&gt;t+.3,2)</span>
+<span class="line" id="L329"><a href="#L329"> 329</a>   log(&#x27;NAV_LIFECYCLE_ACTIVE_VERIFIED&#x27;)</span>
+<span class="line" id="L330"><a href="#L330"> 330</a>   for index,s in enumerate(segments):</span>
+<span class="line" id="L331"><a href="#L331"> 331</a>    active_group=s;checkpoint_index=0</span>
+<span class="line" id="L332"><a href="#L332"> 332</a>    stop_all();st.update(index=index,segment=s[&#x27;kind&#x27;],segment_id=s[&#x27;id&#x27;],direction=s[&#x27;direction&#x27;],work_complete=False,nav_failed=False,replans=0,phase=&#x27;READY&#x27;);done=False;attempts=0</span>
+<span class="line" id="L333"><a href="#L333"> 333</a>    while not done:</span>
+<span class="line" id="L334"><a href="#L334"> 334</a>     action=observation_decision(s,[&#x27;EXECUTE&#x27;,&#x27;REPLAN&#x27;,&#x27;HUMAN&#x27;,&#x27;STOP&#x27;],55)</span>
+<span class="line" id="L335"><a href="#L335"> 335</a>     if action in [&#x27;HUMAN&#x27;,&#x27;STOP&#x27;]:raise RuntimeError(&#x27;BT_&#x27;+st[&#x27;bt&#x27;].get(&#x27;reason_code&#x27;,&#x27;HOLD&#x27;))</span>
+<span class="line" id="L336"><a href="#L336"> 336</a>     if action==&#x27;REPLAN&#x27;:</span>
+<span class="line" id="L337"><a href="#L337"> 337</a>      if st[&#x27;replans&#x27;]&gt;=2:raise RuntimeError(&#x27;ACK_BOUNDED_SEARCH_EXHAUSTED&#x27;)</span>
+<span class="line" id="L338"><a href="#L338"> 338</a>      outcome=replan_evidence(s)</span>
+<span class="line" id="L339"><a href="#L339"> 339</a>      if outcome in [&#x27;ORIGINAL_REVALIDATED&#x27;,&#x27;COVERAGE_REJOINED&#x27;]:</span>
+<span class="line" id="L340"><a href="#L340"> 340</a>       attempts+=1</span>
+<span class="line" id="L341"><a href="#L341"> 341</a>       if retry_exhausted(attempts,len(s[&#x27;members&#x27;]),False):raise RuntimeError(&#x27;SEGMENT_RETRY_BOUND&#x27;)</span>
+<span class="line" id="L342"><a href="#L342"> 342</a>       barrier=st[&#x27;t&#x27;];wait(lambda:bool(st[&#x27;bt&#x27;] and st[&#x27;bt&#x27;].get(&#x27;evidence&#x27;,{}).get(&#x27;stamp&#x27;,-1)&gt;barrier and st[&#x27;bt&#x27;][&#x27;action&#x27;] in [&#x27;EXECUTE&#x27;,&#x27;HUMAN&#x27;,&#x27;STOP&#x27;]),15)</span>
+<span class="line" id="L343"><a href="#L343"> 343</a>       continue</span>
+<span class="line" id="L344"><a href="#L344"> 344</a>      if outcome==&#x27;SEGMENT_COMPLETE&#x27;:</span>
+<span class="line" id="L345"><a href="#L345"> 345</a>       active=None;st[&#x27;nav_idle&#x27;]=True;stop_all();p=st[&#x27;loc&#x27;][&#x27;pose&#x27;];q=s[&#x27;poses&#x27;][-1];dist=math.dist(p[:2],q[:2]);angle=yaw_error(p[2],q[2]);log(&#x27;SEGMENT_ARRIVAL&#x27;,segment=s[&#x27;id&#x27;],xy_error_m=dist,yaw_error_rad=angle,route=&#x27;validated tool-off alternative to same original endpoint&#x27;)</span>
+<span class="line" id="L346"><a href="#L346"> 346</a>       if dist&gt;.10 or angle&gt;.12:raise RuntimeError(&#x27;SEGMENT_ARRIVAL_NOT_CONFIRMED&#x27;)</span>
+<span class="line" id="L347"><a href="#L347"> 347</a>       record_passage()</span>
+<span class="line" id="L348"><a href="#L348"> 348</a>       if checkpoint_index!=len(s[&#x27;members&#x27;]):raise RuntimeError(&#x27;ORIGINAL_SEGMENT_PASSAGE_NOT_CONFIRMED &#x27;+s[&#x27;members&#x27;][checkpoint_index][&#x27;id&#x27;])</span>
+<span class="line" id="L349"><a href="#L349"> 349</a>       completed.extend(m[&#x27;id&#x27;] for m in s[&#x27;members&#x27;]);done=True;break</span>
+<span class="line" id="L350"><a href="#L350"> 350</a>      st[&#x27;nav_failed&#x27;]=True;barrier=st[&#x27;t&#x27;];wait(lambda:(st[&#x27;bt&#x27;]or{}).get(&#x27;evidence&#x27;,{}).get(&#x27;stamp&#x27;,-1)&gt;barrier,3);continue</span>
+<span class="line" id="L351"><a href="#L351"> 351</a>     st[&#x27;phase&#x27;]=&#x27;READY&#x27;;wait(lambda:bool(st[&#x27;gate&#x27;] and st[&#x27;gate&#x27;].get(&#x27;armed_direction&#x27;)==s[&#x27;direction&#x27;] and st[&#x27;gate&#x27;][&#x27;stopped&#x27;] and st[&#x27;gate&#x27;][&#x27;tool_stopped&#x27;]),3);log(&#x27;DIRECTION_ARMED_WHILE_STOPPED&#x27;,direction=s[&#x27;direction&#x27;],segment=s[&#x27;id&#x27;])</span>
+<span class="line" id="L352"><a href="#L352"> 352</a>     if s[&#x27;kind&#x27;]==&#x27;COVERAGE&#x27; and not st[&#x27;work_complete&#x27;] and not begin_tool(s):</span>
+<span class="line" id="L353"><a href="#L353"> 353</a>      attempts+=1</span>
+<span class="line" id="L354"><a href="#L354"> 354</a>      if retry_exhausted(attempts,len(s[&#x27;members&#x27;]),False):raise RuntimeError(&#x27;SEGMENT_RETRY_BOUND&#x27;)</span>
+<span class="line" id="L355"><a href="#L355"> 355</a>      st[&#x27;phase&#x27;]=&#x27;OBSERVATION_HOLD&#x27;;barrier=st[&#x27;t&#x27;]</span>
+<span class="line" id="L356"><a href="#L356"> 356</a>      observation_decision(s,[&#x27;EXECUTE&#x27;,&#x27;REPLAN&#x27;,&#x27;HUMAN&#x27;,&#x27;STOP&#x27;],55,after=barrier)</span>
+<span class="line" id="L357"><a href="#L357"> 357</a>      continue</span>
+<span class="line" id="L358"><a href="#L358"> 358</a>     points=np.asarray(s[&#x27;poses&#x27;]);p=np.asarray(st[&#x27;loc&#x27;][&#x27;pose&#x27;]);i=int(np.argmin(np.linalg.norm(points[:,:2]-p[:2],axis=1)))</span>
+<span class="line" id="L359"><a href="#L359"> 359</a>     if math.dist(p[:2],points[i,:2])&gt;.4:raise RuntimeError(&#x27;SEGMENT_CAPTURE_OUTSIDE_QUALIFIED_CORRIDOR&#x27;)</span>
+<span class="line" id="L360"><a href="#L360"> 360</a>     goal=FollowPath.Goal();goal.controller_id=&#x27;TurnRPP&#x27; if s[&#x27;kind&#x27;]==&#x27;TURN_TOOL_OFF&#x27; else &#x27;RPP&#x27;;goal.goal_checker_id=&#x27;goal&#x27;;goal.progress_checker_id=&#x27;progress&#x27;;goal.path.header.frame_id=&#x27;map&#x27;;goal.path.header.stamp=n.get_clock().now().to_msg();goal.path.poses=[pose(x) for x in points[min(max(0,i-2),len(points)-2):]];st.update(phase=&#x27;NAVIGATING&#x27;,nav_idle=False);active=result(nav.send_goal_async(goal),8)</span>
+<span class="line" id="L361"><a href="#L361"> 361</a>     if not active.accepted:active=None;st[&#x27;nav_idle&#x27;]=True;raise RuntimeError(&#x27;FOLLOW_PATH_REJECTED&#x27;)</span>
+<span class="line" id="L362"><a href="#L362"> 362</a>     log(&#x27;SEGMENT_GOAL&#x27;,segment=s[&#x27;id&#x27;],kind=s[&#x27;kind&#x27;],direction=s[&#x27;direction&#x27;],original_poses=len(points),remaining_poses=len(goal.path.poses),tool_expected=s[&#x27;tool_on&#x27;],original_members=[m[&#x27;id&#x27;] for m in s[&#x27;members&#x27;]]);f=active.get_result_async();interrupted=False;began=st[&#x27;t&#x27;];recovered=False;endpoint_best=float(&#x27;inf&#x27;);endpoint_progress=st[&#x27;t&#x27;]</span>
+<span class="line" id="L363"><a href="#L363"> 363</a>     while not f.done():</span>
+<span class="line" id="L364"><a href="#L364"> 364</a>      tick()</span>
+<span class="line" id="L365"><a href="#L365"> 365</a>      if tool_future is not None and tool_future.done():</span>
+<span class="line" id="L366"><a href="#L366"> 366</a>       d=tool_finish_result()</span>
+<span class="line" id="L367"><a href="#L367"> 367</a>       if d[&#x27;state&#x27;]!=&#x27;SUCCEEDED&#x27;:raise RuntimeError(&#x27;WORK_ACTION_FAILED_BEFORE_SEGMENT_ARRIVAL &#x27;+d[&#x27;reason&#x27;])</span>
+<span class="line" id="L368"><a href="#L368"> 368</a>       st[&#x27;work_complete&#x27;]=True;log(&#x27;WORK_QUANTITY_CONFIRMED_BEFORE_PATH_END&#x27;,segment=s[&#x27;id&#x27;]);wait(lambda:bool(st[&#x27;gate&#x27;] and st[&#x27;gate&#x27;][&#x27;tool_stopped&#x27;]),4)</span>
+<span class="line" id="L369"><a href="#L369"> 369</a>      bt=st[&#x27;bt&#x27;] or {}</span>
+<span class="line" id="L370"><a href="#L370"> 370</a>      if bt.get(&#x27;action&#x27;) in [&#x27;CANCEL&#x27;,&#x27;WAIT&#x27;,&#x27;REPLAN&#x27;,&#x27;HUMAN&#x27;,&#x27;STOP&#x27;,&#x27;DEFER&#x27;] and st[&#x27;t&#x27;]-began&gt;.4:log(&#x27;BT_INTERRUPTS_SEGMENT&#x27;,action=bt[&#x27;action&#x27;],reason=bt.get(&#x27;reason_code&#x27;));interrupted=True;stop_all();break</span>
+<span class="line" id="L371"><a href="#L371"> 371</a>      if s[&#x27;kind&#x27;]==&#x27;TURN_TOOL_OFF&#x27; and checkpoint_index&gt;=len(s[&#x27;members&#x27;])-1 and (st[&#x27;loc&#x27;] or {}).get(&#x27;valid&#x27;):</span>
+<span class="line" id="L372"><a href="#L372"> 372</a>       distance=math.dist(st[&#x27;loc&#x27;][&#x27;pose&#x27;][:2],points[-1,:2])</span>
+<span class="line" id="L373"><a href="#L373"> 373</a>       if distance&lt;endpoint_best-.01:endpoint_best=distance;endpoint_progress=st[&#x27;t&#x27;]</span>
+<span class="line" id="L374"><a href="#L374"> 374</a>       if distance&lt;.25 and st[&#x27;t&#x27;]-endpoint_progress&gt;3. and bt.get(&#x27;action&#x27;)==&#x27;EXECUTE&#x27;:</span>
+<span class="line" id="L375"><a href="#L375"> 375</a>        log(&#x27;ENDPOINT_POSE_STALL&#x27;,segment=s[&#x27;id&#x27;],distance_m=distance,yaw_error_rad=yaw_error(st[&#x27;loc&#x27;][&#x27;pose&#x27;][2],points[-1,2]));recovered=recover_endpoint(s);break</span>
+<span class="line" id="L376"><a href="#L376"> 376</a>     if recovered or (f.done() and f.result().status==4):</span>
+<span class="line" id="L377"><a href="#L377"> 377</a>      active=None;st[&#x27;nav_idle&#x27;]=True;stop_all();p=st[&#x27;loc&#x27;][&#x27;pose&#x27;];q=points[-1];dist=math.dist(p[:2],q[:2]);angle=abs(math.atan2(math.sin(p[2]-q[2]),math.cos(p[2]-q[2])));log(&#x27;SEGMENT_ARRIVAL&#x27;,segment=s[&#x27;id&#x27;],xy_error_m=dist,yaw_error_rad=angle)</span>
+<span class="line" id="L378"><a href="#L378"> 378</a>      if dist&gt;.10 or angle&gt;.12:raise RuntimeError(&#x27;SEGMENT_ARRIVAL_NOT_CONFIRMED&#x27;)</span>
+<span class="line" id="L379"><a href="#L379"> 379</a>      record_passage()</span>
+<span class="line" id="L380"><a href="#L380"> 380</a>      if checkpoint_index!=len(s[&#x27;members&#x27;]):raise RuntimeError(&#x27;ORIGINAL_SEGMENT_PASSAGE_NOT_CONFIRMED &#x27;+s[&#x27;members&#x27;][checkpoint_index][&#x27;id&#x27;])</span>
+<span class="line" id="L381"><a href="#L381"> 381</a>      completed.extend(m[&#x27;id&#x27;] for m in s[&#x27;members&#x27;]);done=True</span>
+<span class="line" id="L382"><a href="#L382"> 382</a>     else:</span>
+<span class="line" id="L383"><a href="#L383"> 383</a>      if active:stop_all()</span>
+<span class="line" id="L384"><a href="#L384"> 384</a>      st.update(nav_failed=not interrupted,phase=&#x27;OBSERVATION_HOLD&#x27;);barrier=st[&#x27;t&#x27;];choices=[&#x27;EXECUTE&#x27;,&#x27;REPLAN&#x27;,&#x27;HUMAN&#x27;,&#x27;STOP&#x27;] if interrupted else [&#x27;REPLAN&#x27;,&#x27;HUMAN&#x27;,&#x27;STOP&#x27;];observation_decision(s,choices,55,after=barrier)</span>
+<span class="line" id="L385"><a href="#L385"> 385</a>     attempts+=1</span>
+<span class="line" id="L386"><a href="#L386"> 386</a>     if retry_exhausted(attempts,len(s[&#x27;members&#x27;]),done):raise RuntimeError(&#x27;SEGMENT_RETRY_BOUND&#x27;)</span>
+<span class="line" id="L387"><a href="#L387"> 387</a>   st.update(complete=True,phase=&#x27;DONE&#x27;);log(&#x27;SELECTED_SEGMENTS_TRAVERSED&#x27;,selected=len(selected),navigation_groups=len(segments),original=len(allsegments),coverage_completion=&#x27;read feedback ledger separately&#x27;);t=st[&#x27;t&#x27;];wait(lambda:st[&#x27;t&#x27;]&gt;t+2,4);terminal=&#x27;COMPLETED&#x27;</span>
+<span class="line" id="L388"><a href="#L388"> 388</a>  except InterruptedError as ex:error=repr(ex);terminal=&#x27;CANCELLED&#x27;;log(&#x27;TASK_STOP&#x27;,error=error)</span>
+<span class="line" id="L389"><a href="#L389"> 389</a>  except BaseException as ex:error=repr(ex);terminal=&#x27;HUMAN_REQUIRED&#x27; if isinstance(ex,(RuntimeError,TimeoutError)) and &#x27;STOP_UNCONFIRMED&#x27; not in str(ex) and &#x27;CONFIRMATION_TIMEOUT&#x27; not in str(ex) else &#x27;FAULT&#x27;;log(&#x27;TASK_STOP&#x27;,error=error,terminal=terminal)</span>
+<span class="line" id="L390"><a href="#L390"> 390</a>  finally:</span>
+<span class="line" id="L391"><a href="#L391"> 391</a>   try:stop_all()</span>
+<span class="line" id="L392"><a href="#L392"> 392</a>   except BaseException as ex:terminal=&#x27;FAULT&#x27;;error=error or repr(ex);log(&#x27;STOP_UNCONFIRMED&#x27;,error=repr(ex))</span>
+<span class="line" id="L393"><a href="#L393"> 393</a>   ownership={topic:[i.node_name for i in n.get_publishers_info_by_topic(topic)] for topic in [&#x27;/tf&#x27;,&#x27;/s03/actuator/request&#x27;,&#x27;/s10/tool/command&#x27;]};final=dict(passed=terminal==&#x27;COMPLETED&#x27; and len(completed)==len(selected),terminal=terminal,controlled_hold=terminal==&#x27;HUMAN_REQUIRED&#x27;,error=error,t=st[&#x27;t&#x27;],selected_segments=len(selected),navigation_groups=len(segments),original_segment_passages=passages,original_segments=len(allsegments),execution_segments=len(allsegments),reference_original_segments=cluster.get(&#x27;source_original_segments&#x27;,len(allsegments)),original_reference_status=cfg.get(&#x27;safe_execution_plan&#x27;,{}).get(&#x27;original_reference_status&#x27;),safe_plan_revision=cfg.get(&#x27;safe_execution_plan&#x27;,{}).get(&#x27;revision&#x27;),localization_revalidations=revalidations,completed_segments=completed,remaining_selected=[s[&#x27;id&#x27;] for s in selected if s[&#x27;id&#x27;] not in completed],not_selected=[s[&#x27;id&#x27;] for s in allsegments if s[&#x27;id&#x27;] not in {x[&#x27;id&#x27;] for x in selected}],work_results=work_results,replans=st[&#x27;replans&#x27;],coverage_rejoins=st.get(&#x27;coverage_rejoins&#x27;,0),coverage_planner_queries=st.get(&#x27;coverage_planner_queries&#x27;,0),endpoint_recoveries=st.get(&#x27;endpoint_recoveries&#x27;,0),endpoint_planner_queries=st.get(&#x27;endpoint_planner_queries&#x27;,0),continuous_recovery_queries=st.get(&#x27;continuous_recovery_queries&#x27;,0),final_gate=st[&#x27;gate&#x27;],ownership=ownership,wall_seconds=time.monotonic()-start,execution_mode=cfg[&#x27;navigation_execution&#x27;][&#x27;mode&#x27;],scope=&#x27;All current approved execution goals checked in order; original 34 reference remains PARTIAL; unchanged original work polygons use physical feedback only&#x27;);(out/&#x27;mission_result.json&#x27;).write_text(json.dumps(final,indent=2));n.destroy_node();rclpy.try_shutdown()</span>
+<span class="line" id="L394"><a href="#L394"> 394</a>  return 0 if terminal in [&#x27;COMPLETED&#x27;,&#x27;HUMAN_REQUIRED&#x27;] else 2</span>
+<span class="line" id="L395"><a href="#L395"> 395</a> if __name__==&#x27;__main__&#x27;:raise SystemExit(main())</span></code></pre></html>

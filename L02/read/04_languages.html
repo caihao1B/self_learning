@@ -1,0 +1,175 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>第 04 章 C++ 与 Python 入门</title><style>*{box-sizing:border-box}body{margin:0;background:#eff4f5;color:#17343d;font:17px/1.95 "Segoe UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif}header{background:#163c45;color:#e5f3ef;padding:22px max(20px,calc((100vw - 1080px)/2))}header a{color:#bceadf;margin-right:20px}main{max-width:1140px;margin:28px auto;padding:34px 48px;background:white;border:1px solid #dae5e8;border-radius:12px}h1{font-size:32px;line-height:1.5;color:#174b50}h2{margin-top:42px;font-size:24px;color:#256466;border-bottom:1px solid #dce9e8;padding-bottom:9px}h3{font-size:20px;color:#345b62}a{color:#08777a;text-underline-offset:3px}p,li{overflow-wrap:anywhere}pre{background:#112c38;color:#e3f0ed;padding:20px;border-radius:8px;overflow:auto;font:13px/1.8 Consolas,monospace;white-space:pre;overflow-wrap:normal}code{font-family:Consolas,monospace}p code,li code,td code{background:#edf3f4;padding:2px 4px}table{display:block;overflow:auto;border-collapse:collapse;font-size:15px;margin:22px 0}th,td{border:1px solid #cedfe1;padding:10px;min-width:100px;vertical-align:top}th{background:#e6f2ef}img{max-width:100%;height:auto;margin:22px auto;display:block}blockquote{border-left:4px solid #3c9083;padding:8px 20px;background:#f0f7f4;margin:20px 0}.toc{background:#f3f8f7;padding:12px 25px;font-size:14px}footer{max-width:1100px;margin:24px auto;padding:20px;color:#47666c}button{background:#e7f4ed;color:#245448;border:0;padding:7px 12px;border-radius:5px;cursor:pointer}@media(max-width:700px){body{font-size:16px}main{padding:22px 18px;margin:12px;border-radius:8px}h1{font-size:26px}h2{font-size:22px}header{padding:16px}pre{font-size:12px}}@media print{header,footer,button,.toc{display:none}main{border:0;max-width:none;margin:0;padding:0}pre{background:#eee;color:black;white-space:pre-wrap;overflow-wrap:anywhere}a{color:black}h2{break-after:avoid}img{max-height:230mm}}</style><header><a href="../../index.html">学习首页</a><a href="../index.html">三十章目录</a><a href="03_process.html">← 上一章</a><a href="05_ros.html">下一章 →</a><button onclick="window.print()">打印本章</button></header><main><details class="toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#04-c-python">第 04 章 C++ 与 Python 入门</a><ul>
+<li><a href="#_1">从变量和函数开始</a></li>
+<li><a href="#_2">可变对象和复制</a></li>
+<li><a href="#lambda">看懂回调和 lambda</a></li>
+<li><a href="#_3">语言边界怎样连接</a></li>
+<li><a href="#_4">固定生产代码逐段阅读</a><ul>
+<li><a href="#rig_r08py-5-12">rig_r08.py 第 5 至 12 行</a></li>
+<li><a href="#precision_progresshpp-1-17">precision_progress.hpp 第 1 至 17 行</a></li>
+</ul>
+</li>
+<li><a href="#c">编译并运行一个真实 C++ 判据例子</a></li>
+<li><a href="#python">Python 练习</a><ul>
+<li><a href="#_5">本章练习核心代码与实际输出</a></li>
+</ul>
+</li>
+<li><a href="#_6">库、模块与构建文件</a></li>
+<li><a href="#_7">排错和自测</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details><h1 id="04-c-python">第 04 章 C++ 与 Python 入门</h1>
+<p>这个项目不是把所有算法用两种语言各写一遍。Python 擅长连接模块、读取配置、组织实验和处理数据；C++ 常用于 ROS 原生组件、Gazebo 插件、几何后端和高频监督。学习的重点是知道数据怎样跨越边界，以及谁负责校验。</p>
+<h2 id="_1">从变量和函数开始</h2>
+<p>变量给一个值起名字。Python 中 <code>distance = 0.03</code> 在运行时绑定对象；C++ 中 <code>double distance = 0.03;</code> 同时声明静态类型。两者都不会自动知道 0.03 是米还是厘米，所以变量名、接口和文档必须保留单位。</p>
+<p>函数把输入映射到输出。例如 <code>wrap(angle)</code> 把角度归一到主值范围，调用者传入弧度，得到弧度。类把状态和操作放在一起，例如 C++ <code>Policy</code> 持有等待开始时间、人工锁存和配置；Python 任务则常用字典保存最近消息。</p>
+<table>
+<thead>
+<tr>
+<th>需要表达的内容</th>
+<th>Python</th>
+<th>C++</th>
+<th>本项目中的例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>具名状态</td>
+<td>dict</td>
+<td>struct 或 JSON 对象</td>
+<td>定位 valid、reason、t</td>
+</tr>
+<tr>
+<td>有序集合</td>
+<td>list、deque</td>
+<td>vector、deque</td>
+<td>路径点与观测窗口</td>
+</tr>
+<tr>
+<td>缺失值</td>
+<td>None</td>
+<td>optional 或显式状态</td>
+<td>还没有定位、还没有动作结果</td>
+</tr>
+<tr>
+<td>错误</td>
+<td>raise / try / except</td>
+<td>throw / try / catch</td>
+<td>版本不一致、路径非法</td>
+</tr>
+<tr>
+<td>资源释放</td>
+<td>with、finally</td>
+<td>RAII、析构函数</td>
+<td>文件、锁、进程句柄</td>
+</tr>
+</tbody>
+</table>
+<p>Python 的 <code>bool</code> 是整数类型的子类，<code>isinstance(True, int)</code> 为真；输入验证如果只看数字，可能把布尔值误当距离。NaN 则可能让比较表达式出现意外结果。实际 C++ 判据使用 <code>std::isfinite</code>，教学例子也明确拒绝非有限值。</p>
+<h2 id="_2">可变对象和复制</h2>
+<p>Python 字典赋值通常复制的是引用，不是整个嵌套结构。<code>b = a</code> 后修改 b，可能改变 a；<code>dict.copy()</code> 只做浅复制，嵌套字典仍共享；<code>copy.deepcopy()</code> 才递归复制。当前传感器派生器 <code>effective_rig()</code> 使用 deepcopy，避免在修改采样密度时污染已冻结基础标定。</p>
+<p>C++ 引用 <code>const J&amp;</code> 可以避免复制并禁止经该引用修改；按值参数会产生复制或移动；<code>std::move</code> 允许资源转移，不代表每次都必然移动。不能在转移后假设对象还保留原内容。<code>std::vector</code> 扩容也可能使指向旧元素的指针或引用失效。</p>
+<h2 id="lambda">看懂回调和 lambda</h2>
+<p>ROS 消息到来时执行的函数叫回调。Python 的 <code>lambda m, k=key: ...</code> 把当次循环的 key 放在默认参数里，避免所有回调最终引用同一个末尾变量。C++ lambda 的 <code>[this]</code> 捕获对象指针，<code>[&amp;]</code> 按引用捕获；如果回调比被引用对象活得更久，就可能出现悬空引用。</p>
+<p>任务代码中 <code>nonlocal active_nav</code> 表示修改外层函数的变量。它与 <code>global</code> 不同，作用范围是封闭函数。它也不是线程锁；多线程读写共享状态仍需要同步。C++ 插件通过 <code>std::mutex</code> 和 <code>lock_guard</code> 保护请求数据，以便传输回调和仿真更新之间安全交接。</p>
+<h2 id="_3">语言边界怎样连接</h2>
+<p>第一种边界是 ROS 消息/action：Python 客户端与 C++ 服务器通过生成的类型通信。双方不用链接同一份业务源码，但需要一致的接口定义与语义。</p>
+<p>第二种边界是子进程 JSON：Python 构造 CSR 图或代价矩阵，C++ 程序调用 METIS、Fields2Cover、OR-Tools，结果再以 JSON 返回。这样可以把成熟原生库包装成清楚的输入输出；代价是序列化开销和额外错误处理。</p>
+<p>第三种边界是 Python 调用 NumPy、SciPy 等库。你写的外层是 Python，矩阵和邻近搜索常在编译代码中执行。不能只按文件扩展名推断运行性能。</p>
+<!-- generated-production-start -->
+<h2 id="_4">固定生产代码逐段阅读</h2>
+<p>下面是固定提交中的原样节选。完整文件有离线行号页；片段可能省略上下文，不能单独当成可运行脚本。读完每段后，回到调用者确认它在当前任务中如何使用。</p>
+<h3 id="rig_r08py-5-12">rig_r08.py 第 5 至 12 行</h3>
+<p><a href="../../baseline/l02_views/faf89efd4348-rig_r08.py.html#L5">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/rig_r08.py#L5">固定 Git 提交</a></p>
+<pre><code class="language-python">def effective_rig(base,near):
+    rig=copy.deepcopy(base)
+    rig.update(schema='R08-EFFECTIVE-SENSORS/1',base_calibration_revision=base['revision'],near_sensor=copy.deepcopy(near))
+    rig['lidar'].update(horizontal=2048,vertical=128)
+    rig['branches']['perception_sampling']=dict(max_rings=64,max_azimuth=512,near_channels='all original independent rays',localization='full 128 x 2048')
+    rig['sampling_change_reason']='Actual extra simulator rays for sparse frozen-map landmarks; no repeated-point inflation or relaxed quality gates'
+    rig['revision']=canonical({k:v for k,v in rig.items() if k!='revision'})
+    return rig
+</code></pre>
+<p>deepcopy 保留原标定字典。update 只改变明确的采样与版本信息；canonical 对剔除旧 revision 后的内容计算新标识。函数返回派生配置，不直接移动任何车体。</p>
+<h3 id="precision_progresshpp-1-17">precision_progress.hpp 第 1 至 17 行</h3>
+<p><a href="../../baseline/l02_views/3b34eb3bcafc-precision_progress.hpp.html#L1">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/r10_backend/precision_progress.hpp#L1">固定 Git 提交</a></p>
+<pre><code class="language-cpp">#pragma once
+#include &lt;nlohmann/json.hpp&gt;
+#include &lt;algorithm&gt;
+#include &lt;cmath&gt;
+namespace r10 {
+// Match progress scale to an explicitly validated, bounded precision motion.
+// The 10 s timeout, emergency priority and original work admission stay intact.
+inline double progressDelta(const nlohmann::json&amp; cfg,const nlohmann::json&amp; e) {
+  const double coarse=cfg.at(&quot;progress_delta_m&quot;).get&lt;double&gt;();
+  if (!cfg.contains(&quot;precision_progress_policy&quot;) ||
+      e.value(&quot;motion_scope&quot;,std::string())!=&quot;VALIDATED_LOCAL_DOCKING&quot; ||
+      !e.contains(&quot;expected_translation_m&quot;) || !e[&quot;expected_translation_m&quot;].is_number()) return coarse;
+  const double distance=e[&quot;expected_translation_m&quot;].get&lt;double&gt;();
+  if (!std::isfinite(distance) || distance&lt;=.008 || distance&gt;.15) return coarse;
+  return std::min(coarse,std::max(.005,.25*distance));
+}
+}
+</code></pre>
+<p>const 引用避免修改输入；at 在必需字段缺失时失败；value 为可选字段提供默认。检查授权 scope、数字类型、有限性和距离范围后，才返回受界限约束的精停进展尺度。</p>
+<!-- generated-production-end -->
+
+<h2 id="c">编译并运行一个真实 C++ 判据例子</h2>
+<p>当前 Linux 已有 g++ 与 nlohmann/json 时：</p>
+<pre><code class="language-bash">cd /home/ceihao/self_learning
+mkdir -p build
+g++ -std=c++17 -Wall -Wextra -pedantic examples/precision_demo.cpp -o build/precision_demo
+./build/precision_demo
+</code></pre>
+<p><code>-std=c++17</code> 选择语言标准；<code>-Wall -Wextra -pedantic</code> 开启常用诊断；<code>-o</code> 指定输出文件。<code>./</code> 表示执行当前目录中的相对路径，避免与 PATH 中同名程序混淆。这个例子包含固定生产头文件，实际调用 <code>progressDelta</code>，不启动 ROS。</p>
+<p>输出的普通进展尺度为 0.100 m，合法精停示例为 0.009 m，越界精停请求回退为 0.100 m。小尺度只在合格精停上下文使用，不能把它理解为普遍放松无进展监督。</p>
+<h2 id="python">Python 练习</h2>
+<pre><code class="language-bash">python3 examples/l02/labs.py 04
+</code></pre>
+<p>先读函数的参数检查，再看正常返回，最后看异常。<code>try</code> 只包住预期可能失败的操作，捕获明确异常类型；不要把所有异常都吞掉然后继续给机器人发命令。输出应有一个正常距离及四个被拒绝的输入。</p>
+<!-- generated-lab-start -->
+<h3 id="_5">本章练习核心代码与实际输出</h3>
+<p><a href="../../examples/l02/labs.py">完整教学脚本</a> · <a href="../../validation/L02/lab_04.json">本章完整输出</a></p>
+<p>代码只使用 Python 标准库；合成输入与历史记录在输出 kind 中区分。公共 ROOT、read、wrap、connected 等辅助函数在完整脚本中定义。</p>
+<pre><code class="language-python">def lab04():
+    &quot;&quot;&quot;Validation prevents bool, NaN and absent data masquerading as a number.&quot;&quot;&quot;
+    def distance(x):
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError('numeric distance required')
+        if not math.isfinite(x) or x &lt; 0:
+            raise ValueError('finite nonnegative distance required')
+        return x
+    rejected = []
+    for value in [None, True, float('nan'), -1]:
+        try: distance(value)
+        except (TypeError, ValueError): rejected.append(repr(value))
+    assert len(rejected) == 4
+    return dict(valid_m=distance(.03), rejected=rejected)
+</code></pre>
+<pre><code class="language-text">{
+  &quot;chapter&quot;: &quot;04&quot;,
+  &quot;passed&quot;: true,
+  &quot;result&quot;: {
+    &quot;valid_m&quot;: 0.03,
+    &quot;rejected&quot;: [
+      &quot;None&quot;,
+      &quot;True&quot;,
+      &quot;nan&quot;,
+      &quot;-1&quot;
+    ]
+  }
+}
+</code></pre>
+<p>本章例子可以在 Windows 使用 <code>py -3</code> 或在 Linux 使用 <code>python3</code> 重跑。它验证局部概念或读取历史证据，不对机器人全任务提供新通过结论。</p>
+<!-- generated-lab-end -->
+
+<h2 id="_6">库、模块与构建文件</h2>
+<p>Python <code>import json</code> 导入标准库；<code>import numpy</code> 需要对应环境安装 NumPy；<code>from sensor_msgs.msg import Imu</code> 依赖 ROS 消息生成包。C++ <code>#include</code> 让编译器看到声明，<code>target_link_libraries</code> 让链接阶段找到实现。头文件找得到不等于库能成功链接。</p>
+<p><code>package.xml</code> 声明 ROS 包依赖，<code>CMakeLists.txt</code> 描述构建目标，colcon 在工作区按依赖顺序组织多个包。第 26 章会区分系统包、Python 虚拟环境和项目构建物，避免把所有安装问题都归结为 pip。</p>
+<h2 id="_7">排错和自测</h2>
+<p>Python <code>KeyError</code> 表示键不存在，先检查输入 schema 与版本；<code>TypeError</code> 往往是参数或类型不匹配；<code>ImportError</code> 要检查解释器与搜索路径。C++ 编译错误、链接错误、运行期异常是不同阶段，分别看第一条有效诊断、缺失符号或异常消息。</p>
+<p>问：为什么不用 Python 把 C++ 算法完整重写一遍学习？答：可以写小型原理例子，但生产算法有大量边界和工程细节。教材明确标出教学模型与实际调用边界，避免把简化例子误装进运行链路。</p>
+<p>练习：给 <code>lab04.distance</code> 增加单位说明，分别传入 0、0.03、NaN 和字符串。解释为何 0 合法而负数非法；这只是该函数的距离合同，不是所有物理量都不能为负。</p></main><footer>L02 内容阅读版 · 固定基线 9aff8337 · 原机器人 R10–R12 PARTIAL · L03 完整站点尚待执行</footer></html>

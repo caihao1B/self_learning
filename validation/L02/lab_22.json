@@ -1,0 +1,10 @@
+{
+  "chapter": "22",
+  "passed": true,
+  "result": {
+    "kind": "synthetic control calculation",
+    "curvature_1_per_m": 0.38461538461538464,
+    "angular_velocity_rad_s": 0.19230769230769232,
+    "stop_distance_with_delay_m": 0.4125
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "chapter": "13",
+  "passed": true,
+  "result": {
+    "kind": "equal-weight 1D teaching graph",
+    "before_closure_m": 0.10000000000000009,
+    "optimized_edges_m": [
+      0.995,
+      1.005,
+      -1.005,
+      -0.995
+    ],
+    "after_closure_m": 0.0
+  }
+}

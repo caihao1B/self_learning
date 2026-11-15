@@ -1,0 +1,14 @@
+{
+  "chapter": "18",
+  "passed": true,
+  "result": {
+    "kind": "synthetic checked partition",
+    "loads": [
+      6,
+      6,
+      6
+    ],
+    "imbalance": 0.0,
+    "connected": true
+  }
+}

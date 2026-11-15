@@ -1,0 +1,130 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>第 28 章 实时 GUI 与证据阅读</title><style>*{box-sizing:border-box}body{margin:0;background:#eff4f5;color:#17343d;font:17px/1.95 "Segoe UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif}header{background:#163c45;color:#e5f3ef;padding:22px max(20px,calc((100vw - 1080px)/2))}header a{color:#bceadf;margin-right:20px}main{max-width:1140px;margin:28px auto;padding:34px 48px;background:white;border:1px solid #dae5e8;border-radius:12px}h1{font-size:32px;line-height:1.5;color:#174b50}h2{margin-top:42px;font-size:24px;color:#256466;border-bottom:1px solid #dce9e8;padding-bottom:9px}h3{font-size:20px;color:#345b62}a{color:#08777a;text-underline-offset:3px}p,li{overflow-wrap:anywhere}pre{background:#112c38;color:#e3f0ed;padding:20px;border-radius:8px;overflow:auto;font:13px/1.8 Consolas,monospace;white-space:pre;overflow-wrap:normal}code{font-family:Consolas,monospace}p code,li code,td code{background:#edf3f4;padding:2px 4px}table{display:block;overflow:auto;border-collapse:collapse;font-size:15px;margin:22px 0}th,td{border:1px solid #cedfe1;padding:10px;min-width:100px;vertical-align:top}th{background:#e6f2ef}img{max-width:100%;height:auto;margin:22px auto;display:block}blockquote{border-left:4px solid #3c9083;padding:8px 20px;background:#f0f7f4;margin:20px 0}.toc{background:#f3f8f7;padding:12px 25px;font-size:14px}footer{max-width:1100px;margin:24px auto;padding:20px;color:#47666c}button{background:#e7f4ed;color:#245448;border:0;padding:7px 12px;border-radius:5px;cursor:pointer}@media(max-width:700px){body{font-size:16px}main{padding:22px 18px;margin:12px;border-radius:8px}h1{font-size:26px}h2{font-size:22px}header{padding:16px}pre{font-size:12px}}@media print{header,footer,button,.toc{display:none}main{border:0;max-width:none;margin:0;padding:0}pre{background:#eee;color:black;white-space:pre-wrap;overflow-wrap:anywhere}a{color:black}h2{break-after:avoid}img{max-height:230mm}}</style><header><a href="../../index.html">学习首页</a><a href="../index.html">三十章目录</a><a href="27_operations.html">← 上一章</a><a href="29_failures.html">下一章 →</a><button onclick="window.print()">打印本章</button></header><main><details class="toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#28-gui">第 28 章 实时 GUI 与证据阅读</a><ul>
+<li><a href="#_1">三层实现</a></li>
+<li><a href="#_2">同一页面的四种状态</a></li>
+<li><a href="#_3">固定生产代码逐段阅读</a><ul>
+<li><a href="#datapy-56-61">data.py 第 56 至 61 行</a></li>
+<li><a href="#serverpy-40-71">server.py 第 40 至 71 行</a></li>
+</ul>
+</li>
+<li><a href="#_4">逐屏学习方法</a></li>
+<li><a href="#http">文件与 HTTP 接口</a></li>
+<li><a href="#_5">频率和处理开销</a></li>
+<li><a href="#_6">离线练习与故障</a><ul>
+<li><a href="#_7">本章练习核心代码与实际输出</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</details><h1 id="28-gui">第 28 章 实时 GUI 与证据阅读</h1>
+<p>GUI 的作用是帮助你把多层状态放到同一时间线上理解。它是只读观察者，不替任务发速度，也不替评估器判定全图通过。学习时要特别区分“正在接收数据”“数据有效”“历史曾经有效”和“工作已确认”。</p>
+<p><img alt="已有运行 GUI 总览" src="../../assets/gui_overview.png" /></p>
+<p>图为固定资料中的原机器人 GUI 示例，展示布局与字段，不代表本轮新运行点喷或新验收结果。</p>
+<h2 id="_1">三层实现</h2>
+<p><code>ros_observer.py</code> 订阅传感器与状态并保存有界预览；<code>data.py</code> 读取当前或历史运行目录、结果和事件，聚合可展示内容；<code>server.py</code> 提供 HTTP GET 接口；HTML/JavaScript 周期请求并更新画面。</p>
+<p>Python 标准库 <code>ThreadingHTTPServer</code> 处理请求，threading 锁保护共享读取；浏览器 fetch 取 JSON，DOM 更新卡片和列表。传感器消息与磁盘日志来自不同周期，界面应同时保留来源时间与年龄，而不是强行把所有字段写成同一瞬间。</p>
+<h2 id="_2">同一页面的四种状态</h2>
+<p>LIVE 表示关联正在运行的会话；HISTORICAL 表示保存结果；STALE 表示超过允许年龄；REJECTED 表示有数据但未通过算法准入。相机有画面可能只是最后一帧，不证明定位仍有效；点云有点不证明地形可通行。</p>
+<p>当前服务通过 run 身份核对相机数据，避免新任务页面显示上一任务图片。启动时先占有 HTTP 端口，再启动观察子进程，减少重复启动造成孤儿观察者的风险。退出时只收尾自己创建的子进程。</p>
+<!-- generated-production-start -->
+<h2 id="_3">固定生产代码逐段阅读</h2>
+<p>下面是固定提交中的原样节选。完整文件有离线行号页；片段可能省略上下文，不能单独当成可运行脚本。读完每段后，回到调用者确认它在当前任务中如何使用。</p>
+<h3 id="datapy-56-61">data.py 第 56 至 61 行</h3>
+<p><a href="../../baseline/l02_views/2a83a21ecc65-data.py.html#L56">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/three_tasks/monitor/data.py#L56">固定 Git 提交</a></p>
+<pre><code class="language-python">def freshness(stamp, now, maximum=.5):
+    if not isinstance(stamp, (int,float)) or not isinstance(now, (int,float)):
+        return 'MISSING', None
+    delta = now-stamp
+    if not math.isfinite(delta): return 'MISSING', None
+    return ('FUTURE' if delta &lt; -.1 else 'FRESH' if delta &lt;= maximum else 'STALE'), delta
+</code></pre>
+<p>函数区分无 stamp、时间不合法、过期与有效。新鲜度是观测条件，不是任务成功。界面字段应保留 source 和会话，避免历史快照被误当实时。</p>
+<h3 id="serverpy-40-71">server.py 第 40 至 71 行</h3>
+<p><a href="../../baseline/l02_views/d4b52cdfab9c-server.py.html#L40">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/three_tasks/monitor/server.py#L40">固定 Git 提交</a></p>
+<pre><code class="language-python">                    if u.path=='/api/geometry':return self.reply(evidence.geometry(name))
+                    if u.path=='/api/preview':
+                        p,_=evidence.resolve(name);f=p/'video/preview.png' if p else None
+                        if f and f.is_file():return self.reply(f.read_bytes(),'image/png')
+                    if u.path=='/api/camera':
+                        p,rid=evidence.resolve(name);s=evidence.state(name)
+                        f=state/'camera.jpg'
+                        if s.get('observer',{}).get('run')==rid and s.get('observer',{}).get('camera_run')==rid and f.is_file():return self.reply(f.read_bytes(),'image/jpeg')
+                self.reply({'error':'Not available'},code=404)
+            except (ValueError,OSError,KeyError) as e:self.reply({'error':str(e)},code=400)
+    server=ThreadingHTTPServer(('127.0.0.1',args.port),Handler);server.daemon_threads=True
+    stopping=threading.Event()
+    def stop(*_):
+        if not stopping.is_set():stopping.set();threading.Thread(target=server.shutdown,daemon=True).start()
+    signal.signal(signal.SIGINT,stop);signal.signal(signal.SIGTERM,stop)
+    try:
+        # Claim the HTTP port first: a duplicate launch must not orphan a ROS node.
+        if not args.no_ros:start_observer()
+        print(f'机器人实时监视： http://127.0.0.1:{args.port}  （只读，Ctrl+C 退出）',flush=True)
+        (state/'server.json').write_text(json.dumps(dict(pid=os.getpid(),port=args.port,readonly=True,started_wall=time.time())))
+        server.serve_forever(poll_interval=.2)
+    finally:
+        server.server_close()
+        if child and child.poll() is None:
+            child.send_signal(signal.SIGINT)
+            try:child.wait(5)
+            except subprocess.TimeoutExpired:
+                child.terminate()
+                try:child.wait(5)
+                except subprocess.TimeoutExpired:child.kill();child.wait(2)
+        (state/'server.json').write_text(json.dumps(dict(pid=os.getpid(),port=args.port,stopped_wall=time.time(),readonly=True)))
+if __name__=='__main__':main()
+</code></pre>
+<p>GET 路由聚合数据或返回相机，run 身份必须匹配。服务先占端口再起 observer，finally 关闭自己的子进程；没有控制命令接口，因此当前 GUI 是只读。</p>
+<!-- generated-production-end -->
+
+<h2 id="_4">逐屏学习方法</h2>
+<p>总览先看任务/会话、目标序号、阶段和剩余预算。定位页看局部 odom、全局修正、GNSS 创新与拒绝。传感器页看频率、年龄、frame 和是否有效。决策页看 action、reason、evidence、thresholds 与 alternatives。工具页看请求、工作反馈、确认量、残余和 uncertainty。</p>
+<p>把一条 WAIT 当作问题起点：定位不合格还是障碍短时等待？如果是定位，追到 GNSS_MAP_INNOVATION_OR_FRESHNESS 或匹配质量；如果是障碍，追到当前路径关系和阻塞持续时间；如果工具未工作，先看动作是否发出与准入条件。</p>
+<h2 id="http">文件与 HTTP 接口</h2>
+<p>当前服务绑定 <code>127.0.0.1:8088</code>。在同机可以读取：</p>
+<pre><code class="language-bash">curl -fsS http://127.0.0.1:8088/api/runs
+curl -fsS http://127.0.0.1:8088/api/state
+</code></pre>
+<p><code>-f</code> 让 HTTP 错误返回失败，<code>-sS</code> 隐藏进度但显示错误。端口未启动时连接失败是合理的；这些命令不会启动机器人。<code>127.0.0.1</code> 在 Windows 上指 Windows 本机，不会自动连接另一台 Linux；远程访问方案需要单独设计，当前教材不改变服务暴露范围。</p>
+<h2 id="_5">频率和处理开销</h2>
+<p>传感器标称 10 Hz 与 GUI 每秒刷新几次不同。GUI 可以降采样展示，算法仍处理自己的频率；反之界面刷新快也不能补足传感器实际缺帧。观察 processing_wall_s、消息年龄和进程 CPU 时，要区分生产、传输、算法与显示开销。</p>
+<p>历史运行只保存了有限证据，不一定包含全部图像或点云，不能凭结果 JSON 生成假实时传感器回放。静态教材的阅读页面也不会连接 ROS，它适合 Windows 学习，实时 GUI 适合 Linux 任务监视。</p>
+<h2 id="_6">离线练习与故障</h2>
+<p>执行 <code>python3 examples/l02/labs.py 28</code>，同一个 valid 标志在旧时间戳下变成 STALE，未来时间戳另列 FUTURE_STAMP。这样避免只根据文件存在就画绿灯。</p>
+<!-- generated-lab-start -->
+<h3 id="_7">本章练习核心代码与实际输出</h3>
+<p><a href="../../examples/l02/labs.py">完整教学脚本</a> · <a href="../../validation/L02/lab_28.json">本章完整输出</a></p>
+<p>代码只使用 Python 标准库；合成输入与历史记录在输出 kind 中区分。公共 ROOT、read、wrap、connected 等辅助函数在完整脚本中定义。</p>
+<pre><code class="language-python">def lab28():
+    &quot;&quot;&quot;Freshness badge must be derived from timestamps, not file existence.&quot;&quot;&quot;
+    def status(now,stamp,valid):
+        if stamp&gt;now:return 'FUTURE_STAMP'
+        if now-stamp&gt;.3:return 'STALE'
+        return 'VALID' if valid else 'REJECTED'
+    rows=[status(10,9.9,True),status(10,9,True),status(10,9.9,False),status(10,11,True)]
+    assert rows==['VALID','STALE','REJECTED','FUTURE_STAMP']
+    return dict(kind='synthetic GUI semantics',badges=rows)
+</code></pre>
+<pre><code class="language-text">{
+  &quot;chapter&quot;: &quot;28&quot;,
+  &quot;passed&quot;: true,
+  &quot;result&quot;: {
+    &quot;kind&quot;: &quot;synthetic GUI semantics&quot;,
+    &quot;badges&quot;: [
+      &quot;VALID&quot;,
+      &quot;STALE&quot;,
+      &quot;REJECTED&quot;,
+      &quot;FUTURE_STAMP&quot;
+    ]
+  }
+}
+</code></pre>
+<p>本章例子可以在 Windows 使用 <code>py -3</code> 或在 Linux 使用 <code>python3</code> 重跑。它验证局部概念或读取历史证据，不对机器人全任务提供新通过结论。</p>
+<!-- generated-lab-end -->
+
+<p>界面不更新：检查服务、当前会话、观察进程和文件时间；图像旧：检查 camera_run 与数据年龄；状态偶发解析失败：查原子快照与半写文件；数字为空：先判断数据确实缺失还是前端格式问题，不能把 null 自动显示为 0。</p>
+<p>问：能否直接在 GUI 增加手动前进按钮？答：需要重新设计权限与唯一控制出口，当前只读观察职责不能随便扩展成第二个速度发布者。</p>
+<p>练习：选一段历史失败，制作三列时间表：输入质量、BT 决策、执行/反馈。若时间无法对齐，明确空缺，不用视觉印象补上。</p></main><footer>L02 内容阅读版 · 固定基线 9aff8337 · 原机器人 R10–R12 PARTIAL · L03 完整站点尚待执行</footer></html>

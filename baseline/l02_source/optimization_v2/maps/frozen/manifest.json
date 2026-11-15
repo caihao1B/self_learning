@@ -1,0 +1,65 @@
+{
+  "schema": "S07-FROZEN/1",
+  "mode": "LOCALIZATION",
+  "map_id": "647148fb-975d-4efb-9c8d-8e5b5b8e42a9",
+  "frame_epoch": "953db17e-8310-4a7a-9b4d-f95a19c32218",
+  "frame": "map",
+  "base_frame": "base_link",
+  "source_map_id": "59111e4b-5bfd-4102-ab8f-84fbda10750d",
+  "source_receipt_sha256": "da4d3e1f9e4d09cfc0062d1d1c9bf9fa29ab65e7427cf6c1bb6b7acb91189b5b",
+  "source_database_sha256": "b4d1a2d508ad9dc17205f77ba34ffb8a8e662e2f0f27a8f94119e7147df4bb82",
+  "calibration_revision": "d916deafb95eb82ab3c02c787d0b2ff7aa1b351774ad1a5b5e2b46851bea1943",
+  "serialization": "RTAB-Map 0.23.13",
+  "origin": {
+    "kind": "S06 arbitrary local SLAM frame",
+    "survey_reference": [
+      28.0,
+      14.0,
+      0.0
+    ],
+    "registered_to_gnss": false
+  },
+  "files": [
+    {
+      "path": "pose_graph.json",
+      "sha256": "40707b948111e6f7d8ff447643bb37ed608b5d94de4b30bff72a9176cbdd7400"
+    },
+    {
+      "path": "coarse_height.png",
+      "sha256": "ded796cfe7d1df40d44e11d7eeabad0d46c10f1cc0947fa080f8201febdc53aa"
+    },
+    {
+      "path": "coarse_terrain.npz",
+      "sha256": "26c6214d6302e231b98a4a34a16d23776b5db5a5ec68b2899db87b58fae34531"
+    },
+    {
+      "path": "map.db",
+      "sha256": "b4d1a2d508ad9dc17205f77ba34ffb8a8e662e2f0f27a8f94119e7147df4bb82"
+    },
+    {
+      "path": "navigation.pgm",
+      "sha256": "af4af77de44452c2def2dbee1d78bf29db56390e8079d5b6067df3bef5fb99f7"
+    },
+    {
+      "path": "grid_export.log",
+      "sha256": "83be07f43d68b189b78fe0c63842ba7b425a94c67dc6e89fd61d1b25c346dff5"
+    },
+    {
+      "path": "navigation.yaml",
+      "sha256": "ee56a60b9ac7f9d459ee56c5323f40c59bda1bd5dab1c15141b389dfcdc89506"
+    },
+    {
+      "path": "terrain_description.json",
+      "sha256": "1ca79eaf22d0c80b96b5c4a4d0105e16363d02bad1508e89b6c166f20c167829"
+    },
+    {
+      "path": "grid_export.json",
+      "sha256": "a2fbf70c609ba58dbfde8d731926fa49353d48acfc37248fb6b4bb2be4be018a"
+    },
+    {
+      "path": "map_cloud.ply",
+      "sha256": "d946ea90b4cfc6a0eae879d2479e6a471825a628567bf41bfd48026d54fa388d"
+    }
+  ],
+  "revision": "1ede22acc13a2c6e47ce9cc22c001478f1d1f8fa3b3404483a323b23b4c32477"
+}

@@ -1,0 +1,206 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>第 05 章 ROS 通信与生命周期</title><style>*{box-sizing:border-box}body{margin:0;background:#eff4f5;color:#17343d;font:17px/1.95 "Segoe UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif}header{background:#163c45;color:#e5f3ef;padding:22px max(20px,calc((100vw - 1080px)/2))}header a{color:#bceadf;margin-right:20px}main{max-width:1140px;margin:28px auto;padding:34px 48px;background:white;border:1px solid #dae5e8;border-radius:12px}h1{font-size:32px;line-height:1.5;color:#174b50}h2{margin-top:42px;font-size:24px;color:#256466;border-bottom:1px solid #dce9e8;padding-bottom:9px}h3{font-size:20px;color:#345b62}a{color:#08777a;text-underline-offset:3px}p,li{overflow-wrap:anywhere}pre{background:#112c38;color:#e3f0ed;padding:20px;border-radius:8px;overflow:auto;font:13px/1.8 Consolas,monospace;white-space:pre;overflow-wrap:normal}code{font-family:Consolas,monospace}p code,li code,td code{background:#edf3f4;padding:2px 4px}table{display:block;overflow:auto;border-collapse:collapse;font-size:15px;margin:22px 0}th,td{border:1px solid #cedfe1;padding:10px;min-width:100px;vertical-align:top}th{background:#e6f2ef}img{max-width:100%;height:auto;margin:22px auto;display:block}blockquote{border-left:4px solid #3c9083;padding:8px 20px;background:#f0f7f4;margin:20px 0}.toc{background:#f3f8f7;padding:12px 25px;font-size:14px}footer{max-width:1100px;margin:24px auto;padding:20px;color:#47666c}button{background:#e7f4ed;color:#245448;border:0;padding:7px 12px;border-radius:5px;cursor:pointer}@media(max-width:700px){body{font-size:16px}main{padding:22px 18px;margin:12px;border-radius:8px}h1{font-size:26px}h2{font-size:22px}header{padding:16px}pre{font-size:12px}}@media print{header,footer,button,.toc{display:none}main{border:0;max-width:none;margin:0;padding:0}pre{background:#eee;color:black;white-space:pre-wrap;overflow-wrap:anywhere}a{color:black}h2{break-after:avoid}img{max-height:230mm}}</style><header><a href="../../index.html">学习首页</a><a href="../index.html">三十章目录</a><a href="04_languages.html">← 上一章</a><a href="06_frames_time.html">下一章 →</a><button onclick="window.print()">打印本章</button></header><main><details class="toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#05-ros">第 05 章 ROS 通信与生命周期</a><ul>
+<li><a href="#_1">节点、消息与话题</a></li>
+<li><a href="#service-action">service 与 action</a></li>
+<li><a href="#_2">固定生产代码逐段阅读</a><ul>
+<li><a href="#tooltaskaction-1-32">ToolTask.action 第 1 至 32 行</a></li>
+<li><a href="#mission_spray_r10py-22-47">mission_spray_r10.py 第 22 至 47 行</a></li>
+</ul>
+</li>
+<li><a href="#executor">回调为何需要 executor</a></li>
+<li><a href="#qos">QoS 为什么决定能否收到消息</a></li>
+<li><a href="#nav2">生命周期怎样影响 Nav2</a></li>
+<li><a href="#_3">只读观察命令</a></li>
+<li><a href="#_4">离线动作协议练习</a><ul>
+<li><a href="#_5">本章练习核心代码与实际输出</a></li>
+</ul>
+</li>
+<li><a href="#_6">常见故障与自测</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details><h1 id="05-ros">第 05 章 ROS 通信与生命周期</h1>
+<p>ROS 2 为多个程序提供通信约定。它不替你判断传感器是否可信，也不保证动作完成后车已经停止。本章把 topic、service、action 和生命周期放进同一个任务里理解，避免把“发出一条消息”误认为“执行了一个行为”。</p>
+<h2 id="_1">节点、消息与话题</h2>
+<p>节点是 ROS 图中的参与者，可以发布和订阅消息。topic 是具名数据流，例如点云、轮速、工具状态；消息类型规定字段结构。订阅者收到的数据仍需要检查时间、坐标系和有效性。一个空点云和一个障碍很少的点云，都可能有相同消息类型。</p>
+<p><code>sensor_msgs/PointCloud2</code> 用字段定义和字节数组表达点云，<code>sensor_msgs/Imu</code> 表达角速度、线加速度、姿态和协方差，<code>nav_msgs/Odometry</code> 表达位姿与速度。消息名中的 Odometry 不要求输入只能来自车轮。项目的 JSON 状态 topic 使用 <code>std_msgs/String</code> 承载序列化对象，字段语义还需读发布端与订阅端约定。</p>
+<h2 id="service-action">service 与 action</h2>
+<p>service 适合一次请求对应一次响应，例如读取配置或申请重置。服务器完成处理后返回；它不适合表示持续几分钟、需要进度与取消的任务。</p>
+<p>action 分为目标、反馈和结果，还支持取消请求。导航客户端首先等待服务器，发送目标后收到是否接受，之后接收反馈，最终获得结果。取消也需要响应；发送取消请求不等于服务器已经停止。</p>
+<p>工具 <code>ToolTask.action</code> 用两个 <code>---</code> 将定义分成 Goal、Result、Feedback。Goal 包含工作身份、请求量、目标及版本等；Result 说明成功与确认量、残余和停止状态；Feedback 描述执行过程。具体字段以本章固定定义为准，不能拿新版本 action 与旧二进制混用。</p>
+<!-- generated-production-start -->
+<h2 id="_2">固定生产代码逐段阅读</h2>
+<p>下面是固定提交中的原样节选。完整文件有离线行号页；片段可能省略上下文，不能单独当成可运行脚本。读完每段后，回到调用者确认它在当前任务中如何使用。</p>
+<h3 id="tooltaskaction-1-32">ToolTask.action 第 1 至 32 行</h3>
+<p><a href="../../baseline/l02_views/72d56c273327-ToolTask.action.html#L1">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/mission_interfaces/action/ToolTask.action#L1">固定 Git 提交</a></p>
+<pre><code class="language-text">uint8 POINT_SERVICE=1
+uint8 START_WORK=2
+uint8 STOP_WORK=3
+uint8 operation
+string task_id
+string idempotency_key
+string map_id
+string map_revision
+string frame_epoch
+string plan_revision
+string tool_revision
+string segment_id
+geometry_msgs/PoseStamped target
+geometry_msgs/Polygon target_area
+float64 requested_quantity
+float64 timeout_sim_s
+---
+string state
+string error_code
+string reason
+float64 confirmed_quantity
+float64 remaining_quantity
+string residual_geojson
+bool replayed
+bool uncertainty_pending
+---
+string phase
+string reason
+float64 progress
+float64 confirmed_quantity
+float64 health
+float64 elapsed_sim_s
+</code></pre>
+<p>两个分隔线之前是请求，中间是结果，之后是反馈。uint8 常量给操作编号，字符串字段绑定版本与工作身份，float64 记录数量和时间。消息结构描述传输，不自动实现业务门控。</p>
+<h3 id="mission_spray_r10py-22-47">mission_spray_r10.py 第 22 至 47 行</h3>
+<p><a href="../../baseline/l02_views/77674242c5e6-mission_spray_r10.py.html#L22">离线带行号源码</a> · <a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/mission_spray_r10.py#L22">固定 Git 提交</a></p>
+<pre><code class="language-python">def main():
+    ap=argparse.ArgumentParser();ap.add_argument('--out',type=Path,required=True);a=ap.parse_args();out=a.out;spec=json.loads((out/'spec.json').read_text());cfg=json.loads((out/'mission.json').read_text());toolcfg=json.loads((out/'scene/tool.json').read_text());cluster=next(x for x in cfg['clusters'] if x['id']==spec['cluster']);allpoints=cluster['points'];points=allpoints[:spec['point_limit']] if spec['point_limit'] else allpoints
+    rclpy.init();n=rclpy.create_node('r07_point_service_task',parameter_overrides=[rclpy.parameter.Parameter('use_sim_time',value=True)]);nav=ActionClient(n,NavigateToPose,'/navigate_to_pose');manager=n.create_client(Trigger,'/lifecycle_manager/is_active');tool=ActionClient(n,ToolTask,'/s10/tool_task');pub=n.create_publisher(String,'/r07/mission',10);hp=n.create_publisher(PoseWithCovarianceStamped,'/s07/rtabmap/initialpose',10)
+    st=dict(t=0.,stop=False,phase='STARTUP',nav_idle=True,complete=False,nav_failed=False,replans=0,deferrals=0,alternative=True,precision_translation_m=None,bt=None,gate=None,loc=None,tool=None,feedback=None,index=0,safety=None);events=[];completed=[];failed=[];revalidations={};active_nav=None;active_tool=None;begin=time.monotonic();hinted=False;replay=None;error=None
+    def log(event,**d):
+        row=dict(t=st['t'],event=event,**d);events.append(row)
+        with (out/'mission_events.jsonl').open('a') as f:f.write(json.dumps(row)+'\n')
+    n.create_subscription(Clock,'/clock',lambda m:st.update(t=m.clock.sec+m.clock.nanosec*1e-9),qos_profile_sensor_data)
+    for topic,key in [('/r06/directive','bt'),('/r07/gate','gate'),('/r07/localization','loc'),('/s10/action/state','tool'),('/s10/tool/feedback','feedback'),('/r07/safety','safety')]:n.create_subscription(String,topic,lambda m,k=key:st.update({k:json.loads(m.data)}),20)
+    def publish():
+        d={k:st[k] for k in ['t','phase','nav_idle','complete','nav_failed','replans','deferrals','alternative','index','precision_translation_m']};d['task_version']=cfg['version'];pub.publish(String(data=json.dumps(d)));tmp=out/'live.tmp';tmp.write_text(json.dumps(dict(d,bt=st['bt'],gate=st['gate'],loc=st['loc'])));tmp.replace(out/'live.json')
+    n.create_timer(.03,publish)
+    follow=ActionClient(n,FollowPath,'/follow_path')
+    local_odom={}
+    def on_odom(m):
+        p=m.pose.pose;q=p.orientation;local_odom.update(t=m.header.stamp.sec+m.header.stamp.nanosec*1e-9,pose=[p.position.x,p.position.y,math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y*q.y+q.z*q.z))])
+    n.create_subscription(Odometry,'/s05/odometry',on_odom,30)
+    planner=ActionClient(n,ComputePathToPose,'/compute_path_to_pose');pathcheck=n.create_client(IsPathValid,'/is_path_valid');prepare=n.create_client(Trigger,'/r10/localization/prepare_revalidation');commit=n.create_client(Trigger,'/r10/localization/commit_revalidation');proofpub=n.create_publisher(String,'/r10/localization/plan_proof',10)
+    def tick(allow_stop=False):
+        nonlocal hinted
+        rclpy.spin_once(n,timeout_sec=.01)
+        if st['t']&gt;8 and not hinted:
+            h=spec['operator_hint'];m=PoseWithCovarianceStamped();m.header.frame_id='map';m.pose.pose.position.x=h[0];m.pose.pose.position.y=h[1];m.pose.pose.orientation.z=math.sin(h[2]/2);m.pose.pose.orientation.w=math.cos(h[2]/2);m.pose.covariance=[1. if i in [0,7,14] else .25 if i in [21,28,35] else 0. for i in range(36)];hp.publish(m);hinted=True;log('COARSE_PUBLIC_PLAN_HINT')
+        if not allow_stop and (st['stop'] or st['t']&gt;spec['sim_seconds'] or time.monotonic()-begin&gt;spec['wall_budget']-30):raise TimeoutError('TASK_BOUND_OR_STOP_REQUEST')
+    def wait(predicate,seconds=20,allow_stop=False):
+        start=st['t'];wall=time.monotonic()
+</code></pre>
+<p>main 创建节点、ActionClient 与订阅，将状态保存到 st。lambda 的 k=key 固定循环键；事件日志把阶段和仿真时间串起来。ActionClient 的类型决定协议，任务函数再决定什么时候发送或取消。</p>
+<!-- generated-production-end -->
+
+<p>读接口时先找单位和身份：同一 <code>work_key</code> 的重试应指向同一原工作义务；<code>request_id</code> 等传输身份与工作身份不能随意合并。若取消后工具反馈不确定，任务不能立即给同一点重新发满额请求，否则可能重复喷洒。</p>
+<h2 id="executor">回调为何需要 executor</h2>
+<p>ROS 数据到达通信层后，需要 executor 调度回调。Python 中 <code>rclpy.spin_once(node, timeout_sec=...)</code> 处理一次可执行工作；Future 完成标志也依赖回调推进。若任务在循环中只调用 <code>time.sleep</code>，可能让消息排队而状态永远不更新。</p>
+<p>单线程执行器容易理解，但一个回调耗时过长会拖住其它回调。多线程执行器提高并发能力，也引入共享状态同步要求。选择哪种要看回调成本和数据所有权，不能简单认为线程越多越好。</p>
+<h2 id="qos">QoS 为什么决定能否收到消息</h2>
+<p>QoS 是发布与订阅的交付约定。Reliability 控制可靠或尽力而为；History/Depth 控制保留多少；Durability 决定晚加入者能否收到保留样本。高频传感器常用 sensor-data 风格的 best effort、小队列，以新鲜度优先。状态与动作结果可能需要不同策略。</p>
+<p>可靠订阅不一定能匹配 best-effort 发布；旧地图需要保留样本也不意味着所有高频点云都应 transient local。队列变大可以减少短时丢失，却可能让系统消费过期数据。通信可靠性、时效性和应用有效性是三种不同属性。</p>
+<h2 id="nav2">生命周期怎样影响 Nav2</h2>
+<p>生命周期节点可经历 unconfigured、inactive、active 等状态。configure 通常创建资源，activate 允许对外工作。进程存在、节点能被列出，并不意味着控制器已经 active。Lifecycle manager 负责按依赖管理这些状态。</p>
+<p>因此“找不到 action server”可能来自服务未启动、生命周期未激活、命名空间不对、domain 不一致或初始化失败，不能直接归因于导航算法差。</p>
+<h2 id="_3">只读观察命令</h2>
+<p>以下命令只在已有当前任务运行时有意义；本教材检查不会自动启动它。</p>
+<pre><code class="language-bash">cd /home/ceihao/robot_project
+source optimization_v2/env.sh
+ros2 node list
+ros2 topic list -t
+ros2 action list -t
+ros2 service list -t
+</code></pre>
+<p><code>list</code> 列出图中的对象，<code>-t</code> 附带类型。先从输出确定真实名称，再检查具体话题：</p>
+<pre><code class="language-bash">ros2 topic info /clock --verbose
+timeout 8s ros2 topic echo /clock --once
+</code></pre>
+<p><code>timeout 8s</code> 限制观察命令的现实等待，超时通常返回 124；这不等于仿真故障已被诊断。<code>--once</code> 收到一条后退出；一条消息不能证明持续频率。对于传感器 best-effort 发布，可按 <code>ros2 topic echo --help</code> 选择匹配 QoS，避免因默认订阅不兼容误判数据缺失。</p>
+<h2 id="_4">离线动作协议练习</h2>
+<p>执行 <code>python3 examples/l02/labs.py 05</code>。它不是 ROS 客户端，而是逐事件演示 accepted、terminal、stopped 三个独立状态。取消请求到来时 terminal 仍为空；取消确认后仍需实测停止。这样的状态拆分正是复杂任务可靠收尾的基础。</p>
+<!-- generated-lab-start -->
+<h3 id="_5">本章练习核心代码与实际输出</h3>
+<p><a href="../../examples/l02/labs.py">完整教学脚本</a> · <a href="../../validation/L02/lab_05.json">本章完整输出</a></p>
+<p>代码只使用 Python 标准库；合成输入与历史记录在输出 kind 中区分。公共 ROOT、read、wrap、connected 等辅助函数在完整脚本中定义。</p>
+<pre><code class="language-python">def lab05():
+    &quot;&quot;&quot;Teaching action protocol: acceptance, feedback and result are distinct.&quot;&quot;&quot;
+    events = [('GOAL_SENT', 0), ('ACCEPTED', 1), ('FEEDBACK', 2),
+              ('CANCEL_REQUEST', 3), ('CANCELED', 4), ('STOP_CONFIRMED', 5)]
+    accepted = False; terminal = None; stopped = False
+    trace = []
+    for event, t in events:
+        if event == 'ACCEPTED': accepted = True
+        if event == 'CANCELED': terminal = event
+        if event == 'STOP_CONFIRMED': stopped = True
+        trace.append(dict(t=t,event=event,accepted=accepted,terminal=terminal,stopped=stopped))
+    assert trace[3]['terminal'] is None and trace[-1]['stopped']
+    return dict(kind='synthetic protocol, not ROS action test', trace=trace)
+</code></pre>
+<pre><code class="language-text">{
+  &quot;chapter&quot;: &quot;05&quot;,
+  &quot;passed&quot;: true,
+  &quot;result&quot;: {
+    &quot;kind&quot;: &quot;synthetic protocol, not ROS action test&quot;,
+    &quot;trace&quot;: [
+      {
+        &quot;t&quot;: 0,
+        &quot;event&quot;: &quot;GOAL_SENT&quot;,
+        &quot;accepted&quot;: false,
+        &quot;terminal&quot;: null,
+        &quot;stopped&quot;: false
+      },
+      {
+        &quot;t&quot;: 1,
+        &quot;event&quot;: &quot;ACCEPTED&quot;,
+        &quot;accepted&quot;: true,
+        &quot;terminal&quot;: null,
+        &quot;stopped&quot;: false
+      },
+      {
+        &quot;t&quot;: 2,
+        &quot;event&quot;: &quot;FEEDBACK&quot;,
+        &quot;accepted&quot;: true,
+        &quot;terminal&quot;: null,
+        &quot;stopped&quot;: false
+      },
+      {
+        &quot;t&quot;: 3,
+        &quot;event&quot;: &quot;CANCEL_REQUEST&quot;,
+        &quot;accepted&quot;: true,
+        &quot;terminal&quot;: null,
+        &quot;stopped&quot;: false
+      },
+      {
+        &quot;t&quot;: 4,
+        &quot;event&quot;: &quot;CANCELED&quot;,
+        &quot;accepted&quot;: true,
+        &quot;terminal&quot;: &quot;CANCELED&quot;,
+        &quot;stopped&quot;: false
+      },
+      {
+        &quot;t&quot;: 5,
+        &quot;event&quot;: &quot;STOP_CONFIRMED&quot;,
+        &quot;accepted&quot;: true,
+        &quot;terminal&quot;: &quot;CANCELED&quot;,
+        &quot;stopped&quot;: true
+      }
+    ]
+  }
+}
+</code></pre>
+<p>本章例子可以在 Windows 使用 <code>py -3</code> 或在 Linux 使用 <code>python3</code> 重跑。它验证局部概念或读取历史证据，不对机器人全任务提供新通过结论。</p>
+<!-- generated-lab-end -->
+
+<h2 id="_6">常见故障与自测</h2>
+<p>话题存在却没有数据：看发布者数量、QoS、时钟、任务阶段和消息频率。action 接受后一直不结束：检查回调是否推进、控制器是否 active、是否被门控、任务是否还在等待可信定位。多个同名节点：检查是否误开第二个任务，以及运行器会话锁是否生效。</p>
+<p>问：为什么不使用 topic 发一个“开始喷洒”就结束？答：topic 本身不包含长任务目标、反馈、最终结果和取消协议；可以额外设计这些，但 action 已提供合适的通信骨架，业务仍要自行检查反馈。</p>
+<p>练习：把“请求取消”“服务器确认取消”“车体速度接近零”“工具确认停止”写成四行。指出其中哪两行来自协议、哪两行来自观测。能区分它们后进入坐标与时间章。</p></main><footer>L02 内容阅读版 · 固定基线 9aff8337 · 原机器人 R10–R12 PARTIAL · L03 完整站点尚待执行</footer></html>
