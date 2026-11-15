@@ -1,0 +1,4 @@
+ordinary=0.100 m
+precision=0.009 m
+out_of_range=0.100 m
+Scope: pure policy calculation; no BT timeout, ROS or physical motion run.

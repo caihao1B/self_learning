@@ -1,0 +1,3 @@
+ros-jazzy-rtabmap	0.23.13-1noble.20261002.101311	install ok installed
+ros-jazzy-rtabmap-odom	0.23.13-1noble.20261003.101824	install ok installed
+ros-jazzy-rtabmap-slam	0.23.13-1noble.20261003.101914	install ok installed

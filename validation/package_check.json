@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "errors": [],
+  "frozen_snapshots_checked": 63,
+  "source_tree_files": 821,
+  "local_links_checked": 2690,
+  "external_links_present": 204,
+  "html_ids": 2629,
+  "html_pages_checked": 37,
+  "python_example_exit": 0,
+  "cpp_example_exit": 0,
+  "scope": "L01 documents, fixed bytes, local navigation and educational examples; no robot simulation; external project links are pinned to inspected Git tree, not all fetched individually"
+}

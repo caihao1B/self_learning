@@ -1,0 +1,14 @@
+digraph G {rankdir=TB;graph [bgcolor="#f7fafb",pad="0.3",nodesep="0.35",ranksep="0.55",fontname="Noto Sans CJK SC",fontsize=16];
+node [shape=box,style="rounded,filled",fillcolor="#e8f3f1",color="#39776e",fontcolor="#163d38",fontname="Noto Sans CJK SC",fontsize=13,margin="0.18,0.13"];
+edge [color="#648189",fontname="Noto Sans CJK SC",fontsize=11,arrowsize=0.7];
+ bash[label="advance.sh → env.sh\nBash：环境与参数"];
+ dispatch[label="dispatch.py\nargparse → stage_r12"];
+ stage[label="record('spray')\n案例范围 / 版本核查"];
+ derive[label="prepare_spray_video_r12.py\n确定性派生录像运行器"];
+ runtime[label="runtime.run\n锁 / 环境 / Popen / 收尾"];
+ mission[label="mission_spray_r10.main\nROS 回调与动作 Future"];
+ cpp[label="原生 C++ 组件\nBT / 工具 / 仿真插件"];
+ lib[label="上游库与节点\nNav2 / RTAB / EKF"];
+ result[label="JSONL · SQLite · JSON\n运行分析与录像回执"];
+ bash->dispatch;dispatch->stage;stage->derive;derive->runtime;runtime->mission;runtime->cpp;runtime->lib;mission->cpp[label="动作与状态"];mission->lib[label="导航请求"];mission->result;cpp->result;lib->result;
+}

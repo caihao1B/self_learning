@@ -1,0 +1,93 @@
+{
+  "run": "optimization_v2/three_tasks/results/R12/mowing_20261115_070740_054017",
+  "scope": "Observed bounded endpoint recovery using terminal straight candidate; no full B1 credit",
+  "events": [
+    {
+      "t": 665.754,
+      "event": "CONTINUOUS_RECOVERY_CANDIDATE",
+      "attempt": 0,
+      "accepted": true,
+      "reason": "PRIOR_AND_KINEMATICS_VALID_OBSERVED_RISK_STILL_REQUIRED",
+      "details": {
+        "solver": "OMPL ReedsSheppStateSpace",
+        "length_m": 1.345685506650616,
+        "primitives": [
+          [
+            0.3227535902608297,
+            0.020032328777261917
+          ],
+          [
+            -0.3227535902608297,
+            -0.6396427880405374
+          ],
+          [
+            0.3227535902608297,
+            -0.6396427880405374
+          ],
+          [
+            -0.3227535902608297,
+            0.04636760179227909
+          ]
+        ],
+        "gear_sequence": [
+          1,
+          -1,
+          -1,
+          1
+        ],
+        "spacing_m": 0.04,
+        "terminal_straight_approach_m": 1.2
+      }
+    },
+    {
+      "t": 665.77,
+      "event": "ENDPOINT_WHOLE_CANDIDATE_COSTMAP",
+      "accepted": true
+    },
+    {
+      "t": 666.654,
+      "event": "RECOVERY_CUSP_STOP_CONFIRMED",
+      "gear_index": 0,
+      "direction": 1,
+      "xy_m": 0.02336840880966957,
+      "yaw_rad": 0.006375906601332915
+    },
+    {
+      "t": 687.72,
+      "event": "RECOVERY_CUSP_STOP_CONFIRMED",
+      "gear_index": 1,
+      "direction": -1,
+      "xy_m": 0.0490623242323792,
+      "yaw_rad": 0.06190820008260545
+    },
+    {
+      "t": 701.942,
+      "event": "RECOVERY_CUSP_STOP_CONFIRMED",
+      "gear_index": 2,
+      "direction": 1,
+      "xy_m": 0.04610529190449539,
+      "yaw_rad": 0.020827846055913035
+    },
+    {
+      "t": 701.942,
+      "event": "ENDPOINT_RECOVERY_SUCCESS",
+      "segment": "B1:safe_turn:4:1",
+      "attempt": 0,
+      "pause_restarts": 1
+    },
+    {
+      "t": 701.942,
+      "event": "SEGMENT_ARRIVAL",
+      "segment": "B1:safe_turn:4:1",
+      "xy_error_m": 0.04610529190449539,
+      "yaw_error_rad": 0.020827846055913035
+    },
+    {
+      "t": 710.552,
+      "event": "SEGMENT_ARRIVAL",
+      "segment": "B1:safe_turn:4:2",
+      "xy_error_m": 0.04701765736230775,
+      "yaw_error_rad": 0.05725008992348135
+    }
+  ]
+}

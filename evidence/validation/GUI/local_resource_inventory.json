@@ -1,0 +1,75 @@
+{
+  "scope": "Resources required for local reproduction; source publication is not a standalone runtime distribution",
+  "files": [
+    {
+      "path": "optimization_v2/maps/frozen/pose_graph.json",
+      "exists": true,
+      "bytes": 2381694,
+      "expected_sha256": "40707b948111e6f7d8ff447643bb37ed608b5d94de4b30bff72a9176cbdd7400",
+      "hash_source": "Original frozen-map manifest; this inventory does not reread or change the database"
+    },
+    {
+      "path": "optimization_v2/maps/frozen/coarse_height.png",
+      "exists": true,
+      "bytes": 20562,
+      "expected_sha256": "ded796cfe7d1df40d44e11d7eeabad0d46c10f1cc0947fa080f8201febdc53aa",
+      "hash_source": "Original frozen-map manifest; this inventory does not reread or change the database"
+    },
+    {
+      "path": "optimization_v2/maps/frozen/coarse_terrain.npz",
+      "exists": true,
+      "bytes": 356988,
+      "expected_sha256": "26c6214d6302e231b98a4a34a16d23776b5db5a5ec68b2899db87b58fae34531",
+      "hash_source": "Original frozen-map manifest; this inventory does not reread or change the database"
+    },
+    {
+      "path": "optimization_v2/maps/frozen/map.db",
+      "exists": true,
+      "bytes": 150085632,
+      "expected_sha256": "b4d1a2d508ad9dc17205f77ba34ffb8a8e662e2f0f27a8f94119e7147df4bb82",
+      "hash_source": "Original frozen-map manifest; this inventory does not reread or change the database"
+    },
+    {
+      "path": "optimization_v2/maps/frozen/navigation.pgm",
+      "exists": true,
+      "bytes": 369905,
+      "expected_sha256": "af4af77de44452c2def2dbee1d78bf29db56390e8079d5b6067df3bef5fb99f7",
+      "hash_source": "Original frozen-map manifest; this inventory does not reread or change the database"
+    },
+    {
+      "path": "optimization_v2/maps/frozen/grid_export.log",
+      "exists": true,
+      "bytes": 3919,
+      "expected_sha256": "83be07f43d68b189b78fe0c63842ba7b425a94c67dc6e89fd61d1b25c346dff5",
+      "hash_source": "Original frozen-map manifest; this inventory does not reread or change the database"
+    },
+    {
+      "path": "optimization_v2/maps/frozen/navigation.yaml",
+      "exists": true,
+      "bytes": 123,
+      "expected_sha256": "ee56a60b9ac7f9d459ee56c5323f40c59bda1bd5dab1c15141b389dfcdc89506",
+      "hash_source": "Original frozen-map manifest; this inventory does not reread or change the database"
+    },
+    {
+      "path": "optimization_v2/maps/frozen/terrain_description.json",
+      "exists": true,
+      "bytes": 435,
+      "expected_sha256": "1ca79eaf22d0c80b96b5c4a4d0105e16363d02bad1508e89b6c166f20c167829",
+      "hash_source": "Original frozen-map manifest; this inventory does not reread or change the database"
+    },
+    {
+      "path": "optimization_v2/maps/frozen/grid_export.json",
+      "exists": true,
+      "bytes": 279,
+      "expected_sha256": "a2fbf70c609ba58dbfde8d731926fa49353d48acfc37248fb6b4bb2be4be018a",
+      "hash_source": "Original frozen-map manifest; this inventory does not reread or change the database"
+    },
+    {
+      "path": "optimization_v2/maps/frozen/map_cloud.ply",
+      "exists": true,
+      "bytes": 23762104,
+      "expected_sha256": "d946ea90b4cfc6a0eae879d2479e6a471825a628567bf41bfd48026d54fa388d",
+      "hash_source": "Original frozen-map manifest; this inventory does not reread or change the database"
+    }
+  ]
+}

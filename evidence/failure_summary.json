@@ -1,0 +1,27 @@
+{
+  "total_records": 42,
+  "unique_runs": 42,
+  "not_passed_at_execution": 31,
+  "stop_code_counts": {
+    "TimeoutError('WAIT_DEADLINE')": 6,
+    "RuntimeError('TOOL_STOP_UNCONFIRMED')": 1,
+    "TimeoutError('ENDPOINT_RECOVERY_BUDGET')": 1,
+    "RuntimeError('ENDPOINT_RECOVERY_MANUAL_LATCH_RETAINED')": 1,
+    "RuntimeError('ALTERNATE_ROUTE_REQUIRES_COVERAGE_RESEQUENCING_RETAIN_RESIDUAL')": 2,
+    "RuntimeError('MANUAL_OR_SAFETY_HOLD MOTION_WITHOUT_OBSERVED_PROGRESS')": 1,
+    "UNSPECIFIED": 1,
+    "RuntimeError('REDOCK_INTERRUPTED_OR_TIMEOUT')": 1,
+    "TimeoutError('TASK_BOUND_OR_STOP_REQUEST')": 3,
+    "RuntimeError('TOOL_STOP_UNCERTAIN')": 1,
+    "RuntimeError('DOCKING_REALIGNMENT_EXHAUSTED')": 3,
+    "ModuleNotFoundError(\"No module named 'shapely'\")": 1,
+    "RuntimeError('TOOL_ADMISSION_FAILED')": 1,
+    "RuntimeError('SEGMENT_RETRY_BOUND')": 1,
+    "InterruptedError('SESSION_STOP')": 1,
+    "RuntimeError('ENDPOINT_RECOVERY_EXHAUSTED')": 3,
+    "TypeError(\"dict() got multiple values for keyword argument 't'\")": 1,
+    "RuntimeError('DOCKING_MANUAL_OR_SAFETY_HOLD MOTION_WITHOUT_OBSERVED_PROGRESS')": 1,
+    "RuntimeError('LOCALIZATION_REVALIDATION_BOUND')": 1
+  },
+  "warning": "Not a random sample or root-cause frequency; includes interrupted/bounded sessions and multiple software versions."
+}

@@ -1,0 +1,19 @@
+{
+  "scope": "Read-only realtime GUI; does not award task or stage PASS",
+  "passed": true,
+  "unit_tests": 14,
+  "browser_checks": 21,
+  "checked_utc": "2026-11-15T06:59:55.724768+00:00",
+  "live_run": "R12/mowing_20261115_065623_825371",
+  "source_sha256": {
+    "optimization_v2/three_tasks/monitor/README.md": "40a28621afe5ddfac1b486740da7357ab6f63a017a26d33309560f76f7e3aa3f",
+    "optimization_v2/three_tasks/monitor/data.py": "2a83a21ecc65bedb13fd0ff06ff0cc0ab397916b8d3e265df0cb1f4ea9a30b75",
+    "optimization_v2/three_tasks/monitor/index.html": "6de296eb1cd941be69a8166a9822cab11d0bb1c94b6cff7660de87e3d2425a1d",
+    "optimization_v2/three_tasks/monitor/ros_observer.py": "e31ce33a40528a56a79338adffa8ff2ec66c18883d261610073957f7cb97371d",
+    "optimization_v2/three_tasks/monitor/server.py": "d4b52cdfab9c53e4c416804c50618bb6593c0dd38536f66934326e712fccab7f",
+    "optimization_v2/three_tasks/monitor/test_monitor.py": "63ef937dd4810b166b39b05d58098846f4cdc21f25ab778decf68aa6f177c9d2",
+    "optimization_v2/three_tasks/gui.sh": "8827c57feaae7aff608af6096763f0816288f64ab0755573f3a64ffdf175a52a"
+  },
+  "visual_review": "Desktop overview/sensors/inspection/spray residual and mobile screenshots visually reviewed; actual live spray and mowing, initial selector, three-task units, closed errors, history separation and no horizontal overflow verified",
+  "user_manual_acceptance": "PENDING"
+}

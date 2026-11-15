@@ -1,0 +1,72 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GUI HTTP 服务</title><style>body{margin:30px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;border:1px solid #d5e1e5;padding:20px;overflow:auto;font:13px/1.7 Consolas,monospace}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff2b5}.line a{color:#78949b;text-decoration:none}a{color:#076d76}p{overflow-wrap:anywhere}</style><a href="../../index.html#04-code-evidence">← 返回源码导航</a><h1>GUI HTTP 服务</h1><p>optimization_v2/three_tasks/monitor/server.py</p><p>固定提交 9aff8337b7794f704c5556a973a5220e73f17808 · SHA-256 d4b52cdfab9c53e4c416804c50618bb6593c0dd38536f66934326e712fccab7f</p><p><a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/three_tasks/monitor/server.py">GitHub 固定版本</a> · 生产源码快照；视觉换行不改变原始行号。使用编辑器修改前先了解任务版本绑定。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Local read-only mission inspector. GET endpoints only; no actuator interface.&quot;&quot;&quot;</span>
+<span class="line" id="L2"><a href="#L2">   2</a> import argparse,json,os,signal,subprocess,sys,threading,time</span>
+<span class="line" id="L3"><a href="#L3">   3</a> from pathlib import Path</span>
+<span class="line" id="L4"><a href="#L4">   4</a> from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer</span>
+<span class="line" id="L5"><a href="#L5">   5</a> from urllib.parse import urlparse,parse_qs</span>
+<span class="line" id="L6"><a href="#L6">   6</a> from data import Evidence,json_value</span>
+<span class="line" id="L7"><a href="#L7">   7</a> </span>
+<span class="line" id="L8"><a href="#L8">   8</a> BASE=Path(__file__).resolve().parent</span>
+<span class="line" id="L9"><a href="#L9">   9</a> </span>
+<span class="line" id="L10"><a href="#L10">  10</a> def main():</span>
+<span class="line" id="L11"><a href="#L11">  11</a>     ap=argparse.ArgumentParser(description=__doc__)</span>
+<span class="line" id="L12"><a href="#L12">  12</a>     ap.add_argument(&#x27;--port&#x27;,type=int,default=8088);ap.add_argument(&#x27;--no-ros&#x27;,action=&#x27;store_true&#x27;)</span>
+<span class="line" id="L13"><a href="#L13">  13</a>     ap.add_argument(&#x27;--app&#x27;,type=Path,default=BASE.parent)</span>
+<span class="line" id="L14"><a href="#L14">  14</a>     args=ap.parse_args();evidence=Evidence(args.app);lock=threading.RLock();child=None</span>
+<span class="line" id="L15"><a href="#L15">  15</a>     state=args.app/&#x27;monitor_state&#x27;;state.mkdir(parents=True,exist_ok=True)</span>
+<span class="line" id="L16"><a href="#L16">  16</a>     def start_observer():</span>
+<span class="line" id="L17"><a href="#L17">  17</a>         nonlocal child</span>
+<span class="line" id="L18"><a href="#L18">  18</a>         env=os.environ.copy();env[&#x27;ROS_DOMAIN_ID&#x27;]=&#x27;119&#x27;;env[&#x27;OMP_NUM_THREADS&#x27;]=&#x27;1&#x27;;env[&#x27;OPENBLAS_NUM_THREADS&#x27;]=&#x27;1&#x27;</span>
+<span class="line" id="L19"><a href="#L19">  19</a>         # Use the project&#x27;s already validated large-message profile, if present.</span>
+<span class="line" id="L20"><a href="#L20">  20</a>         p,_=evidence.resolve()</span>
+<span class="line" id="L21"><a href="#L21">  21</a>         if p and (p/&#x27;fastdds.xml&#x27;).exists():</span>
+<span class="line" id="L22"><a href="#L22">  22</a>             env[&#x27;FASTRTPS_DEFAULT_PROFILES_FILE&#x27;]=str(p/&#x27;fastdds.xml&#x27;);env[&#x27;FASTDDS_DEFAULT_PROFILES_FILE&#x27;]=str(p/&#x27;fastdds.xml&#x27;)</span>
+<span class="line" id="L23"><a href="#L23">  23</a>         with (state/&#x27;ros_observer.log&#x27;).open(&#x27;a&#x27;) as logfile:</span>
+<span class="line" id="L24"><a href="#L24">  24</a>             child=subprocess.Popen([sys.executable,str(BASE/&#x27;ros_observer.py&#x27;),&#x27;--app&#x27;,str(args.app)],env=env,stdout=logfile,stderr=subprocess.STDOUT)</span>
+<span class="line" id="L25"><a href="#L25">  25</a>     class Handler(BaseHTTPRequestHandler):</span>
+<span class="line" id="L26"><a href="#L26">  26</a>         def log_message(self,*a):pass</span>
+<span class="line" id="L27"><a href="#L27">  27</a>         def reply(self,data,kind=&#x27;application/json; charset=utf-8&#x27;,code=200):</span>
+<span class="line" id="L28"><a href="#L28">  28</a>             if isinstance(data,(dict,list)):data=json.dumps(json_value(data),ensure_ascii=False,allow_nan=False).encode()</span>
+<span class="line" id="L29"><a href="#L29">  29</a>             self.send_response(code);self.send_header(&#x27;Content-Type&#x27;,kind);self.send_header(&#x27;Content-Length&#x27;,str(len(data)))</span>
+<span class="line" id="L30"><a href="#L30">  30</a>             self.send_header(&#x27;Cache-Control&#x27;,&#x27;no-store&#x27;);self.send_header(&#x27;X-Content-Type-Options&#x27;,&#x27;nosniff&#x27;);self.end_headers()</span>
+<span class="line" id="L31"><a href="#L31">  31</a>             try:self.wfile.write(data)</span>
+<span class="line" id="L32"><a href="#L32">  32</a>             except (BrokenPipeError,ConnectionResetError):pass</span>
+<span class="line" id="L33"><a href="#L33">  33</a>         def do_GET(self):</span>
+<span class="line" id="L34"><a href="#L34">  34</a>             u=urlparse(self.path);q=parse_qs(u.query);name=q.get(&#x27;run&#x27;,[&#x27;auto&#x27;])[0]</span>
+<span class="line" id="L35"><a href="#L35">  35</a>             try:</span>
+<span class="line" id="L36"><a href="#L36">  36</a>                 with lock:</span>
+<span class="line" id="L37"><a href="#L37">  37</a>                     if u.path in [&#x27;/&#x27;,&#x27;/index.html&#x27;]:return self.reply((BASE/&#x27;index.html&#x27;).read_bytes(),&#x27;text/html; charset=utf-8&#x27;)</span>
+<span class="line" id="L38"><a href="#L38">  38</a>                     if u.path==&#x27;/api/runs&#x27;:return self.reply(evidence.runs())</span>
+<span class="line" id="L39"><a href="#L39">  39</a>                     if u.path==&#x27;/api/state&#x27;:return self.reply(evidence.state(name))</span>
+<span class="line" id="L40"><a href="#L40">  40</a>                     if u.path==&#x27;/api/geometry&#x27;:return self.reply(evidence.geometry(name))</span>
+<span class="line" id="L41"><a href="#L41">  41</a>                     if u.path==&#x27;/api/preview&#x27;:</span>
+<span class="line" id="L42"><a href="#L42">  42</a>                         p,_=evidence.resolve(name);f=p/&#x27;video/preview.png&#x27; if p else None</span>
+<span class="line" id="L43"><a href="#L43">  43</a>                         if f and f.is_file():return self.reply(f.read_bytes(),&#x27;image/png&#x27;)</span>
+<span class="line" id="L44"><a href="#L44">  44</a>                     if u.path==&#x27;/api/camera&#x27;:</span>
+<span class="line" id="L45"><a href="#L45">  45</a>                         p,rid=evidence.resolve(name);s=evidence.state(name)</span>
+<span class="line" id="L46"><a href="#L46">  46</a>                         f=state/&#x27;camera.jpg&#x27;</span>
+<span class="line" id="L47"><a href="#L47">  47</a>                         if s.get(&#x27;observer&#x27;,{}).get(&#x27;run&#x27;)==rid and s.get(&#x27;observer&#x27;,{}).get(&#x27;camera_run&#x27;)==rid and f.is_file():return self.reply(f.read_bytes(),&#x27;image/jpeg&#x27;)</span>
+<span class="line" id="L48"><a href="#L48">  48</a>                 self.reply({&#x27;error&#x27;:&#x27;Not available&#x27;},code=404)</span>
+<span class="line" id="L49"><a href="#L49">  49</a>             except (ValueError,OSError,KeyError) as e:self.reply({&#x27;error&#x27;:str(e)},code=400)</span>
+<span class="line" id="L50"><a href="#L50">  50</a>     server=ThreadingHTTPServer((&#x27;127.0.0.1&#x27;,args.port),Handler);server.daemon_threads=True</span>
+<span class="line" id="L51"><a href="#L51">  51</a>     stopping=threading.Event()</span>
+<span class="line" id="L52"><a href="#L52">  52</a>     def stop(*_):</span>
+<span class="line" id="L53"><a href="#L53">  53</a>         if not stopping.is_set():stopping.set();threading.Thread(target=server.shutdown,daemon=True).start()</span>
+<span class="line" id="L54"><a href="#L54">  54</a>     signal.signal(signal.SIGINT,stop);signal.signal(signal.SIGTERM,stop)</span>
+<span class="line" id="L55"><a href="#L55">  55</a>     try:</span>
+<span class="line" id="L56"><a href="#L56">  56</a>         # Claim the HTTP port first: a duplicate launch must not orphan a ROS node.</span>
+<span class="line" id="L57"><a href="#L57">  57</a>         if not args.no_ros:start_observer()</span>
+<span class="line" id="L58"><a href="#L58">  58</a>         print(f&#x27;机器人实时监视： http://127.0.0.1:{args.port}  （只读，Ctrl+C 退出）&#x27;,flush=True)</span>
+<span class="line" id="L59"><a href="#L59">  59</a>         (state/&#x27;server.json&#x27;).write_text(json.dumps(dict(pid=os.getpid(),port=args.port,readonly=True,started_wall=time.time())))</span>
+<span class="line" id="L60"><a href="#L60">  60</a>         server.serve_forever(poll_interval=.2)</span>
+<span class="line" id="L61"><a href="#L61">  61</a>     finally:</span>
+<span class="line" id="L62"><a href="#L62">  62</a>         server.server_close()</span>
+<span class="line" id="L63"><a href="#L63">  63</a>         if child and child.poll() is None:</span>
+<span class="line" id="L64"><a href="#L64">  64</a>             child.send_signal(signal.SIGINT)</span>
+<span class="line" id="L65"><a href="#L65">  65</a>             try:child.wait(5)</span>
+<span class="line" id="L66"><a href="#L66">  66</a>             except subprocess.TimeoutExpired:</span>
+<span class="line" id="L67"><a href="#L67">  67</a>                 child.terminate()</span>
+<span class="line" id="L68"><a href="#L68">  68</a>                 try:child.wait(5)</span>
+<span class="line" id="L69"><a href="#L69">  69</a>                 except subprocess.TimeoutExpired:child.kill();child.wait(2)</span>
+<span class="line" id="L70"><a href="#L70">  70</a>         (state/&#x27;server.json&#x27;).write_text(json.dumps(dict(pid=os.getpid(),port=args.port,stopped_wall=time.time(),readonly=True)))</span>
+<span class="line" id="L71"><a href="#L71">  71</a> if __name__==&#x27;__main__&#x27;:main()</span>
+</code></pre></html>

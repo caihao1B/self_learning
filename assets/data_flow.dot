@@ -1,0 +1,12 @@
+digraph G {rankdir=LR;graph [bgcolor="#f7fafb",pad="0.3",nodesep="0.35",ranksep="0.55",fontname="Noto Sans CJK SC",fontsize=16];
+node [shape=box,style="rounded,filled",fillcolor="#e8f3f1",color="#39776e",fontcolor="#163d38",fontname="Noto Sans CJK SC",fontsize=13,margin="0.18,0.13"];
+edge [color="#648189",fontname="Noto Sans CJK SC",fontsize=11,arrowsize=0.7];
+ raw[label="实际传感器观测\n采集时间 · 外参 · 噪声"];
+ pre[label="有效性与预处理\n自车过滤 · 运动补偿"];
+ loc[label="定位支路\n结构点 / ICP / EKF\n参考地图匹配"];
+ obs[label="避障支路\n地面 / 坡度 / 障碍\n未知保持未知"];
+ ctx[label="在线任务与控制\nROS domain 119\n观测和授权先验"];
+ truth[label="仿真真值\n独立评估域 120",fillcolor="#f7e9e6",color="#a0645b"];
+ audit[label="运行后的分析\n误差 · 接触 · 物理反馈\n不能回流在线控制",fillcolor="#f7e9e6",color="#a0645b"];
+ raw->pre;pre->loc;pre->obs;loc->ctx;obs->ctx;truth->audit;ctx->audit[label="保存的结果"];
+}

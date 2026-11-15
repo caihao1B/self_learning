@@ -1,0 +1,55 @@
+{
+  "scope": "Read-only receipt and artifact verification; no simulation rerun",
+  "records": [
+    {
+      "stage": "R08",
+      "exit_code": 0,
+      "check": {
+        "passed": true,
+        "stage": "R08",
+        "changed": [],
+        "status": "PASS"
+      }
+    },
+    {
+      "stage": "R09",
+      "exit_code": 0,
+      "check": {
+        "passed": true,
+        "stage": "R09",
+        "changed": [],
+        "status": "PASS"
+      }
+    },
+    {
+      "stage": "R10",
+      "exit_code": 2,
+      "check": {
+        "passed": false,
+        "stage": "R10",
+        "changed": [],
+        "status": "PARTIAL"
+      }
+    },
+    {
+      "stage": "R11",
+      "exit_code": 2,
+      "check": {
+        "passed": false,
+        "stage": "R11",
+        "changed": [],
+        "status": "PARTIAL"
+      }
+    },
+    {
+      "stage": "R12",
+      "exit_code": 2,
+      "check": {
+        "passed": false,
+        "stage": "R12",
+        "changed": [],
+        "status": "PARTIAL"
+      }
+    }
+  ]
+}

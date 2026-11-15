@@ -1,0 +1,85 @@
+usage: ros2 topic echo [-h] [--spin-time SPIN_TIME] [-s] [--no-daemon]
+                       [--qos-profile {unknown,default,system_default,sensor_data,services_default,parameters,parameter_events,action_status_default,best_available}]
+                       [--qos-depth N]
+                       [--qos-history {system_default,keep_last,keep_all,unknown}]
+                       [--qos-reliability {system_default,reliable,best_effort,unknown,best_available}]
+                       [--qos-durability {system_default,transient_local,volatile,unknown,best_available}]
+                       [--qos-liveliness {system_default,automatic,manual_by_topic,unknown,best_available}]
+                       [--qos-liveliness-lease-duration-seconds QOS_LIVELINESS_LEASE_DURATION_SECONDS]
+                       [--csv] [--field FIELD] [--full-length]
+                       [--truncate-length TRUNCATE_LENGTH] [--no-arr]
+                       [--no-str] [--flow-style] [--no-lost-messages] [--raw]
+                       [--filter FILTER_EXPR] [--once] [--timeout N]
+                       [--include-message-info]
+                       topic_name [message_type]
+
+Output messages from a topic
+
+positional arguments:
+  topic_name            Name of the ROS topic to listen to (e.g. '/chatter')
+  message_type          Type of the ROS message (e.g. 'std_msgs/msg/String')
+
+options:
+  -h, --help            show this help message and exit
+  --spin-time SPIN_TIME
+                        Spin time in seconds to wait for discovery (only
+                        applies when not using an already running daemon)
+  -s, --use-sim-time    Enable ROS simulation time
+  --no-daemon           Do not spawn nor use an already running daemon
+  --qos-profile {unknown,default,system_default,sensor_data,services_default,parameters,parameter_events,action_status_default,best_available}
+                        Quality of service preset profile to subscribe with
+                        (default: sensor_data)
+  --qos-depth N         Queue size setting to subscribe with (overrides depth
+                        value of --qos-profile option)
+  --qos-history {system_default,keep_last,keep_all,unknown}
+                        History of samples setting to subscribe with
+                        (overrides history value of --qos-profile option,
+                        default: keep_last)
+  --qos-reliability {system_default,reliable,best_effort,unknown,best_available}
+                        Quality of service reliability setting to subscribe
+                        with (overrides reliability value of --qos-profile
+                        option, default: Compatible profile with running
+                        endpoints )
+  --qos-durability {system_default,transient_local,volatile,unknown,best_available}
+                        Quality of service durability setting to subscribe
+                        with (overrides durability value of --qos-profile
+                        option, default: Compatible profile with running
+                        endpoints )
+  --qos-liveliness {system_default,automatic,manual_by_topic,unknown,best_available}
+                        Quality of service liveliness setting to subscribe
+                        with (overrides liveliness value of --qos-profile
+                        option
+  --qos-liveliness-lease-duration-seconds QOS_LIVELINESS_LEASE_DURATION_SECONDS
+                        Quality of service liveliness lease duration setting
+                        to subscribe with (overrides liveliness lease duration
+                        value of --qos-profile option
+  --csv                 Output all recursive fields separated by commas (e.g.
+                        for plotting). If --include-message-info is also
+                        passed, the following fields are prepended:
+                        source_timestamp, received_timestamp,
+                        publication_sequence_number,
+                        reception_sequence_number.
+  --field FIELD         Echo a selected field of a message. Use '.' to select
+                        sub-fields. For example, to echo the position field of
+                        a nav_msgs/msg/Odometry message: 'ros2 topic echo
+                        /odom --field pose.pose.position'
+  --full-length, -f     Output all elements for arrays, bytes, and string with
+                        a length > '--truncate-length', by default they are
+                        truncated after '--truncate-length' elements with
+                        '...''
+  --truncate-length TRUNCATE_LENGTH, -l TRUNCATE_LENGTH
+                        The length to truncate arrays, bytes, and string to
+                        (default: 128)
+  --no-arr              Don't print array fields of messages
+  --no-str              Don't print string fields of messages
+  --flow-style          Print collections in the block style (not available
+                        with csv format)
+  --no-lost-messages    Don't report when a message is lost
+  --raw                 Echo the raw binary representation
+  --filter FILTER_EXPR  Python expression to filter messages that are printed.
+                        Expression can use Python builtins as well as m (the
+                        message).
+  --once                Print the first message received and then exit.
+  --timeout N           Set a timeout in seconds for waiting
+  --include-message-info, -i
+                        Shows the associated message info.

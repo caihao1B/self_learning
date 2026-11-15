@@ -1,0 +1,183 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GUI 只读状态聚合</title><style>body{margin:30px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;border:1px solid #d5e1e5;padding:20px;overflow:auto;font:13px/1.7 Consolas,monospace}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff2b5}.line a{color:#78949b;text-decoration:none}a{color:#076d76}p{overflow-wrap:anywhere}</style><a href="../../index.html#04-code-evidence">← 返回源码导航</a><h1>GUI 只读状态聚合</h1><p>optimization_v2/three_tasks/monitor/data.py</p><p>固定提交 9aff8337b7794f704c5556a973a5220e73f17808 · SHA-256 2a83a21ecc65bedb13fd0ff06ff0cc0ab397916b8d3e265df0cb1f4ea9a30b75</p><p><a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/three_tasks/monitor/data.py">GitHub 固定版本</a> · 生产源码快照；视觉换行不改变原始行号。使用编辑器修改前先了解任务版本绑定。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Bounded, read-only adapters for recorded task evidence (no ROS/control imports).&quot;&quot;&quot;</span>
+<span class="line" id="L2"><a href="#L2">   2</a> from collections import deque</span>
+<span class="line" id="L3"><a href="#L3">   3</a> from pathlib import Path</span>
+<span class="line" id="L4"><a href="#L4">   4</a> import json, math, time</span>
+<span class="line" id="L5"><a href="#L5">   5</a> </span>
+<span class="line" id="L6"><a href="#L6">   6</a> STAGES = (&#x27;R12&#x27;, &#x27;R10&#x27;, &#x27;R09&#x27;, &#x27;R08&#x27;, &#x27;R07&#x27;)</span>
+<span class="line" id="L7"><a href="#L7">   7</a> </span>
+<span class="line" id="L8"><a href="#L8">   8</a> def json_value(value):</span>
+<span class="line" id="L9"><a href="#L9">   9</a>     &quot;&quot;&quot;ROS/numpy scalar values and invalid measurements become valid JSON.&quot;&quot;&quot;</span>
+<span class="line" id="L10"><a href="#L10">  10</a>     if isinstance(value,dict): return {k:json_value(v) for k,v in value.items()}</span>
+<span class="line" id="L11"><a href="#L11">  11</a>     if isinstance(value,(list,tuple)): return [json_value(v) for v in value]</span>
+<span class="line" id="L12"><a href="#L12">  12</a>     if hasattr(value,&#x27;item&#x27;): return json_value(value.item())</span>
+<span class="line" id="L13"><a href="#L13">  13</a>     if isinstance(value,float) and not math.isfinite(value): return None</span>
+<span class="line" id="L14"><a href="#L14">  14</a>     return value</span>
+<span class="line" id="L15"><a href="#L15">  15</a> </span>
+<span class="line" id="L16"><a href="#L16">  16</a> def read_json(path, limit=8_000_000):</span>
+<span class="line" id="L17"><a href="#L17">  17</a>     try:</span>
+<span class="line" id="L18"><a href="#L18">  18</a>         if path.stat().st_size &gt; limit:</span>
+<span class="line" id="L19"><a href="#L19">  19</a>             return {}</span>
+<span class="line" id="L20"><a href="#L20">  20</a>         value = json.loads(path.read_text())</span>
+<span class="line" id="L21"><a href="#L21">  21</a>         return value if isinstance(value, dict) else {}</span>
+<span class="line" id="L22"><a href="#L22">  22</a>     except (OSError, ValueError):</span>
+<span class="line" id="L23"><a href="#L23">  23</a>         return {}</span>
+<span class="line" id="L24"><a href="#L24">  24</a> </span>
+<span class="line" id="L25"><a href="#L25">  25</a> def tail_records(path, limit=131072, count=120):</span>
+<span class="line" id="L26"><a href="#L26">  26</a>     &quot;&quot;&quot;Ignore an unfinished last line; never read an unbounded runtime log.&quot;&quot;&quot;</span>
+<span class="line" id="L27"><a href="#L27">  27</a>     try:</span>
+<span class="line" id="L28"><a href="#L28">  28</a>         with path.open(&#x27;rb&#x27;) as stream:</span>
+<span class="line" id="L29"><a href="#L29">  29</a>             size = stream.seek(0, 2)</span>
+<span class="line" id="L30"><a href="#L30">  30</a>             start = max(0, size-limit)</span>
+<span class="line" id="L31"><a href="#L31">  31</a>             stream.seek(start)</span>
+<span class="line" id="L32"><a href="#L32">  32</a>             raw = stream.read(limit)</span>
+<span class="line" id="L33"><a href="#L33">  33</a>         lines = raw.split(b&#x27;\n&#x27;)</span>
+<span class="line" id="L34"><a href="#L34">  34</a>         if start:</span>
+<span class="line" id="L35"><a href="#L35">  35</a>             lines = lines[1:]</span>
+<span class="line" id="L36"><a href="#L36">  36</a>         lines = lines[:-1]</span>
+<span class="line" id="L37"><a href="#L37">  37</a>         rows = []</span>
+<span class="line" id="L38"><a href="#L38">  38</a>         for line in lines:</span>
+<span class="line" id="L39"><a href="#L39">  39</a>             try:</span>
+<span class="line" id="L40"><a href="#L40">  40</a>                 row = json.loads(line)</span>
+<span class="line" id="L41"><a href="#L41">  41</a>                 if isinstance(row, dict): rows.append(row)</span>
+<span class="line" id="L42"><a href="#L42">  42</a>             except (ValueError, UnicodeError):</span>
+<span class="line" id="L43"><a href="#L43">  43</a>                 pass</span>
+<span class="line" id="L44"><a href="#L44">  44</a>         return rows[-count:], start == 0 and len(rows) &lt;= count</span>
+<span class="line" id="L45"><a href="#L45">  45</a>     except OSError:</span>
+<span class="line" id="L46"><a href="#L46">  46</a>         return [], False</span>
+<span class="line" id="L47"><a href="#L47">  47</a> </span>
+<span class="line" id="L48"><a href="#L48">  48</a> def last(path, key=None, value=None):</span>
+<span class="line" id="L49"><a href="#L49">  49</a>     rows, _ = tail_records(path)</span>
+<span class="line" id="L50"><a href="#L50">  50</a>     return next((r for r in reversed(rows) if key is None or r.get(key) == value), {})</span>
+<span class="line" id="L51"><a href="#L51">  51</a> </span>
+<span class="line" id="L52"><a href="#L52">  52</a> def age(path):</span>
+<span class="line" id="L53"><a href="#L53">  53</a>     try: return max(0., time.time()-path.stat().st_mtime)</span>
+<span class="line" id="L54"><a href="#L54">  54</a>     except OSError: return None</span>
+<span class="line" id="L55"><a href="#L55">  55</a> </span>
+<span class="line" id="L56"><a href="#L56">  56</a> def freshness(stamp, now, maximum=.5):</span>
+<span class="line" id="L57"><a href="#L57">  57</a>     if not isinstance(stamp, (int,float)) or not isinstance(now, (int,float)):</span>
+<span class="line" id="L58"><a href="#L58">  58</a>         return &#x27;MISSING&#x27;, None</span>
+<span class="line" id="L59"><a href="#L59">  59</a>     delta = now-stamp</span>
+<span class="line" id="L60"><a href="#L60">  60</a>     if not math.isfinite(delta): return &#x27;MISSING&#x27;, None</span>
+<span class="line" id="L61"><a href="#L61">  61</a>     return (&#x27;FUTURE&#x27; if delta &lt; -.1 else &#x27;FRESH&#x27; if delta &lt;= maximum else &#x27;STALE&#x27;), delta</span>
+<span class="line" id="L62"><a href="#L62">  62</a> </span>
+<span class="line" id="L63"><a href="#L63">  63</a> class Evidence:</span>
+<span class="line" id="L64"><a href="#L64">  64</a>     def __init__(self, app):</span>
+<span class="line" id="L65"><a href="#L65">  65</a>         self.app=Path(app).resolve(); self.results=self.app/&#x27;results&#x27;</span>
+<span class="line" id="L66"><a href="#L66">  66</a>         self._runs=[]; self._listed=0.; self._geometry={}; self._samples={}</span>
+<span class="line" id="L67"><a href="#L67">  67</a> </span>
+<span class="line" id="L68"><a href="#L68">  68</a>     def runs(self):</span>
+<span class="line" id="L69"><a href="#L69">  69</a>         if time.monotonic()-self._listed &lt; 3: return self._runs</span>
+<span class="line" id="L70"><a href="#L70">  70</a>         runs=[]</span>
+<span class="line" id="L71"><a href="#L71">  71</a>         for stage in STAGES:</span>
+<span class="line" id="L72"><a href="#L72">  72</a>             parent=self.results/stage</span>
+<span class="line" id="L73"><a href="#L73">  73</a>             if not parent.is_dir(): continue</span>
+<span class="line" id="L74"><a href="#L74">  74</a>             for p in parent.iterdir():</span>
+<span class="line" id="L75"><a href="#L75">  75</a>                 if not p.is_dir() or not (p/&#x27;spec.json&#x27;).is_file(): continue</span>
+<span class="line" id="L76"><a href="#L76">  76</a>                 spec=read_json(p/&#x27;spec.json&#x27;)</span>
+<span class="line" id="L77"><a href="#L77">  77</a>                 if spec.get(&#x27;task&#x27;) not in (&#x27;spray&#x27;,&#x27;inspection&#x27;,&#x27;mowing&#x27;): continue</span>
+<span class="line" id="L78"><a href="#L78">  78</a>                 stamp=p.name.split(&#x27;_&#x27;,1)[-1]</span>
+<span class="line" id="L79"><a href="#L79">  79</a>                 runs.append(dict(id=stage+&#x27;/&#x27;+p.name, task=spec[&#x27;task&#x27;], case=spec.get(&#x27;case&#x27;,&#x27;&#x27;), sort=stamp))</span>
+<span class="line" id="L80"><a href="#L80">  80</a>         self._runs=sorted(runs,key=lambda r:r[&#x27;sort&#x27;],reverse=True)[:160]</span>
+<span class="line" id="L81"><a href="#L81">  81</a>         self._listed=time.monotonic(); return self._runs</span>
+<span class="line" id="L82"><a href="#L82">  82</a> </span>
+<span class="line" id="L83"><a href="#L83">  83</a>     def resolve(self, name=&#x27;auto&#x27;):</span>
+<span class="line" id="L84"><a href="#L84">  84</a>         runs=self.runs()</span>
+<span class="line" id="L85"><a href="#L85">  85</a>         if name==&#x27;auto&#x27;:</span>
+<span class="line" id="L86"><a href="#L86">  86</a>             # Prefer a live writer over a newly created but not yet started directory.</span>
+<span class="line" id="L87"><a href="#L87">  87</a>             for r in runs:</span>
+<span class="line" id="L88"><a href="#L88">  88</a>                 p=self.results/r[&#x27;id&#x27;]</span>
+<span class="line" id="L89"><a href="#L89">  89</a>                 if not (p/&#x27;runtime.json&#x27;).exists() and (age(p/&#x27;live.json&#x27;) or 1e9)&lt;8:</span>
+<span class="line" id="L90"><a href="#L90">  90</a>                     return p,r[&#x27;id&#x27;]</span>
+<span class="line" id="L91"><a href="#L91">  91</a>             if not runs: return None,None</span>
+<span class="line" id="L92"><a href="#L92">  92</a>             name=runs[0][&#x27;id&#x27;]</span>
+<span class="line" id="L93"><a href="#L93">  93</a>         if name not in {r[&#x27;id&#x27;] for r in runs}: raise ValueError(&#x27;Unknown run&#x27;)</span>
+<span class="line" id="L94"><a href="#L94">  94</a>         p=(self.results/name).resolve()</span>
+<span class="line" id="L95"><a href="#L95">  95</a>         if not p.is_relative_to(self.results.resolve()): raise ValueError(&#x27;Run outside results&#x27;)</span>
+<span class="line" id="L96"><a href="#L96">  96</a>         return p,name</span>
+<span class="line" id="L97"><a href="#L97">  97</a> </span>
+<span class="line" id="L98"><a href="#L98">  98</a>     def geometry(self, name=&#x27;auto&#x27;):</span>
+<span class="line" id="L99"><a href="#L99">  99</a>         p,rid=self.resolve(name)</span>
+<span class="line" id="L100"><a href="#L100"> 100</a>         if p is None:return {}</span>
+<span class="line" id="L101"><a href="#L101"> 101</a>         file=p/&#x27;mission.json&#x27;</span>
+<span class="line" id="L102"><a href="#L102"> 102</a>         try:key=(rid,file.stat().st_mtime_ns)</span>
+<span class="line" id="L103"><a href="#L103"> 103</a>         except OSError:return {}</span>
+<span class="line" id="L104"><a href="#L104"> 104</a>         if key in self._geometry:return self._geometry[key]</span>
+<span class="line" id="L105"><a href="#L105"> 105</a>         cfg=read_json(file);spec=read_json(p/&#x27;spec.json&#x27;);clusters=cfg.get(&#x27;clusters&#x27;,[])</span>
+<span class="line" id="L106"><a href="#L106"> 106</a>         cluster=next((c for c in clusters if c.get(&#x27;id&#x27;,c.get(&#x27;cluster&#x27;))==spec.get(&#x27;cluster&#x27;)), clusters[0] if clusters else {})</span>
+<span class="line" id="L107"><a href="#L107"> 107</a>         segments=[]</span>
+<span class="line" id="L108"><a href="#L108"> 108</a>         for s in cluster.get(&#x27;segments&#x27;,[]):</span>
+<span class="line" id="L109"><a href="#L109"> 109</a>             pts=s.get(&#x27;poses&#x27;,[]);stride=max(1,len(pts)//300)</span>
+<span class="line" id="L110"><a href="#L110"> 110</a>             sample=pts[::stride]</span>
+<span class="line" id="L111"><a href="#L111"> 111</a>             if pts and sample[-1]!=pts[-1]:sample.append(pts[-1])</span>
+<span class="line" id="L112"><a href="#L112"> 112</a>             segments.append(dict(id=s.get(&#x27;id&#x27;),tool_on=s.get(&#x27;tool_on&#x27;,False),direction=s.get(&#x27;direction&#x27;),points=sample))</span>
+<span class="line" id="L113"><a href="#L113"> 113</a>         g=dict(run=rid,task=spec.get(&#x27;task&#x27;),cluster=spec.get(&#x27;cluster&#x27;),</span>
+<span class="line" id="L114"><a href="#L114"> 114</a>                allowed=cfg.get(&#x27;allowed_prior&#x27;),area=cluster.get(&#x27;area_map&#x27;),</span>
+<span class="line" id="L115"><a href="#L115"> 115</a>                points=cluster.get(&#x27;points&#x27;,[]),segments=segments,route=cfg.get(&#x27;route_map&#x27;,[]),</span>
+<span class="line" id="L116"><a href="#L116"> 116</a>                original_point_count=cluster.get(&#x27;original_point_count&#x27;),work_area_m2=cluster.get(&#x27;work_area_m2&#x27;),</span>
+<span class="line" id="L117"><a href="#L117"> 117</a>                omitted=cluster.get(&#x27;omitted_original_work&#x27;,[]),</span>
+<span class="line" id="L118"><a href="#L118"> 118</a>                versions={k:cfg.get(k) for k in [&#x27;version&#x27;,&#x27;map_revision&#x27;,&#x27;source_plan_version&#x27;,&#x27;safe_execution_plan&#x27;]},</span>
+<span class="line" id="L119"><a href="#L119"> 119</a>                rig=cfg.get(&#x27;rig&#x27;,{}),vehicle=cfg.get(&#x27;vehicle&#x27;,{}))</span>
+<span class="line" id="L120"><a href="#L120"> 120</a>         total=len(g[&#x27;points&#x27;]) if spec.get(&#x27;task&#x27;)==&#x27;spray&#x27; else len(g[&#x27;segments&#x27;])</span>
+<span class="line" id="L121"><a href="#L121"> 121</a>         limit=spec.get(&#x27;point_limit&#x27;,0) if spec.get(&#x27;task&#x27;)==&#x27;spray&#x27; else spec.get(&#x27;segment_limit&#x27;,0)</span>
+<span class="line" id="L122"><a href="#L122"> 122</a>         g.update(selected_count=min(limit,total) if limit else total,original_count=total,</span>
+<span class="line" id="L123"><a href="#L123"> 123</a>                  selection_scope=&#x27;Current run selection; unselected original obligations remain in the plan&#x27;)</span>
+<span class="line" id="L124"><a href="#L124"> 124</a>         if spec.get(&#x27;task&#x27;)==&#x27;inspection&#x27;:</span>
+<span class="line" id="L125"><a href="#L125"> 125</a>             original=cfg.get(&#x27;original_route_length_m&#x27;)</span>
+<span class="line" id="L126"><a href="#L126"> 126</a>             if original is None:</span>
+<span class="line" id="L127"><a href="#L127"> 127</a>                 route=g[&#x27;route&#x27;];original=sum(math.hypot(b[0]-a[0],b[1]-a[1]) for a,b in zip(route,route[1:]))</span>
+<span class="line" id="L128"><a href="#L128"> 128</a>             distance=spec.get(&#x27;distance_limit_m&#x27;,0.)</span>
+<span class="line" id="L129"><a href="#L129"> 129</a>             g.update(original_route_length_m=original,selected_route_length_m=min(distance,original) if distance else original)</span>
+<span class="line" id="L130"><a href="#L130"> 130</a>         if len(self._geometry)&gt;8:self._geometry.clear()</span>
+<span class="line" id="L131"><a href="#L131"> 131</a>         self._geometry[key]=g;return g</span>
+<span class="line" id="L132"><a href="#L132"> 132</a> </span>
+<span class="line" id="L133"><a href="#L133"> 133</a>     def state(self, name=&#x27;auto&#x27;):</span>
+<span class="line" id="L134"><a href="#L134"> 134</a>         p,rid=self.resolve(name)</span>
+<span class="line" id="L135"><a href="#L135"> 135</a>         if p is None:return dict(available=False,runs=self.runs())</span>
+<span class="line" id="L136"><a href="#L136"> 136</a>         spec=read_json(p/&#x27;spec.json&#x27;);live=read_json(p/&#x27;live.json&#x27;);mission=read_json(p/&#x27;mission_result.json&#x27;)</span>
+<span class="line" id="L137"><a href="#L137"> 137</a>         closed=(p/&#x27;runtime.json&#x27;).exists();now=live.get(&#x27;t&#x27;,mission.get(&#x27;t&#x27;))</span>
+<span class="line" id="L138"><a href="#L138"> 138</a>         wall_age=age(p/&#x27;live.json&#x27;);status=&#x27;CLOSED&#x27; if closed else &#x27;LIVE&#x27; if wall_age is not None and wall_age&lt;5 else &#x27;STALE_OR_STARTING&#x27;</span>
+<span class="line" id="L139"><a href="#L139"> 139</a>         loc=read_json(p/&#x27;reference/live.json&#x27;) or live.get(&#x27;loc&#x27;) or {}</span>
+<span class="line" id="L140"><a href="#L140"> 140</a>         gate=live.get(&#x27;gate&#x27;) or last(p/&#x27;control/gate.jsonl&#x27;)</span>
+<span class="line" id="L141"><a href="#L141"> 141</a>         risk=read_json(p/&#x27;risk/live.json&#x27;) or last(p/&#x27;risk/risk.jsonl&#x27;)</span>
+<span class="line" id="L142"><a href="#L142"> 142</a>         bt=live.get(&#x27;bt&#x27;) or last(p/&#x27;decisions.jsonl&#x27;)</span>
+<span class="line" id="L143"><a href="#L143"> 143</a>         ledger=read_json(p/&#x27;ledger/live.json&#x27;)</span>
+<span class="line" id="L144"><a href="#L144"> 144</a>         ev,complete=tail_records(p/&#x27;mission_events.jsonl&#x27;,limit=1_048_576,count=2000)</span>
+<span class="line" id="L145"><a href="#L145"> 145</a>         def channel(label,source,data,maximum=.5):</span>
+<span class="line" id="L146"><a href="#L146"> 146</a>             state,delta=freshness(data.get(&#x27;t&#x27;,data.get(&#x27;stamp&#x27;)),now,maximum)</span>
+<span class="line" id="L147"><a href="#L147"> 147</a>             return dict(label=label,source=source,data=data,freshness=state,age_sim_s=delta)</span>
+<span class="line" id="L148"><a href="#L148"> 148</a>         channels={</span>
+<span class="line" id="L149"><a href="#L149"> 149</a>             &#x27;imu&#x27;:channel(&#x27;IMU / 偏置与去重力&#x27;,&#x27;inputs/inputs.jsonl&#x27;,last(p/&#x27;inputs/inputs.jsonl&#x27;,&#x27;key&#x27;,&#x27;imu&#x27;)),</span>
+<span class="line" id="L150"><a href="#L150"> 150</a>             &#x27;wheel&#x27;:channel(&#x27;轮速 / 滑移检测&#x27;,&#x27;inputs/inputs.jsonl&#x27;,last(p/&#x27;inputs/inputs.jsonl&#x27;,&#x27;key&#x27;,&#x27;wheel&#x27;)),</span>
+<span class="line" id="L151"><a href="#L151"> 151</a>             &#x27;lidar&#x27;:channel(&#x27;3D 雷达 / 采集对齐&#x27;,&#x27;mapping_inputs/frames.jsonl&#x27;,last(p/&#x27;mapping_inputs/frames.jsonl&#x27;)),</span>
+<span class="line" id="L152"><a href="#L152"> 152</a>             &#x27;near&#x27;:channel(&#x27;近场雷达 / 多视角拼接&#x27;,&#x27;near/near.jsonl&#x27;,last(p/&#x27;near/near.jsonl&#x27;)),</span>
+<span class="line" id="L153"><a href="#L153"> 153</a>             &#x27;icp&#x27;:channel(&#x27;激光里程计 / ICP&#x27;,&#x27;icp_gate/quality.jsonl&#x27;,last(p/&#x27;icp_gate/quality.jsonl&#x27;),1.5),</span>
+<span class="line" id="L154"><a href="#L154"> 154</a>             &#x27;gnss&#x27;:channel(&#x27;RTK GNSS / 独立校核&#x27;,&#x27;global_sources/sources.jsonl&#x27;,last(p/&#x27;global_sources/sources.jsonl&#x27;,&#x27;kind&#x27;,&#x27;gnss&#x27;)),</span>
+<span class="line" id="L155"><a href="#L155"> 155</a>             &#x27;map&#x27;:channel(&#x27;冻结地图 / 匹配质量&#x27;,&#x27;quality/evidence.jsonl&#x27;,last(p/&#x27;quality/evidence.jsonl&#x27;),1.),</span>
+<span class="line" id="L156"><a href="#L156"> 156</a>         }</span>
+<span class="line" id="L157"><a href="#L157"> 157</a>         observer=read_json(self.app/&#x27;monitor_state/live.json&#x27;)</span>
+<span class="line" id="L158"><a href="#L158"> 158</a>         if observer.get(&#x27;run&#x27;)!=rid or (age(self.app/&#x27;monitor_state/live.json&#x27;) or 1e9)&gt;3:observer={}</span>
+<span class="line" id="L159"><a href="#L159"> 159</a>         frame=last(p/&#x27;video/frames.jsonl&#x27;)</span>
+<span class="line" id="L160"><a href="#L160"> 160</a>         analysis={}</span>
+<span class="line" id="L161"><a href="#L161"> 161</a>         if closed:</span>
+<span class="line" id="L162"><a href="#L162"> 162</a>             for file in [&#x27;analysis_spray_r10.json&#x27;,&#x27;analysis_mowing_r10.json&#x27;,&#x27;analysis_r08.json&#x27;,&#x27;analysis_r09.json&#x27;]:</span>
+<span class="line" id="L163"><a href="#L163"> 163</a>                 analysis=read_json(p/file)</span>
+<span class="line" id="L164"><a href="#L164"> 164</a>                 if analysis:break</span>
+<span class="line" id="L165"><a href="#L165"> 165</a>         samples=self._samples.setdefault(rid,deque(maxlen=1200))</span>
+<span class="line" id="L166"><a href="#L166"> 166</a>         if isinstance(now,(int,float)) and (not samples or samples[-1][&#x27;t&#x27;]!=now):</span>
+<span class="line" id="L167"><a href="#L167"> 167</a>             samples.append(dict(t=now,v=gate.get(&#x27;v&#x27;),w=gate.get(&#x27;w&#x27;),raw_v=gate.get(&#x27;raw_nav_v&#x27;),</span>
+<span class="line" id="L168"><a href="#L168"> 168</a>                                 pose=loc.get(&#x27;pose&#x27;),innovation=loc.get(&#x27;native_supervisor&#x27;,{}).get(&#x27;innovation_m&#x27;)))</span>
+<span class="line" id="L169"><a href="#L169"> 169</a>         if len(self._samples)&gt;6:</span>
+<span class="line" id="L170"><a href="#L170"> 170</a>             for k in list(self._samples):</span>
+<span class="line" id="L171"><a href="#L171"> 171</a>                 if k!=rid:del self._samples[k];break</span>
+<span class="line" id="L172"><a href="#L172"> 172</a>         accepted=[x for x in ev if x.get(&#x27;event&#x27;)==&#x27;TOOL_RESULT&#x27; and x.get(&#x27;state&#x27;)==&#x27;SUCCEEDED&#x27; and not x.get(&#x27;replayed&#x27;)]</span>
+<span class="line" id="L173"><a href="#L173"> 173</a>         arrivals=[x for x in ev if x.get(&#x27;event&#x27;)==&#x27;SEGMENT_ARRIVAL&#x27;]</span>
+<span class="line" id="L174"><a href="#L174"> 174</a>         return dict(available=True,run=dict(id=rid,task=spec.get(&#x27;task&#x27;),case=spec.get(&#x27;case&#x27;),</span>
+<span class="line" id="L175"><a href="#L175"> 175</a>                     status=status,wall_age_s=wall_age,sim_seconds=spec.get(&#x27;sim_seconds&#x27;),cluster=spec.get(&#x27;cluster&#x27;)),</span>
+<span class="line" id="L176"><a href="#L176"> 176</a>                     sim_t=now,live=live,mission_result=mission,bt=bt,loc=loc,gate=gate,risk=risk,ledger=ledger,</span>
+<span class="line" id="L177"><a href="#L177"> 177</a>                     sensors=channels,observer=observer,events=ev[-150:],events_complete=complete,</span>
+<span class="line" id="L178"><a href="#L178"> 178</a>                     confirmed_points=len(accepted),confirmed_ids=[x.get(&#x27;point&#x27;) for x in accepted],</span>
+<span class="line" id="L179"><a href="#L179"> 179</a>                     segment_arrivals=len(arrivals),samples=list(samples),video=frame,</span>
+<span class="line" id="L180"><a href="#L180"> 180</a>                     analysis=analysis,recording=read_json(p/&#x27;recording_acceptance.json&#x27;),</span>
+<span class="line" id="L181"><a href="#L181"> 181</a>                     stages={s:read_json(self.results/s/&#x27;latest.json&#x27;).get(&#x27;automated_status&#x27;,&#x27;NOT_RUN&#x27;) for s in [&#x27;R08&#x27;,&#x27;R09&#x27;,&#x27;R10&#x27;,&#x27;R11&#x27;,&#x27;R12&#x27;]},</span>
+<span class="line" id="L182"><a href="#L182"> 182</a>                     source_scope=&#x27;Observed task logs and optional ROS subscriptions. No simulator truth; no control authority.&#x27;)</span>
+</code></pre></html>

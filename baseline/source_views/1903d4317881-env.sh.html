@@ -1,0 +1,19 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>隔离 ROS 环境</title><style>body{margin:30px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;border:1px solid #d5e1e5;padding:20px;overflow:auto;font:13px/1.7 Consolas,monospace}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff2b5}.line a{color:#78949b;text-decoration:none}a{color:#076d76}p{overflow-wrap:anywhere}</style><a href="../../index.html#04-code-evidence">← 返回源码导航</a><h1>隔离 ROS 环境</h1><p>optimization_v2/env.sh</p><p>固定提交 9aff8337b7794f704c5556a973a5220e73f17808 · SHA-256 1903d4317881340f41b17b7ffb23d48b03c9d8715015bef29c658daf89f4d8a9</p><p><a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/env.sh">GitHub 固定版本</a> · 生产源码快照；视觉换行不改变原始行号。使用编辑器修改前先了解任务版本绑定。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> #!/usr/bin/env bash</span>
+<span class="line" id="L2"><a href="#L2">   2</a> # Deliberately rebuild the ROS overlay environment; never source another workspace.</span>
+<span class="line" id="L3"><a href="#L3">   3</a> _V2_ROOT=&quot;$(cd -- &quot;$(dirname -- &quot;${BASH_SOURCE[0]}&quot;)&quot; &amp;&amp; pwd -P)&quot;</span>
+<span class="line" id="L4"><a href="#L4">   4</a> case $- in *u*) _v2_nounset=1; set +u ;; *) _v2_nounset=0 ;; esac</span>
+<span class="line" id="L5"><a href="#L5">   5</a> unset AMENT_PREFIX_PATH CMAKE_PREFIX_PATH COLCON_PREFIX_PATH PYTHONPATH LD_LIBRARY_PATH</span>
+<span class="line" id="L6"><a href="#L6">   6</a> unset VIRTUAL_ENV CONDA_PREFIX ROS_DISTRO ROS_VERSION ROS_PYTHON_VERSION ROS_LOCALHOST_ONLY</span>
+<span class="line" id="L7"><a href="#L7">   7</a> unset GZ_SIM_RESOURCE_PATH GZ_SIM_SYSTEM_PLUGIN_PATH SDF_PATH RMW_IMPLEMENTATION</span>
+<span class="line" id="L8"><a href="#L8">   8</a> export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin</span>
+<span class="line" id="L9"><a href="#L9">   9</a> source /opt/ros/jazzy/setup.bash || return $?</span>
+<span class="line" id="L10"><a href="#L10">  10</a> if [[ -f &quot;$_V2_ROOT/ws/install/project_baseline/share/project_baseline/local_setup.bash&quot; ]]; then</span>
+<span class="line" id="L11"><a href="#L11">  11</a>   source &quot;$_V2_ROOT/ws/install/local_setup.bash&quot; || return $?</span>
+<span class="line" id="L12"><a href="#L12">  12</a> fi</span>
+<span class="line" id="L13"><a href="#L13">  13</a> export ROS_DOMAIN_ID=119 ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST ROS_STATIC_PEERS=&#x27;&#x27;</span>
+<span class="line" id="L14"><a href="#L14">  14</a> export GZ_PARTITION=robot_optimization_v2</span>
+<span class="line" id="L15"><a href="#L15">  15</a> export DINO_PROJECT_ROOT=&quot;$(dirname &quot;$_V2_ROOT&quot;)&quot;</span>
+<span class="line" id="L16"><a href="#L16">  16</a> export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 PYTHONDONTWRITEBYTECODE=1</span>
+<span class="line" id="L17"><a href="#L17">  17</a> if (( _v2_nounset )); then set -u; fi</span>
+<span class="line" id="L18"><a href="#L18">  18</a> unset _V2_ROOT _v2_nounset</span>
+</code></pre></html>

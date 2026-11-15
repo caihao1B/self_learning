@@ -1,0 +1,163 @@
+{
+  "run": "optimization_v2/three_tasks/results/R12/mowing_20261115_070740_054017",
+  "completed_segments": 19,
+  "execution_segments": 47,
+  "reference_original_status": "PARTIAL",
+  "stop_reason": "TimeoutError('WAIT_DEADLINE')",
+  "terminal": "HUMAN_REQUIRED",
+  "simulation_seconds": 879.272,
+  "map_xy_rmse_m": 0.06546509262290237,
+  "confirmed_area_m2": 71.94386728545035,
+  "original_target_residual_m2": 116.44793440750612,
+  "checks": {
+    "runtime_clean": true,
+    "original_database_unchanged": true,
+    "no_unexpected_contact": true,
+    "whole_footprint_authorized": true,
+    "map_rmse_under_15cm": true,
+    "unique_actuator": true,
+    "unique_tool": true,
+    "unique_tf": true,
+    "measured_final_stop": true,
+    "feedback_area_consistent": true,
+    "curvature_bounded": true,
+    "source_bound": true,
+    "task_version_bound": true,
+    "original_ordered_passages": false,
+    "selected_segments_traversed": false,
+    "two_work_strips": true,
+    "actual_reverse_travel": true,
+    "tools_off_during_turns": true,
+    "tools_off_during_recovery": true,
+    "original_area_and_obligations_retained": true,
+    "reference_not_claimed_completed": true,
+    "full_original_area_denominator": true
+  },
+  "last_observed_localization": {
+    "t": 881.43,
+    "valid": false,
+    "planning_valid": false,
+    "localization_epoch": 0,
+    "reason": "PLAN_REVALIDATION_REQUIRED",
+    "max_speed": 0.0,
+    "map_revision": "5473af1b26d4a4b1cb46f78a838487e4ecac99ed9df75dffd67035291b673653",
+    "rig_revision": "2a02b26bb968c77a1a3cf953b1060d9da0aed5398631c9c02ba5baede3a5cb93",
+    "native_supervisor": {
+      "confirmation_count": 0,
+      "correction": [
+        82.11605187759542,
+        36.48612577288911,
+        -0.44187113058455524,
+        0.0035293486843147076,
+        -0.0025686588510924974,
+        0.07773162282768298,
+        0.9969647639220486
+      ],
+      "correction_filter_active_tau_s": 3.0,
+      "correction_filter_tau_s": 3.0,
+      "gnss_age": 981.424,
+      "gnss_reason": "INNOVATION_REJECTED_FIXED",
+      "gps_count": 0,
+      "has_transform": true,
+      "heading_age": 9.423999999999978,
+      "innovation_limit_m": 0.15,
+      "innovation_m": 0.16932480149603651,
+      "jump_count": 1,
+      "last_rejected_map": {
+        "angle_rad": 0.06717651879902412,
+        "candidate": [
+          81.82211733022673,
+          36.074077715918584,
+          -0.4490129684654257,
+          0.002999630417161786,
+          -0.0025528303863397127,
+          0.11116412401123807,
+          0.9937942557728904
+        ],
+        "capture_t": 881.2,
+        "displacement_m": 0.02090147932674177,
+        "map_pose": [
+          88.11277235852633,
+          31.592873077335646,
+          0.0,
+          0.0,
+          0.0,
+          -0.8907492933876847,
+          0.4544949904337125
+        ],
+        "matched_odom_t": 881.2,
+        "paired_odom": [
+          5.147630725541131,
+          -5.757956535515423,
+          0.4505361165971574,
+          0.0036372488605233284,
+          0.0015116700524927086,
+          0.9357450685815017,
+          -0.352655145857507
+        ],
+        "previous": [
+          82.11605187759542,
+          36.48612577288911,
+          -0.44187113058455524,
+          0.0035293486843147076,
+          -0.0025686588510924974,
+          0.07773162282768298,
+          0.9969647639220486
+        ],
+        "received_t": 881.342
+      },
+      "map_age": 981.424,
+      "map_reason": "MAP_JUMP_REJECTED",
+      "max_speed": 0.0,
+      "navigation_allowed": false,
+      "nis": 8.432614235249662,
+      "nis_limit": 9.21,
+      "plan_revalidation_required": true,
+      "raw_map_correction": [
+        81.9128069492873,
+        36.332564282016904,
+        -0.4435082263758415,
+        0.0029076236205082613,
+        -0.002074062627504862,
+        0.09402979260505108,
+        0.9955629774613707
+      ],
+      "reason": "PLAN_REVALIDATION_REQUIRED",
+      "recovery_count": 0,
+      "recovery_epoch": 0,
+      "recovery_prepared_t": -100.0,
+      "recovery_preview": false,
+      "recovery_ready": false,
+      "source": "NONE",
+      "state": "STOPPED",
+      "t": 881.424,
+      "v": -0.0029851791964816982,
+      "w": 4.260955715130161e-05
+    },
+    "truth_used": false,
+    "pose": [
+      88.09195526269002,
+      31.59237149736681,
+      -2.265683542631116
+    ],
+    "odom": [
+      5.147725898304469,
+      -5.757873035218936,
+      -2.4213015199936594
+    ],
+    "odom_t": 881.39,
+    "v": -0.000630471670301836,
+    "w": 0.0002909224135937782,
+    "transform": [
+      82.11605187759542,
+      36.48612577288911,
+      0.15560289473394082
+    ]
+  },
+  "recording": {
+    "video_valid": true,
+    "mission_timeline_complete": true,
+    "active_video_quality": true
+  },
+  "scope": "Current approved safe-path B1 actual partial execution; no original-reference or whole-cluster PASS"
+}

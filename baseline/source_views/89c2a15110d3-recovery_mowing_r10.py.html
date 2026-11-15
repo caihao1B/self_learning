@@ -1,0 +1,89 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>分挡恢复与末端直线</title><style>body{margin:30px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;border:1px solid #d5e1e5;padding:20px;overflow:auto;font:13px/1.7 Consolas,monospace}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff2b5}.line a{color:#78949b;text-decoration:none}a{color:#076d76}p{overflow-wrap:anywhere}</style><a href="../../index.html#04-code-evidence">← 返回源码导航</a><h1>分挡恢复与末端直线</h1><p>optimization_v2/ws/src/task_platform/scripts/recovery_mowing_r10.py</p><p>固定提交 9aff8337b7794f704c5556a973a5220e73f17808 · SHA-256 89c2a15110d3e67acbf6589972efd6e6ff6d328089d07916cc2a613c9c45b3fb</p><p><a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/recovery_mowing_r10.py">GitHub 固定版本</a> · 生产源码快照；视觉换行不改变原始行号。使用编辑器修改前先了解任务版本绑定。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Admission for tool-off endpoint recovery; no path or arrival substitution.&quot;&quot;&quot;</span>
+<span class="line" id="L2"><a href="#L2">   2</a> import math</span>
+<span class="line" id="L3"><a href="#L3">   3</a> </span>
+<span class="line" id="L4"><a href="#L4">   4</a> def terminal_straight(goal,distance=1.2,spacing=.04):</span>
+<span class="line" id="L5"><a href="#L5">   5</a>     &quot;&quot;&quot;Same-pose arrival with a straight tangent before it; proposal, not admission.&quot;&quot;&quot;</span>
+<span class="line" id="L6"><a href="#L6">   6</a>     if len(goal)!=3 or not all(math.isfinite(v) for v in goal) or not 0&lt;distance&lt;=1.2 or not 0&lt;spacing&lt;=.1:</span>
+<span class="line" id="L7"><a href="#L7">   7</a>         raise ValueError(&#x27;INVALID_TERMINAL_APPROACH&#x27;)</span>
+<span class="line" id="L8"><a href="#L8">   8</a>     x,y,h=goal;count=math.ceil(distance/spacing)</span>
+<span class="line" id="L9"><a href="#L9">   9</a>     return [[x-distance*(1-i/count)*math.cos(h),y-distance*(1-i/count)*math.sin(h),h] for i in range(count+1)]</span>
+<span class="line" id="L10"><a href="#L10">  10</a> </span>
+<span class="line" id="L11"><a href="#L11">  11</a> def retreat_prefix(start,distance=.6,spacing=.04):</span>
+<span class="line" id="L12"><a href="#L12">  12</a>     &quot;&quot;&quot;Proposal only: a straight tool-off retreat, later swept/costmap checked.&quot;&quot;&quot;</span>
+<span class="line" id="L13"><a href="#L13">  13</a>     if not all(math.isfinite(v) for v in start) or not 0&lt;distance&lt;=.8 or spacing&lt;=0:</span>
+<span class="line" id="L14"><a href="#L14">  14</a>         raise ValueError(&#x27;INVALID_RETREAT_BOUND&#x27;)</span>
+<span class="line" id="L15"><a href="#L15">  15</a>     count=math.ceil(distance/spacing);x,y,h=start</span>
+<span class="line" id="L16"><a href="#L16">  16</a>     return [[x-distance*i/count*math.cos(h),y-distance*i/count*math.sin(h),h] for i in range(count+1)]</span>
+<span class="line" id="L17"><a href="#L17">  17</a> </span>
+<span class="line" id="L18"><a href="#L18">  18</a> def gear_runs(points):</span>
+<span class="line" id="L19"><a href="#L19">  19</a>     &quot;&quot;&quot;Split at a sign change of motion along body heading; share the cusp pose.&quot;&quot;&quot;</span>
+<span class="line" id="L20"><a href="#L20">  20</a>     runs=[];current=[];previous=0</span>
+<span class="line" id="L21"><a href="#L21">  21</a>     for a,b in zip(points,points[1:]):</span>
+<span class="line" id="L22"><a href="#L22">  22</a>         dx,dy=b[0]-a[0],b[1]-a[1]</span>
+<span class="line" id="L23"><a href="#L23">  23</a>         if math.hypot(dx,dy)&lt;1e-7:continue</span>
+<span class="line" id="L24"><a href="#L24">  24</a>         heading=a[2]+.5*math.atan2(math.sin(b[2]-a[2]),math.cos(b[2]-a[2]))</span>
+<span class="line" id="L25"><a href="#L25">  25</a>         longitudinal=dx*math.cos(heading)+dy*math.sin(heading)</span>
+<span class="line" id="L26"><a href="#L26">  26</a>         if abs(longitudinal)&lt;.9*math.hypot(dx,dy):raise ValueError(&#x27;LATERAL_ACKERMANN_PATH&#x27;)</span>
+<span class="line" id="L27"><a href="#L27">  27</a>         direction=1 if longitudinal&gt;0 else -1</span>
+<span class="line" id="L28"><a href="#L28">  28</a>         if direction!=previous:</span>
+<span class="line" id="L29"><a href="#L29">  29</a>             if current:runs.append(dict(direction=previous,poses=current))</span>
+<span class="line" id="L30"><a href="#L30">  30</a>             current=[a];previous=direction</span>
+<span class="line" id="L31"><a href="#L31">  31</a>         current.append(b)</span>
+<span class="line" id="L32"><a href="#L32">  32</a>     if current:runs.append(dict(direction=previous,poses=current))</span>
+<span class="line" id="L33"><a href="#L33">  33</a>     if not runs:raise ValueError(&#x27;NO_TRANSLATION&#x27;)</span>
+<span class="line" id="L34"><a href="#L34">  34</a>     return runs</span>
+<span class="line" id="L35"><a href="#L35">  35</a> </span>
+<span class="line" id="L36"><a href="#L36">  36</a> def tracking_distance(points,pose,cursor):</span>
+<span class="line" id="L37"><a href="#L37">  37</a>     &quot;&quot;&quot;Distance to local traversed/current edges, not an overlapping future branch.&quot;&quot;&quot;</span>
+<span class="line" id="L38"><a href="#L38">  38</a>     edges=list(zip(points[max(0,cursor-2):cursor+4],points[max(0,cursor-2)+1:cursor+5]))</span>
+<span class="line" id="L39"><a href="#L39">  39</a>     distances=[]</span>
+<span class="line" id="L40"><a href="#L40">  40</a>     for a,b in edges:</span>
+<span class="line" id="L41"><a href="#L41">  41</a>         dx,dy=b[0]-a[0],b[1]-a[1];den=dx*dx+dy*dy</span>
+<span class="line" id="L42"><a href="#L42">  42</a>         u=max(0.,min(1.,((pose[0]-a[0])*dx+(pose[1]-a[1])*dy)/den)) if den else 0.</span>
+<span class="line" id="L43"><a href="#L43">  43</a>         distances.append(math.hypot(pose[0]-a[0]-u*dx,pose[1]-a[1]-u*dy))</span>
+<span class="line" id="L44"><a href="#L44">  44</a>     return min(distances,default=math.dist(points[cursor][:2],pose[:2]))</span>
+<span class="line" id="L45"><a href="#L45">  45</a> </span>
+<span class="line" id="L46"><a href="#L46">  46</a> def yaw_error(a,b):</span>
+<span class="line" id="L47"><a href="#L47">  47</a>     return abs(math.atan2(math.sin(a-b),math.cos(a-b)))</span>
+<span class="line" id="L48"><a href="#L48">  48</a> </span>
+<span class="line" id="L49"><a href="#L49">  49</a> def gear_permitted(previous,requested,stopped,tool_stopped):</span>
+<span class="line" id="L50"><a href="#L50">  50</a>     return not(previous and requested and previous!=requested) or bool(stopped and tool_stopped)</span>
+<span class="line" id="L51"><a href="#L51">  51</a> </span>
+<span class="line" id="L52"><a href="#L52">  52</a> def arm_direction(previous,requested,phase,stopped,tool_stopped):</span>
+<span class="line" id="L53"><a href="#L53">  53</a>     &quot;&quot;&quot;Select a normal segment&#x27;s gear before starting its working implement.&quot;&quot;&quot;</span>
+<span class="line" id="L54"><a href="#L54">  54</a>     return requested if phase==&#x27;READY&#x27; and requested in (-1,1) and stopped and tool_stopped else previous</span>
+<span class="line" id="L55"><a href="#L55">  55</a> </span>
+<span class="line" id="L56"><a href="#L56">  56</a> def observed_cursor(points,pose,cursor,window_m=.20):</span>
+<span class="line" id="L57"><a href="#L57">  57</a>     &quot;&quot;&quot;Advance only through a local prefix, never jump to a nearby return branch.&quot;&quot;&quot;</span>
+<span class="line" id="L58"><a href="#L58">  58</a>     end=cursor;distance=0.</span>
+<span class="line" id="L59"><a href="#L59">  59</a>     while end+1&lt;len(points) and distance+math.dist(points[end][:2],points[end+1][:2])&lt;=window_m:</span>
+<span class="line" id="L60"><a href="#L60">  60</a>         distance+=math.dist(points[end][:2],points[end+1][:2]);end+=1</span>
+<span class="line" id="L61"><a href="#L61">  61</a>     admitted=[i for i in range(cursor,end+1) if math.dist(points[i][:2],pose[:2])&lt;=.15 and yaw_error(points[i][2],pose[2])&lt;=.10]</span>
+<span class="line" id="L62"><a href="#L62">  62</a>     return min(admitted,key=lambda i:math.dist(points[i][:2],pose[:2])+.25*yaw_error(points[i][2],pose[2])) if admitted else cursor</span>
+<span class="line" id="L63"><a href="#L63">  63</a> </span>
+<span class="line" id="L64"><a href="#L64">  64</a> def validate_candidate(points,start,goal,cfg,max_length=12.):</span>
+<span class="line" id="L65"><a href="#L65">  65</a>     from shapely.geometry import shape</span>
+<span class="line" id="L66"><a href="#L66">  66</a>     from footprint_r09 import body_polygon</span>
+<span class="line" id="L67"><a href="#L67">  67</a>     if len(points)&lt;2 or any(not all(math.isfinite(v) for v in p) for p in points):return False,&#x27;MALFORMED_PATH&#x27;</span>
+<span class="line" id="L68"><a href="#L68">  68</a>     if math.dist(points[0][:2],start[:2])&gt;.15 or yaw_error(points[0][2],start[2])&gt;.10:return False,&#x27;START_DISCONTINUITY&#x27;</span>
+<span class="line" id="L69"><a href="#L69">  69</a>     if math.dist(points[-1][:2],goal[:2])&gt;.05 or yaw_error(points[-1][2],goal[2])&gt;.08:return False,&#x27;GOAL_MISMATCH&#x27;</span>
+<span class="line" id="L70"><a href="#L70">  70</a>     # The authoritative prior is in world coordinates; navigation is ENU.</span>
+<span class="line" id="L71"><a href="#L71">  71</a>     allowed=shape(cfg[&#x27;allowed_prior&#x27;]).buffer(-cfg[&#x27;footprint_margin_m&#x27;])</span>
+<span class="line" id="L72"><a href="#L72">  72</a>     for p in points:</span>
+<span class="line" id="L73"><a href="#L73">  73</a>         if not allowed.covers(body_polygon(cfg[&#x27;vehicle&#x27;][&#x27;footprint&#x27;],p[0]+28,p[1]+14,p[2])):return False,&#x27;FOOTPRINT_OUTSIDE_PRIOR&#x27;</span>
+<span class="line" id="L74"><a href="#L74">  74</a>     length=0.</span>
+<span class="line" id="L75"><a href="#L75">  75</a>     for a,b in zip(points,points[1:]):</span>
+<span class="line" id="L76"><a href="#L76">  76</a>         ds=math.dist(a[:2],b[:2]);angle=yaw_error(a[2],b[2]);length+=ds</span>
+<span class="line" id="L77"><a href="#L77">  77</a>         if ds&gt;.4:return False,&#x27;PATH_DISCONTINUITY&#x27;</span>
+<span class="line" id="L78"><a href="#L78">  78</a>         # Arc-length curvature from chord; identical cusp points may keep yaw.</span>
+<span class="line" id="L79"><a href="#L79">  79</a>         if ds&lt;1e-5:</span>
+<span class="line" id="L80"><a href="#L80">  80</a>             if angle&gt;1e-4:return False,&#x27;IN_PLACE_ROTATION&#x27;</span>
+<span class="line" id="L81"><a href="#L81">  81</a>         elif 2*math.sin(angle/2)/ds&gt;cfg[&#x27;vehicle&#x27;][&#x27;steering&#x27;][&#x27;max_curvature&#x27;]+.005:return False,&#x27;CURVATURE_EXCEEDED&#x27;</span>
+<span class="line" id="L82"><a href="#L82">  82</a>         signed=math.atan2(math.sin(b[2]-a[2]),math.cos(b[2]-a[2]));steps=max(1,math.ceil(ds/.04),math.ceil(angle/.02))</span>
+<span class="line" id="L83"><a href="#L83">  83</a>         for j in range(1,steps):</span>
+<span class="line" id="L84"><a href="#L84">  84</a>             u=j/steps;p=[a[0]+u*(b[0]-a[0]),a[1]+u*(b[1]-a[1]),a[2]+u*signed]</span>
+<span class="line" id="L85"><a href="#L85">  85</a>             if not allowed.covers(body_polygon(cfg[&#x27;vehicle&#x27;][&#x27;footprint&#x27;],p[0]+28,p[1]+14,p[2])):return False,&#x27;SWEPT_FOOTPRINT_OUTSIDE_PRIOR&#x27;</span>
+<span class="line" id="L86"><a href="#L86">  86</a>     if not math.isfinite(max_length) or max_length&lt;=0:return False,&#x27;INVALID_LENGTH_BOUND&#x27;</span>
+<span class="line" id="L87"><a href="#L87">  87</a>     if length&gt;max_length:return False,&#x27;RECOVERY_TOO_LONG&#x27;</span>
+<span class="line" id="L88"><a href="#L88">  88</a>     return True,&#x27;PRIOR_AND_KINEMATICS_VALID_OBSERVED_RISK_STILL_REQUIRED&#x27;</span>
+</code></pre></html>

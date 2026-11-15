@@ -1,0 +1,37 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>当前工具服务器派生</title><style>body{margin:30px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;border:1px solid #d5e1e5;padding:20px;overflow:auto;font:13px/1.7 Consolas,monospace}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff2b5}.line a{color:#78949b;text-decoration:none}a{color:#076d76}p{overflow-wrap:anywhere}</style><a href="../../index.html#04-code-evidence">← 返回源码导航</a><h1>当前工具服务器派生</h1><p>optimization_v2/ws/src/task_platform/scripts/tool_build_r09.py</p><p>固定提交 9aff8337b7794f704c5556a973a5220e73f17808 · SHA-256 ecf3df28b853b3d1c4033f6be6a7fefdf4052c63f452b4e15bc78685326fbd73</p><p><a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/tool_build_r09.py">GitHub 固定版本</a> · 生产源码快照；视觉换行不改变原始行号。使用编辑器修改前先了解任务版本绑定。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Isolated native ToolTask receiver: wait for clock epoch, never restamp feedback.&quot;&quot;&quot;</span>
+<span class="line" id="L2"><a href="#L2">   2</a> from common import *</span>
+<span class="line" id="L3"><a href="#L3">   3</a> def put(p,s):</span>
+<span class="line" id="L4"><a href="#L4">   4</a>  if not p.exists() or p.read_text()!=s:p.write_text(s)</span>
+<span class="line" id="L5"><a href="#L5">   5</a> def generate_tool(out):</span>
+<span class="line" id="L6"><a href="#L6">   6</a>  s=(BASE/&#x27;ws/src/tool_sim/src/action_server.cpp&#x27;).read_text()</span>
+<span class="line" id="L7"><a href="#L7">   7</a>  s=&#x27;#include &lt;deque&gt;\n&#x27;+s</span>
+<span class="line" id="L8"><a href="#L8">   8</a>  s=s.replace(&#x27; bool fresh(){&#x27;,&#x27; std::deque&lt;std::pair&lt;J,Wall::time_point&gt;&gt; incoming_;\n bool fresh(){&#x27;)</span>
+<span class="line" id="L9"><a href="#L9">   9</a>  start=s.index(&#x27;try{auto d=J::parse(m-&gt;data);double t=d.at(&quot;t&quot;);bool ordered=&#x27;)</span>
+<span class="line" id="L10"><a href="#L10">  10</a>  end=s.index(&#x27;);\n  ledger_sub_&#x27;,start)</span>
+<span class="line" id="L11"><a href="#L11">  11</a>  original=s[start:end]</span>
+<span class="line" id="L12"><a href="#L12">  12</a>  assert original.endswith(&#x27;}}&#x27;)</span>
+<span class="line" id="L13"><a href="#L13">  13</a>  body=original[len(&#x27;try{auto d=J::parse(m-&gt;data);&#x27;): -len(&#x27;catch(...){stopped_since_=-1;}}&#x27;)]</span>
+<span class="line" id="L14"><a href="#L14">  14</a>  assert body.endswith(&#x27;}&#x27;)</span>
+<span class="line" id="L15"><a href="#L15">  15</a>  body=body[:-1].replace(&#x27;feedback_wall_=Wall::now();&#x27;,&#x27;feedback_wall_=arrival;&#x27;)</span>
+<span class="line" id="L16"><a href="#L16">  16</a>  helper=&#x27; void consume(J d,Wall::time_point arrival){&#x27;+body+&#x27;}\n void drain(){while(!incoming_.empty()&amp;&amp;incoming_.front().first.value(&quot;t&quot;,1e99)&lt;=t_+.001){auto p=incoming_.front();incoming_.pop_front();if(p.first.value(&quot;t&quot;,-1.)&gt;last_sensor_)consume(p.first,p.second);}}\n&#x27;</span>
+<span class="line" id="L17"><a href="#L17">  17</a>  s=s[:start]+&#x27;try{auto d=J::parse(m-&gt;data);incoming_.push_back({d,Wall::now()});if(incoming_.size()&gt;30)incoming_.pop_front();drain();}catch(...){stopped_since_=-1;}}&#x27;+s[end:]</span>
+<span class="line" id="L18"><a href="#L18">  18</a>  s=s.replace(&#x27; void tick(){&#x27;,helper+&#x27; void tick(){\n  drain();&#x27;)</span>
+<span class="line" id="L19"><a href="#L19">  19</a>  s=s.replace(&#x27;t_=t;});&#x27;,&#x27;t_=t;drain();});&#x27;)</span>
+<span class="line" id="L20"><a href="#L20">  20</a>  s=s.replace(&#x27;begin_stop(&quot;LOST&quot;,&quot;FEEDBACK_LOST&quot;,true);&#x27;,&#x27;{RCLCPP_ERROR(get_logger(), &quot;Feedback freshness failure sim=%.6f sensor=%.6f wall_age=%.6f queued=%zu&quot;,t_,feedback_.value(&quot;t&quot;,-100.),age(feedback_wall_),incoming_.size());begin_stop(&quot;LOST&quot;,&quot;FEEDBACK_LOST&quot;,true);}&#x27;)</span>
+<span class="line" id="L21"><a href="#L21">  21</a>  put(out/&#x27;tool_action_server.cpp&#x27;,s)</span>
+<span class="line" id="L22"><a href="#L22">  22</a>  plugin=(BASE/&#x27;ws/src/tool_sim/src/ToolActuator.cc&#x27;).read_text().replace(&#x27;t-last_pub_&gt;=.049&#x27;,&#x27;t-last_pub_&gt;=cfg_.value(&quot;feedback_period_s&quot;,.049)&#x27;)</span>
+<span class="line" id="L23"><a href="#L23">  23</a>  put(out/&#x27;ToolActuator.cc&#x27;,plugin)</span>
+<span class="line" id="L24"><a href="#L24">  24</a>  return &quot;&quot;&quot;\nset(Protobuf_PROTOC_EXECUTABLE /usr/bin/protoc CACHE FILEPATH &quot;Gazebo ABI&quot; FORCE)</span>
+<span class="line" id="L25"><a href="#L25">  25</a> find_package(Protobuf MODULE REQUIRED)</span>
+<span class="line" id="L26"><a href="#L26">  26</a> find_package(gz-sim8 REQUIRED)</span>
+<span class="line" id="L27"><a href="#L27">  27</a> find_package(gz-plugin2 REQUIRED COMPONENTS register)</span>
+<span class="line" id="L28"><a href="#L28">  28</a> find_package(gz-transport13 REQUIRED)</span>
+<span class="line" id="L29"><a href="#L29">  29</a> add_library(s10_tool_r09 SHARED ToolActuator.cc)</span>
+<span class="line" id="L30"><a href="#L30">  30</a> target_link_libraries(s10_tool_r09 gz-sim8::gz-sim8 gz-plugin2::gz-plugin2 gz-transport13::gz-transport13 nlohmann_json::nlohmann_json)</span>
+<span class="line" id="L31"><a href="#L31">  31</a> find_package(rclcpp_action REQUIRED)</span>
+<span class="line" id="L32"><a href="#L32">  32</a> find_package(mission_interfaces REQUIRED)</span>
+<span class="line" id="L33"><a href="#L33">  33</a> add_executable(r09_tool_action_server tool_action_server.cpp)</span>
+<span class="line" id="L34"><a href="#L34">  34</a> ament_target_dependencies(r09_tool_action_server rclcpp rclcpp_action mission_interfaces std_msgs rosgraph_msgs)</span>
+<span class="line" id="L35"><a href="#L35">  35</a> target_link_libraries(r09_tool_action_server nlohmann_json::nlohmann_json)</span>
+<span class="line" id="L36"><a href="#L36">  36</a> &quot;&quot;&quot;</span>
+</code></pre></html>

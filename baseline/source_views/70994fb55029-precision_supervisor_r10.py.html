@@ -1,0 +1,44 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>点喷 BT 程序派生</title><style>body{margin:30px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;border:1px solid #d5e1e5;padding:20px;overflow:auto;font:13px/1.7 Consolas,monospace}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff2b5}.line a{color:#78949b;text-decoration:none}a{color:#076d76}p{overflow-wrap:anywhere}</style><a href="../../index.html#04-code-evidence">← 返回源码导航</a><h1>点喷 BT 程序派生</h1><p>optimization_v2/ws/src/task_platform/scripts/precision_supervisor_r10.py</p><p>固定提交 9aff8337b7794f704c5556a973a5220e73f17808 · SHA-256 70994fb55029d069818efc7c6f8df6e154ae37506faba38709f7be96a90fb3cd</p><p><a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/precision_supervisor_r10.py">GitHub 固定版本</a> · 生产源码快照；视觉换行不改变原始行号。使用编辑器修改前先了解任务版本绑定。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Independent spray BT build; protected inspection/mowing supervisor is unchanged.&quot;&quot;&quot;</span>
+<span class="line" id="L2"><a href="#L2">   2</a> from common import *</span>
+<span class="line" id="L3"><a href="#L3">   3</a> </span>
+<span class="line" id="L4"><a href="#L4">   4</a> def derive(policy):</span>
+<span class="line" id="L5"><a href="#L5">   5</a>  marker=&#x27;num(&quot;progress_m&quot;)-last_progress&gt;=cfg.at(&quot;progress_delta_m&quot;).get&lt;double&gt;()&#x27;</span>
+<span class="line" id="L6"><a href="#L6">   6</a>  assert policy.count(marker)==1</span>
+<span class="line" id="L7"><a href="#L7">   7</a>  policy=policy.replace(marker,&#x27;num(&quot;progress_m&quot;)-last_progress&gt;=r10::progressDelta(cfg,e)&#x27;)</span>
+<span class="line" id="L8"><a href="#L8">   8</a>  marker=&#x27;e=std::move(context);e[&quot;t&quot;]=t;&#x27;</span>
+<span class="line" id="L9"><a href="#L9">   9</a>  assert policy.count(marker)==1</span>
+<span class="line" id="L10"><a href="#L10">  10</a>  policy=policy.replace(marker,marker+&#x27;e[&quot;effective_progress_delta_m&quot;]=r10::progressDelta(cfg,e);&#x27;)</span>
+<span class="line" id="L11"><a href="#L11">  11</a>  return &#x27;#include &quot;&#x27;+str(PKG/&#x27;r10_backend/precision_progress.hpp&#x27;)+&#x27;&quot;\n&#x27;+policy</span>
+<span class="line" id="L12"><a href="#L12">  12</a> </span>
+<span class="line" id="L13"><a href="#L13">  13</a> def build():</span>
+<span class="line" id="L14"><a href="#L14">  14</a>  out=APP/&#x27;build/r10_spray_bt_source&#x27;;out.mkdir(parents=True,exist_ok=True)</span>
+<span class="line" id="L15"><a href="#L15">  15</a>  files={&#x27;policy.hpp&#x27;:derive((PKG/&#x27;r08_backend/policy.hpp&#x27;).read_text()),</span>
+<span class="line" id="L16"><a href="#L16">  16</a>         &#x27;supervisor.cpp&#x27;:(APP/&#x27;build/r08_source/supervisor.cpp&#x27;).read_text(),</span>
+<span class="line" id="L17"><a href="#L17">  17</a>         &#x27;original_policy_test.cpp&#x27;:(PKG/&#x27;r08_backend/policy_test.cpp&#x27;).read_text(),</span>
+<span class="line" id="L18"><a href="#L18">  18</a>         &#x27;precision_progress_test.cpp&#x27;:(PKG/&#x27;r10_backend/precision_progress_test.cpp&#x27;).read_text()}</span>
+<span class="line" id="L19"><a href="#L19">  19</a>  files[&#x27;CMakeLists.txt&#x27;]=&#x27;&#x27;&#x27;cmake_minimum_required(VERSION 3.16)</span>
+<span class="line" id="L20"><a href="#L20">  20</a> project(r10_spray_bt)</span>
+<span class="line" id="L21"><a href="#L21">  21</a> set(CMAKE_CXX_STANDARD 17)</span>
+<span class="line" id="L22"><a href="#L22">  22</a> add_compile_options(-O2 -Wall -Wextra)</span>
+<span class="line" id="L23"><a href="#L23">  23</a> find_package(ament_cmake REQUIRED)</span>
+<span class="line" id="L24"><a href="#L24">  24</a> find_package(rclcpp REQUIRED)</span>
+<span class="line" id="L25"><a href="#L25">  25</a> find_package(std_msgs REQUIRED)</span>
+<span class="line" id="L26"><a href="#L26">  26</a> find_package(std_srvs REQUIRED)</span>
+<span class="line" id="L27"><a href="#L27">  27</a> find_package(behaviortree_cpp 4.10.0 EXACT REQUIRED)</span>
+<span class="line" id="L28"><a href="#L28">  28</a> find_package(nlohmann_json REQUIRED)</span>
+<span class="line" id="L29"><a href="#L29">  29</a> add_executable(r10_spray_supervisor supervisor.cpp)</span>
+<span class="line" id="L30"><a href="#L30">  30</a> ament_target_dependencies(r10_spray_supervisor rclcpp std_msgs std_srvs behaviortree_cpp)</span>
+<span class="line" id="L31"><a href="#L31">  31</a> target_link_libraries(r10_spray_supervisor nlohmann_json::nlohmann_json)</span>
+<span class="line" id="L32"><a href="#L32">  32</a> foreach(name original_policy_test precision_progress_test)</span>
+<span class="line" id="L33"><a href="#L33">  33</a>  add_executable(${name} ${name}.cpp)</span>
+<span class="line" id="L34"><a href="#L34">  34</a>  ament_target_dependencies(${name} behaviortree_cpp)</span>
+<span class="line" id="L35"><a href="#L35">  35</a>  target_link_libraries(${name} nlohmann_json::nlohmann_json)</span>
+<span class="line" id="L36"><a href="#L36">  36</a> endforeach()</span>
+<span class="line" id="L37"><a href="#L37">  37</a> &#x27;&#x27;&#x27;</span>
+<span class="line" id="L38"><a href="#L38">  38</a>  for name,text in files.items():</span>
+<span class="line" id="L39"><a href="#L39">  39</a>   target=out/name</span>
+<span class="line" id="L40"><a href="#L40">  40</a>   if not target.exists() or target.read_text()!=text:target.write_text(text)</span>
+<span class="line" id="L41"><a href="#L41">  41</a>  subprocess.run([&#x27;cmake&#x27;,&#x27;-S&#x27;,str(out),&#x27;-B&#x27;,str(APP/&#x27;build/r10_spray_bt&#x27;)],check=True)</span>
+<span class="line" id="L42"><a href="#L42">  42</a>  subprocess.run([&#x27;cmake&#x27;,&#x27;--build&#x27;,str(APP/&#x27;build/r10_spray_bt&#x27;),&#x27;--parallel&#x27;,&#x27;1&#x27;],check=True)</span>
+<span class="line" id="L43"><a href="#L43">  43</a>  return APP/&#x27;build/r10_spray_bt/r10_spray_supervisor&#x27;</span>
+</code></pre></html>

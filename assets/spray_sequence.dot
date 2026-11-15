@@ -1,0 +1,16 @@
+digraph G {rankdir=TB;graph [bgcolor="#f7fafb",pad="0.3",nodesep="0.35",ranksep="0.55",fontname="Noto Sans CJK SC",fontsize=16];
+node [shape=box,style="rounded,filled",fillcolor="#e8f3f1",color="#39776e",fontcolor="#163d38",fontname="Noto Sans CJK SC",fontsize=13,margin="0.18,0.13"];
+edge [color="#648189",fontname="Noto Sans CJK SC",fontsize=11,arrowsize=0.7];
+ a[label="启动与准入\n服务器 / 定位 / 工具已停"];
+ b[label="NavigateToPose\n持续处理 BT 与定位消息"];
+ c[label="实测停车与静止观测\n位置 · 散布 · 时间窗口"];
+ d[label="POINT_SERVICE\n版本 + 工作键 + 请求数量"];
+ e[label="有效反馈进入账本\n确认量与剩余量"];
+ f[label="SUCCEEDED\n计入一个完成点"];
+ g[label="下一个点或最终停止"];
+ jam[label="实际 JAM\n45.450 至 48.450 s",fillcolor="#fff1dc",color="#ac824a"];
+ fail[label="工具失败 / 停止确认\n保留残余与不确定状态",fillcolor="#fff1dc",color="#ac824a"];
+ retry[label="满足恢复条件\n同一工作键补残余",fillcolor="#fff1dc",color="#ac824a"];
+ replay[label="重放已完成工作键\n返回原确认 / 不再次作业"];
+ a->b;b->c;c->d;d->e;e->f;f->g;jam->fail;d->fail[label="故障"];fail->retry;retry->c;f->replay;replay->g;
+}

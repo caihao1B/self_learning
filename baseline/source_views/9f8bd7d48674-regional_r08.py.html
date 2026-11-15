@@ -1,0 +1,84 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>区域观测地图配准</title><style>body{margin:30px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;border:1px solid #d5e1e5;padding:20px;overflow:auto;font:13px/1.7 Consolas,monospace}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff2b5}.line a{color:#78949b;text-decoration:none}a{color:#076d76}p{overflow-wrap:anywhere}</style><a href="../../index.html#04-code-evidence">← 返回源码导航</a><h1>区域观测地图配准</h1><p>optimization_v2/ws/src/task_platform/scripts/regional_r08.py</p><p>固定提交 9aff8337b7794f704c5556a973a5220e73f17808 · SHA-256 9f8bd7d486745818794e9efae32ff039812dba333bbce3d085574a56160606d8</p><p><a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/regional_r08.py">GitHub 固定版本</a> · 生产源码快照；视觉换行不改变原始行号。使用编辑器修改前先了解任务版本绑定。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> from rig_r08 import runtime_rig</span>
+<span class="line" id="L2"><a href="#L2">   2</a> &quot;&quot;&quot;R08 map matching: stable startup admission; unchanged native jump and GNSS gates.&quot;&quot;&quot;</span>
+<span class="line" id="L3"><a href="#L3">   3</a> import argparse,os,sys,json,math,time,signal,importlib.util</span>
+<span class="line" id="L4"><a href="#L4">   4</a> from pathlib import Path</span>
+<span class="line" id="L5"><a href="#L5">   5</a> from collections import deque</span>
+<span class="line" id="L6"><a href="#L6">   6</a> import numpy as np</span>
+<span class="line" id="L7"><a href="#L7">   7</a> import rclpy</span>
+<span class="line" id="L8"><a href="#L8">   8</a> from rclpy.qos import qos_profile_sensor_data</span>
+<span class="line" id="L9"><a href="#L9">   9</a> from sensor_msgs.msg import PointCloud2,NavSatFix</span>
+<span class="line" id="L10"><a href="#L10">  10</a> from sensor_msgs_py import point_cloud2</span>
+<span class="line" id="L11"><a href="#L11">  11</a> from nav_msgs.msg import Odometry</span>
+<span class="line" id="L12"><a href="#L12">  12</a> from geometry_msgs.msg import PoseWithCovarianceStamped</span>
+<span class="line" id="L13"><a href="#L13">  13</a> from rosgraph_msgs.msg import Clock</span>
+<span class="line" id="L14"><a href="#L14">  14</a> from std_msgs.msg import String</span>
+<span class="line" id="L15"><a href="#L15">  15</a> from startup_r08 import stable_corrections</span>
+<span class="line" id="L16"><a href="#L16">  16</a> from contract_r05 import verify_runtime_contract,read,sha,ROOT,BASE</span>
+<span class="line" id="L17"><a href="#L17">  17</a> spec=importlib.util.spec_from_file_location(&#x27;regional_math_r05&#x27;,Path(os.environ[&#x27;R05_ADAPTER&#x27;])/&#x27;regional_math.py&#x27;);math14=importlib.util.module_from_spec(spec);spec.loader.exec_module(math14)</span>
+<span class="line" id="L18"><a href="#L18">  18</a> spec=importlib.util.spec_from_file_location(&#x27;geodesy_r05&#x27;,BASE/&#x27;ws/src/sensor_sim_adapter/scripts/common.py&#x27;);geo=importlib.util.module_from_spec(spec);spec.loader.exec_module(geo)</span>
+<span class="line" id="L19"><a href="#L19">  19</a> def stamp(m):return m.header.stamp.sec+m.header.stamp.nanosec*1e-9</span>
+<span class="line" id="L20"><a href="#L20">  20</a> def yaw(q):return math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y*q.y+q.z*q.z))</span>
+<span class="line" id="L21"><a href="#L21">  21</a> def dump(p,d):q=p.with_suffix(&#x27;.tmp&#x27;);q.write_text(json.dumps(d));q.replace(p)</span>
+<span class="line" id="L22"><a href="#L22">  22</a> def main():</span>
+<span class="line" id="L23"><a href="#L23">  23</a>  ap=argparse.ArgumentParser();ap.add_argument(&#x27;--out&#x27;,type=Path,required=True);ap.add_argument(&#x27;--request&#x27;,type=Path,required=True);a=ap.parse_args();a.out.mkdir(parents=True,exist_ok=True);manifest=verify_runtime_contract(read(a.request));binding=read(Path(os.environ[&#x27;R05_BINDING&#x27;]));rig=runtime_rig(a.out,read(ROOT/binding[&#x27;rig_path&#x27;]));atlas=read(ROOT/binding[&#x27;atlas_path&#x27;]);cloudpath=ROOT/binding[&#x27;reference_cloud_path&#x27;];points=np.loadtxt(cloudpath,skiprows=7);reference=math14.SurfaceMap(points);reference.prepare_normals();signatures={str(p):(p.stat().st_ino,p.stat().st_size,p.stat().st_mtime_ns,p.stat().st_ctime_ns) for p in [a.out.parent/&#x27;mission.json&#x27;,Path(os.environ[&#x27;R05_BINDING&#x27;]),ROOT/binding[&#x27;rig_path&#x27;],ROOT/binding[&#x27;vehicle_path&#x27;],ROOT/binding[&#x27;atlas_path&#x27;],cloudpath]}</span>
+<span class="line" id="L24"><a href="#L24">  24</a>  rclpy.init();n=rclpy.create_node(&#x27;r05_regional_localizer&#x27;,parameter_overrides=[rclpy.parameter.Parameter(&#x27;use_sim_time&#x27;,value=True)]);pub=n.create_publisher(String,&#x27;/s07/localization/evidence&#x27;,10);clouds=deque(maxlen=4);odoms=deque(maxlen=100);fixes=deque(maxlen=40);state=dict(t=0.,stop=False,hint=None,previous=None,contract_valid=True,hint_t=None,bootstrap=False,stable_since=None);log=(a.out/&#x27;evidence.jsonl&#x27;).open(&#x27;w&#x27;);laststat=0.;corrections=deque(maxlen=7)</span>
+<span class="line" id="L25"><a href="#L25">  25</a>  n.create_subscription(Clock,&#x27;/clock&#x27;,lambda m:state.update(t=m.clock.sec+m.clock.nanosec*1e-9),qos_profile_sensor_data);n.create_subscription(PointCloud2,&#x27;/s07/inputs/cloud&#x27;,lambda m:clouds.append((time.monotonic(),m)),5);n.create_subscription(Odometry,&#x27;/s07/inputs/odom&#x27;,lambda m:odoms.append(m),30);n.create_subscription(NavSatFix,&#x27;/s04/localization/gnss&#x27;,lambda m:fixes.append(m),qos_profile_sensor_data)</span>
+<span class="line" id="L26"><a href="#L26">  26</a>  def hint(m):</span>
+<span class="line" id="L27"><a href="#L27">  27</a>   if m.header.frame_id==&#x27;map&#x27;:state[&#x27;hint&#x27;]=[m.pose.pose.position.x,m.pose.pose.position.y,yaw(m.pose.pose.orientation)];state[&#x27;previous&#x27;]=None;state[&#x27;hint_t&#x27;]=state[&#x27;t&#x27;];state[&#x27;bootstrap&#x27;]=False;state[&#x27;stable_since&#x27;]=None;corrections.clear()</span>
+<span class="line" id="L28"><a href="#L28">  28</a>  n.create_subscription(PoseWithCovarianceStamped,&#x27;/s07/rtabmap/initialpose&#x27;,hint,10)</span>
+<span class="line" id="L29"><a href="#L29">  29</a>  def stop(s,f):state[&#x27;stop&#x27;]=True</span>
+<span class="line" id="L30"><a href="#L30">  30</a>  for s in [signal.SIGINT,signal.SIGTERM]:signal.signal(s,stop)</span>
+<span class="line" id="L31"><a href="#L31">  31</a>  (a.out/&#x27;ready&#x27;).write_text(&#x27;current observed map match and independent GNSS gate; no truth&#x27;);processed=0</span>
+<span class="line" id="L32"><a href="#L32">  32</a>  try:</span>
+<span class="line" id="L33"><a href="#L33">  33</a>   while not state[&#x27;stop&#x27;]:</span>
+<span class="line" id="L34"><a href="#L34">  34</a>    rclpy.spin_once(n,timeout_sec=.005);wall=time.monotonic()</span>
+<span class="line" id="L35"><a href="#L35">  35</a>    if wall-laststat&gt;.5:</span>
+<span class="line" id="L36"><a href="#L36">  36</a>     laststat=wall</span>
+<span class="line" id="L37"><a href="#L37">  37</a>     for name,old in signatures.items():</span>
+<span class="line" id="L38"><a href="#L38">  38</a>      try:s=Path(name).stat();sig=(s.st_ino,s.st_size,s.st_mtime_ns,s.st_ctime_ns)</span>
+<span class="line" id="L39"><a href="#L39">  39</a>      except OSError:sig=None</span>
+<span class="line" id="L40"><a href="#L40">  40</a>      if sig!=old:state[&#x27;contract_valid&#x27;]=False</span>
+<span class="line" id="L41"><a href="#L41">  41</a>    if not clouds or not odoms or state[&#x27;hint&#x27;] is None:continue</span>
+<span class="line" id="L42"><a href="#L42">  42</a>    received,m=clouds[0];t=stamp(m);o=min(odoms,key=lambda x:abs(stamp(x)-t))</span>
+<span class="line" id="L43"><a href="#L43">  43</a>    if abs(stamp(o)-t)&gt;.03 and wall-received&lt;.3:continue</span>
+<span class="line" id="L44"><a href="#L44">  44</a>    clouds.popleft()</span>
+<span class="line" id="L45"><a href="#L45">  45</a>    if state[&#x27;t&#x27;]-t&gt;1.0 or abs(stamp(o)-t)&gt;.03 or t&lt;state[&#x27;hint_t&#x27;]:continue</span>
+<span class="line" id="L46"><a href="#L46">  46</a>    q=o.pose.pose;local=np.array([q.position.x,q.position.y,yaw(q.orientation)]);previous=state[&#x27;previous&#x27;];coarse=previous is None</span>
+<span class="line" id="L47"><a href="#L47">  47</a>    if coarse:seed=state[&#x27;hint&#x27;]</span>
+<span class="line" id="L48"><a href="#L48">  48</a>    else:</span>
+<span class="line" id="L49"><a href="#L49">  49</a>     pp,oo=previous;heading=pp[2]-oo[2];seed=[*(np.array(pp[:2])+math14.rotation(heading)@(local[:2]-oo[:2])),local[2]+heading]</span>
+<span class="line" id="L50"><a href="#L50">  50</a>    raw=point_cloud2.read_points_numpy(m,field_names=[&#x27;x&#x27;,&#x27;y&#x27;,&#x27;z&#x27;],skip_nans=True).reshape(-1,3);start=time.monotonic();matches=[reference.align(raw,[*seed[:2],seed[2]+d],coarse=coarse) for d in (np.linspace(-.15,.15,7) if coarse else [0.])];good=[x for x in matches if x[&#x27;valid&#x27;]];valid=bool(good) and state[&#x27;contract_valid&#x27;];reason=&#x27;HELD_OUT_SURFACE_MATCH&#x27; if valid else &#x27;MAP_MATCH_REJECTED&#x27;</span>
+<span class="line" id="L51"><a href="#L51">  51</a>    if good:</span>
+<span class="line" id="L52"><a href="#L52">  52</a>     spread=max(math.dist(good[0][&#x27;pose&#x27;][:2],x[&#x27;pose&#x27;][:2]) for x in good);angle=max(abs(math.atan2(math.sin(x[&#x27;pose&#x27;][2]-good[0][&#x27;pose&#x27;][2]),math.cos(x[&#x27;pose&#x27;][2]-good[0][&#x27;pose&#x27;][2]))) for x in good)</span>
+<span class="line" id="L53"><a href="#L53">  53</a>     if spread&gt;.08 or angle&gt;.015:valid=False;reason=&#x27;AMBIGUOUS_INITIAL_MATCH&#x27;</span>
+<span class="line" id="L54"><a href="#L54">  54</a>     best=min(good,key=lambda x:x[&#x27;p95_m&#x27;]);p=best[&#x27;pose&#x27;];h=p[2]</span>
+<span class="line" id="L55"><a href="#L55">  55</a>     if not coarse and (best[&#x27;translation_from_seed_m&#x27;]&gt;.15 or best[&#x27;yaw_from_seed_rad&#x27;]&gt;.035):valid=False;reason=&#x27;TRACKING_CORRECTION_BOUND&#x27;</span>
+<span class="line" id="L56"><a href="#L56">  56</a>     residual=None;nis=None;fix=min(fixes,key=lambda f:abs(stamp(f)-t)) if fixes else None;cov=np.eye(6)*.01;cov[0,0]=cov[1,1]=.05**2+atlas[&#x27;datum_translation_sigma_m&#x27;]**2;cov[5,5]=.004**2</span>
+<span class="line" id="L57"><a href="#L57">  57</a>     if fix is not None and abs(stamp(fix)-t)&lt;.6 and fix.status.status==2:</span>
+<span class="line" id="L58"><a href="#L58">  58</a>      enu=geo.to_enu([fix.latitude,fix.longitude,fix.altitude],atlas[&#x27;datum_llh&#x27;])-np.array(atlas[&#x27;site_origin&#x27;]);antenna=np.array(p[:2])+math14.rotation(h)@np.array(rig[&#x27;gnss&#x27;][&#x27;xyz&#x27;][:2]);delta=enu[:2]-antenna;C=np.array(fix.position_covariance).reshape(3,3)[:2,:2]+cov[:2,:2];residual=float(np.linalg.norm(delta));nis=float(delta@np.linalg.solve(C,delta));gnss_ok=residual&lt;=.15 and nis&lt;=9.21 and np.linalg.eigvalsh(C).min()&gt;0</span>
+<span class="line" id="L59"><a href="#L59">  59</a>     else:gnss_ok=False</span>
+<span class="line" id="L60"><a href="#L60">  60</a>     if not gnss_ok:valid=False;reason=&#x27;GNSS_MAP_INNOVATION_OR_FRESHNESS&#x27;</span>
+<span class="line" id="L61"><a href="#L61">  61</a>     evidence=dict(t=t,received_t=state[&#x27;t&#x27;],valid=bool(valid),reason=reason,pose=[*p[:2],0.,0.,0.,math.sin(h/2),math.cos(h/2)],covariance=cov.reshape(-1).tolist(),surface_points=best[&#x27;heldout_points&#x27;],raw_surface_points=best[&#x27;raw_surface_points&#x27;],mapped_candidate_points=best[&#x27;mapped_candidate_points&#x27;],mapped_fraction=best[&#x27;mapped_fraction&#x27;],overlap_scope=best[&#x27;overlap_scope&#x27;],surface_overlap=best[&#x27;overlap&#x27;],surface_p95_m=best[&#x27;p95_m&#x27;],multistart_spread_m=spread,gnss_innovation_m=residual,gnss_nis=nis,initialization=coarse,processing_wall_s=time.monotonic()-start)</span>
+<span class="line" id="L62"><a href="#L62">  62</a>     if valid:</span>
+<span class="line" id="L63"><a href="#L63">  63</a>      state[&#x27;previous&#x27;]=(p,local)</span>
+<span class="line" id="L64"><a href="#L64">  64</a>      cyaw=math.atan2(math.sin(h-local[2]),math.cos(h-local[2]));shift=np.array(p[:2])-math14.rotation(cyaw)@local[:2];corrections.append((t,shift,cyaw))</span>
+<span class="line" id="L65"><a href="#L65">  65</a>      while corrections and t-corrections[0][0]&gt;1.5:corrections.popleft()</span>
+<span class="line" id="L66"><a href="#L66">  66</a>      shifts=np.array([v[1] for v in corrections]);angles=np.unwrap([v[2] for v in corrections]);mh=float(np.median(angles));ms=np.median(shifts,axis=0);smooth=ms+math14.rotation(mh)@local[:2];syaw=local[2]+mh</span>
+<span class="line" id="L67"><a href="#L67">  67</a>      evidence[&#x27;raw_pose&#x27;]=evidence[&#x27;pose&#x27;];evidence[&#x27;pose&#x27;]=[*smooth,0.,0.,0.,math.sin(syaw/2),math.cos(syaw/2)];scatter=np.median(np.abs(shifts-ms),axis=0)*1.4826;cov[0,0]+=scatter[0]**2;cov[1,1]+=scatter[1]**2;evidence[&#x27;covariance&#x27;]=cov.reshape(-1).tolist();evidence[&#x27;temporal_filter&#x27;]=dict(method=&#x27;median map-to-odom correction&#x27;,samples=len(corrections),span_s=t-corrections[0][0],robust_scatter_m=scatter.tolist(),original_capture_stamp=t)</span>
+<span class="line" id="L68"><a href="#L68">  68</a> </span>
+<span class="line" id="L69"><a href="#L69">  69</a>      if not state[&#x27;bootstrap&#x27;]:</span>
+<span class="line" id="L70"><a href="#L70">  70</a>       stable,metrics=stable_corrections(corrections)</span>
+<span class="line" id="L71"><a href="#L71">  71</a>       if stable:</span>
+<span class="line" id="L72"><a href="#L72">  72</a>        if state[&#x27;stable_since&#x27;] is None:state[&#x27;stable_since&#x27;]=t</span>
+<span class="line" id="L73"><a href="#L73">  73</a>        state[&#x27;bootstrap&#x27;]=t-state[&#x27;stable_since&#x27;]&gt;=1.0</span>
+<span class="line" id="L74"><a href="#L74">  74</a>       else:state[&#x27;stable_since&#x27;]=None</span>
+<span class="line" id="L75"><a href="#L75">  75</a>       evidence[&#x27;startup_stability&#x27;]=dict(metrics,admitted=state[&#x27;bootstrap&#x27;],stable_since=state[&#x27;stable_since&#x27;])</span>
+<span class="line" id="L76"><a href="#L76">  76</a>       if not state[&#x27;bootstrap&#x27;]:evidence.update(valid=False,reason=&#x27;STARTUP_CORRECTION_STABILITY_PENDING&#x27;)</span>
+<span class="line" id="L77"><a href="#L77">  77</a>     elif not state[&#x27;bootstrap&#x27;]:state[&#x27;stable_since&#x27;]=None</span>
+<span class="line" id="L78"><a href="#L78">  78</a> </span>
+<span class="line" id="L79"><a href="#L79">  79</a>    else:evidence=dict(t=t,valid=False,reason=reason,matches=matches,processing_wall_s=time.monotonic()-start)</span>
+<span class="line" id="L80"><a href="#L80">  80</a>    evidence.update(map_id=atlas[&#x27;map_id&#x27;],map_revision=atlas[&#x27;revision&#x27;],rig_revision=rig[&#x27;revision&#x27;],quality_source=&#x27;S14/S17 sensor-derived frozen cloud; RTAB local ICP + wheel/IMU; held-out map matching; independent GNSS supervisor&#x27;,backend=&#x27;regional_surface_map&#x27;,truth_used=False)</span>
+<span class="line" id="L81"><a href="#L81">  81</a>    pub.publish(String(data=json.dumps(evidence)));log.write(json.dumps(evidence)+&#x27;\n&#x27;);log.flush();dump(a.out/&#x27;live.json&#x27;,evidence);processed+=1</span>
+<span class="line" id="L82"><a href="#L82">  82</a>  finally:log.close();dump(a.out/&#x27;result.json&#x27;,dict(processed=processed,contract_valid=state[&#x27;contract_valid&#x27;]));n.destroy_node();rclpy.try_shutdown()</span>
+<span class="line" id="L83"><a href="#L83">  83</a> if __name__==&#x27;__main__&#x27;:main()</span>
+</code></pre></html>

@@ -1,0 +1,9 @@
+{
+  "t": 45.45,
+  "fault": {
+    "mode": "JAM",
+    "until": 48.45
+  },
+  "exit": 0,
+  "scope": "declared simulator actuator fault; no pose injection"
+}

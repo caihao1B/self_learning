@@ -1,0 +1,6 @@
+.build_venv/
+__pycache__/
+*.pyc
+build/
+.authoring/
+

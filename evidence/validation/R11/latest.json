@@ -1,0 +1,640 @@
+{
+  "stage": "R11",
+  "automated_status": "PARTIAL",
+  "summary": {
+    "passed": false,
+    "components_passed": true,
+    "cases": {
+      "spray": {
+        "task": "spray",
+        "passed": true,
+        "variants": {
+          "original": {
+            "passed": true,
+            "capture": {
+              "passed": true,
+              "frames": 80,
+              "sample_frames": 65,
+              "source": "actual Gazebo observer camera",
+              "autonomous_motion": false,
+              "real_time_factor": 0.3999829014910071,
+              "received_wall_fps": 3.199863211928057,
+              "first_sim": 2.0,
+              "last_sim": 10.0
+            },
+            "error": null,
+            "forced": [],
+            "process_exits": {
+              "server": 0,
+              "camera_bridge": 0,
+              "capture": 0
+            },
+            "wall_seconds": 29.19183021900244,
+            "scene_sha256": "36da83bd6b695240add54b2d8f433e260195ad382f5377bcf4d5a670547a2686"
+          },
+          "material": {
+            "passed": true,
+            "capture": {
+              "passed": true,
+              "frames": 79,
+              "sample_frames": 65,
+              "source": "actual Gazebo observer camera",
+              "autonomous_motion": false,
+              "real_time_factor": 0.3999699976704787,
+              "received_wall_fps": 3.1997599813638296,
+              "first_sim": 2.0,
+              "last_sim": 10.0
+            },
+            "error": null,
+            "forced": [],
+            "process_exits": {
+              "server": 0,
+              "camera_bridge": 0,
+              "capture": 0
+            },
+            "wall_seconds": 29.18098683800781,
+            "scene_sha256": "57dc206e8b85ece97200ab9fde3634413eab3d4b10175120f1793dccc6a22a88"
+          }
+        },
+        "material_to_original_rtf_ratio": 0.9999677390696444,
+        "minimum_ratio": 0.8,
+        "material_contract": {
+          "task": "spray",
+          "changed_materials": 43,
+          "geometry_sensor_physics_signature": "b4de70684f97b09bb442d7eb83275ab2f07d08873372462840cf4891dccb7bcb",
+          "geometry_and_physics_unchanged": true,
+          "source_sha256": "36da83bd6b695240add54b2d8f433e260195ad382f5377bcf4d5a670547a2686",
+          "destination_sha256": "57dc206e8b85ece97200ab9fde3634413eab3d4b10175120f1793dccc6a22a88",
+          "sensor_pixels": "CHANGED_REQUIRES_SEPARATE_QUALIFICATION",
+          "assets": {
+            "optimization_v2/three_tasks/editions/R11/assets/PROVENANCE.txt": "390060d573c52103cc0aadd19d9a262887c8d2172d8d5491c2e7cdd8472d4bff",
+            "optimization_v2/three_tasks/editions/R11/assets/inspection.png": "21cf9d262990553e932f5a4cf5215540dcf798e5e63a860eb84af83dae95717d",
+            "optimization_v2/three_tasks/editions/R11/assets/spray.png": "1450a56da2c9284508080715308085bc33bfde6b7ab569b02c38baac70d88ba6",
+            "optimization_v2/three_tasks/editions/R11/assets/mowing.png": "0b10832c5a4621bc63f8bf6ecea71bc1cce0ac57d84b82806e1be35a2b6e423f"
+          }
+        },
+        "scope": "Paired parked 10-sim-second render test; no autonomy equivalence claim",
+        "current_evidence_checks": {
+          "source": true,
+          "destination": true,
+          "assets": true,
+          "paired_scene_bindings": true,
+          "geometry": true
+        }
+      },
+      "inspection": {
+        "task": "inspection",
+        "passed": true,
+        "variants": {
+          "original": {
+            "passed": true,
+            "capture": {
+              "passed": true,
+              "frames": 80,
+              "sample_frames": 65,
+              "source": "actual Gazebo observer camera",
+              "autonomous_motion": false,
+              "real_time_factor": 0.39995653410372056,
+              "received_wall_fps": 3.1996522728297645,
+              "first_sim": 2.0,
+              "last_sim": 10.0
+            },
+            "error": null,
+            "forced": [],
+            "process_exits": {
+              "server": 0,
+              "camera_bridge": 0,
+              "capture": 0
+            },
+            "wall_seconds": 29.28981453900633,
+            "scene_sha256": "7976087a44a77f05a7c1093f8eb88ff754a6c208417e96f004b2b4e5a309a486"
+          },
+          "material": {
+            "passed": true,
+            "capture": {
+              "passed": true,
+              "frames": 80,
+              "sample_frames": 65,
+              "source": "actual Gazebo observer camera",
+              "autonomous_motion": false,
+              "real_time_factor": 0.3999513562562334,
+              "received_wall_fps": 3.1996108500498672,
+              "first_sim": 2.0,
+              "last_sim": 10.0
+            },
+            "error": null,
+            "forced": [],
+            "process_exits": {
+              "server": 0,
+              "camera_bridge": 0,
+              "capture": 0
+            },
+            "wall_seconds": 29.141777473996626,
+            "scene_sha256": "7a313c9729da23da7e6f28ca05d6311ff307f1b21e39aabc03173dc366714e11"
+          }
+        },
+        "material_to_original_rtf_ratio": 0.9999870539745056,
+        "minimum_ratio": 0.8,
+        "material_contract": {
+          "task": "inspection",
+          "changed_materials": 42,
+          "geometry_sensor_physics_signature": "d6668432833c1a0b736debe6f8a53e1b11c36901db5b54731c586fbd4bcb1b86",
+          "geometry_and_physics_unchanged": true,
+          "source_sha256": "7976087a44a77f05a7c1093f8eb88ff754a6c208417e96f004b2b4e5a309a486",
+          "destination_sha256": "7a313c9729da23da7e6f28ca05d6311ff307f1b21e39aabc03173dc366714e11",
+          "sensor_pixels": "CHANGED_REQUIRES_SEPARATE_QUALIFICATION",
+          "assets": {
+            "optimization_v2/three_tasks/editions/R11/assets/PROVENANCE.txt": "390060d573c52103cc0aadd19d9a262887c8d2172d8d5491c2e7cdd8472d4bff",
+            "optimization_v2/three_tasks/editions/R11/assets/inspection.png": "21cf9d262990553e932f5a4cf5215540dcf798e5e63a860eb84af83dae95717d",
+            "optimization_v2/three_tasks/editions/R11/assets/spray.png": "1450a56da2c9284508080715308085bc33bfde6b7ab569b02c38baac70d88ba6",
+            "optimization_v2/three_tasks/editions/R11/assets/mowing.png": "0b10832c5a4621bc63f8bf6ecea71bc1cce0ac57d84b82806e1be35a2b6e423f"
+          }
+        },
+        "scope": "Paired parked 10-sim-second render test; no autonomy equivalence claim",
+        "current_evidence_checks": {
+          "source": true,
+          "destination": true,
+          "assets": true,
+          "paired_scene_bindings": true,
+          "geometry": true
+        }
+      },
+      "mowing": {
+        "task": "mowing",
+        "passed": true,
+        "variants": {
+          "original": {
+            "passed": true,
+            "capture": {
+              "passed": true,
+              "frames": 80,
+              "sample_frames": 65,
+              "source": "actual Gazebo observer camera",
+              "autonomous_motion": false,
+              "real_time_factor": 0.39994518917160143,
+              "received_wall_fps": 3.1995615133728115,
+              "first_sim": 2.0,
+              "last_sim": 10.0
+            },
+            "error": null,
+            "forced": [],
+            "process_exits": {
+              "server": 0,
+              "camera_bridge": 0,
+              "capture": 0
+            },
+            "wall_seconds": 29.29310218000319,
+            "scene_sha256": "034350caecc55b894b2147d24f4333c1e90f30d9db97ca1d33873c677dc1633d"
+          },
+          "material": {
+            "passed": true,
+            "capture": {
+              "passed": true,
+              "frames": 80,
+              "sample_frames": 65,
+              "source": "actual Gazebo observer camera",
+              "autonomous_motion": false,
+              "real_time_factor": 0.39995337237570716,
+              "received_wall_fps": 3.1996269790056573,
+              "first_sim": 2.0,
+              "last_sim": 10.0
+            },
+            "error": null,
+            "forced": [],
+            "process_exits": {
+              "server": 0,
+              "camera_bridge": 0,
+              "capture": 0
+            },
+            "wall_seconds": 29.135316236002836,
+            "scene_sha256": "a72fa5e1c23dcde6c843a647622e445bb92ac841868d660474b92778fbd1d8d5"
+          }
+        },
+        "material_to_original_rtf_ratio": 1.0000204608139498,
+        "minimum_ratio": 0.8,
+        "material_contract": {
+          "task": "mowing",
+          "changed_materials": 43,
+          "geometry_sensor_physics_signature": "0544a441855dd47c4f56abed1725825701b9ed18b27c1f955652a0ea7afc6a62",
+          "geometry_and_physics_unchanged": true,
+          "source_sha256": "034350caecc55b894b2147d24f4333c1e90f30d9db97ca1d33873c677dc1633d",
+          "destination_sha256": "a72fa5e1c23dcde6c843a647622e445bb92ac841868d660474b92778fbd1d8d5",
+          "sensor_pixels": "CHANGED_REQUIRES_SEPARATE_QUALIFICATION",
+          "assets": {
+            "optimization_v2/three_tasks/editions/R11/assets/PROVENANCE.txt": "390060d573c52103cc0aadd19d9a262887c8d2172d8d5491c2e7cdd8472d4bff",
+            "optimization_v2/three_tasks/editions/R11/assets/inspection.png": "21cf9d262990553e932f5a4cf5215540dcf798e5e63a860eb84af83dae95717d",
+            "optimization_v2/three_tasks/editions/R11/assets/spray.png": "1450a56da2c9284508080715308085bc33bfde6b7ab569b02c38baac70d88ba6",
+            "optimization_v2/three_tasks/editions/R11/assets/mowing.png": "0b10832c5a4621bc63f8bf6ecea71bc1cce0ac57d84b82806e1be35a2b6e423f"
+          }
+        },
+        "scope": "Paired parked 10-sim-second render test; no autonomy equivalence claim",
+        "current_evidence_checks": {
+          "source": true,
+          "destination": true,
+          "assets": true,
+          "paired_scene_bindings": true,
+          "geometry": true
+        }
+      }
+    },
+    "pending": [
+      "R10 full-job acceptance remains PARTIAL"
+    ],
+    "scope": "Material-only assets and paired parked rendering. Autonomous sensor qualification belongs to R12 recordings; no full-job extrapolation."
+  },
+  "artifacts": [
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/mowing/world.visual.json",
+      "sha256": "9aed39dd2dabc5a8920ca740d4d3c2547f21b91a8dddda254a2bf7e65624c63c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/mowing/world.sdf",
+      "sha256": "a72fa5e1c23dcde6c843a647622e445bb92ac841868d660474b92778fbd1d8d5"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/assets/PROVENANCE.txt",
+      "sha256": "390060d573c52103cc0aadd19d9a262887c8d2172d8d5491c2e7cdd8472d4bff"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/assets/inspection.png",
+      "sha256": "21cf9d262990553e932f5a4cf5215540dcf798e5e63a860eb84af83dae95717d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/assets/spray.png",
+      "sha256": "1450a56da2c9284508080715308085bc33bfde6b7ab569b02c38baac70d88ba6"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/assets/mowing.png",
+      "sha256": "0b10832c5a4621bc63f8bf6ecea71bc1cce0ac57d84b82806e1be35a2b6e423f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/inspection/world.visual.json",
+      "sha256": "133dfedab38cdc20c69bca50558fff4ce1a3c82792f3198d113a377e08b3df74"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/inspection/world.sdf",
+      "sha256": "7a313c9729da23da7e6f28ca05d6311ff307f1b21e39aabc03173dc366714e11"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/spray/world.visual.json",
+      "sha256": "6f0bd4e2aced126315432de70d12501af3047ce158c397fe8c3b3d2fbafa5025"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/spray/world.sdf",
+      "sha256": "57dc206e8b85ece97200ab9fde3634413eab3d4b10175120f1793dccc6a22a88"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/mowing/original/vehicle.json",
+      "sha256": "ea38a5fd01068bbe743f9cadbdb0a790d4288ddffb385b1e953ee89e2fb4f4a8"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/mowing/original/icp.yaml",
+      "sha256": "0d9a2a604dbba7cb251ea5ee562e5bece8b21885823190499dae4eebd5baf749"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/mowing/original/wheel_imu.yaml",
+      "sha256": "36a884b88c64b148248b33be902b67140d6135751cfc27b1cf48258272a9357a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/mowing/original/sensor_manifest.json",
+      "sha256": "d0ed194fbf4e955f6eafcfa77dc9871bb2c3a03a6d422def277de4f0c1e27825"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/mowing/original/assembly.json",
+      "sha256": "8c10c07a1a0852a422e7ef5e9b35bc4cdce4b9d02dbaab4a1b12c335b7451124"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/mowing/original/tool.json",
+      "sha256": "48077a59efedc04b67ed8ed992c2f83432d006edf60eac31661bf58d24577f26"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/mowing/original/fused.yaml",
+      "sha256": "b19f26bd11896d1a60ded127748ed562e48a8a59eb3a83610f8e7e47f1c5fd1c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/mowing/original/world.sdf",
+      "sha256": "034350caecc55b894b2147d24f4333c1e90f30d9db97ca1d33873c677dc1633d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/mowing/original/fixture.json",
+      "sha256": "b83176ec57d33efe2935ef440b3e44fabeaac73475490823a7757c84494ddceb"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/inspection/original/vehicle.json",
+      "sha256": "0d897d20099d5e7c6684f31d4fb963cd5548ea04e771077f5b05f4d757335cdf"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/inspection/original/icp.yaml",
+      "sha256": "0d9a2a604dbba7cb251ea5ee562e5bece8b21885823190499dae4eebd5baf749"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/inspection/original/wheel_imu.yaml",
+      "sha256": "36a884b88c64b148248b33be902b67140d6135751cfc27b1cf48258272a9357a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/inspection/original/sensor_manifest.json",
+      "sha256": "27324e9756fcbf5f375a5eb226187586d874459300dcf42d5e198c714599dd28"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/inspection/original/assembly.json",
+      "sha256": "4a1abf68e0883dd2c7859c875f4f56f98cbde40750c2f89f2a7f8386d6b75ab2"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/inspection/original/fused.yaml",
+      "sha256": "b19f26bd11896d1a60ded127748ed562e48a8a59eb3a83610f8e7e47f1c5fd1c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/inspection/original/world.sdf",
+      "sha256": "7976087a44a77f05a7c1093f8eb88ff754a6c208417e96f004b2b4e5a309a486"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/inspection/original/fixture.json",
+      "sha256": "836659ecd9429b7312adaaba10b75747d8f266c49359aec820c47f21c5b871cb"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/spray/original/vehicle.json",
+      "sha256": "3a2440b9f87903ed8bc20ec7b1edeb0339f486e37716ae4fbce73645287a9405"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/spray/original/icp.yaml",
+      "sha256": "0d9a2a604dbba7cb251ea5ee562e5bece8b21885823190499dae4eebd5baf749"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/spray/original/wheel_imu.yaml",
+      "sha256": "36a884b88c64b148248b33be902b67140d6135751cfc27b1cf48258272a9357a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/spray/original/sensor_manifest.json",
+      "sha256": "70c0147c5d75e792f3ffd97adf7904ed26bb7d7b93515bb26775120d2d20159b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/spray/original/assembly.json",
+      "sha256": "b243cd21020099156737cf43182de105162c7f93396827f8fc842d64d0b9b9d8"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/spray/original/tool.json",
+      "sha256": "3933fb97e15ee57468cd7ee86f4a3010ec67e0f0ab891bc944d7ce4b31164daf"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/spray/original/fused.yaml",
+      "sha256": "b19f26bd11896d1a60ded127748ed562e48a8a59eb3a83610f8e7e47f1c5fd1c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/spray/original/world.sdf",
+      "sha256": "36da83bd6b695240add54b2d8f433e260195ad382f5377bcf4d5a670547a2686"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R11/spray/original/fixture.json",
+      "sha256": "c733e7e7e61b964c832e732f2ed4dbf2a00bd0db26cfcc816c8b64ac4ca03b7f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/report.html",
+      "sha256": "dc12b4159844a9de874922e9a2dcf2353e9853eb4352c8f3125c386a70cbc10b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/tests.log",
+      "sha256": "daf14959bf9ca9ab282b4e45dd04407f89a45e7d6a64169005d50f545e9a04c5"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/mowing/comparison.json",
+      "sha256": "9c2ee46ba60feaed97546565c8f73de611e8f4fdd2414f747f8a95e55faeaf94"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/inspection/comparison.json",
+      "sha256": "2b02538a0a41b3e56f2662af29d28c35023373768cd9701e08f8fc478dd7a92a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/spray/comparison.json",
+      "sha256": "7b19aae06b956c15a6d2ed5eb800f4616342bfe7bf64679221d455c42f538fd7"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/mowing/material/capture.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/mowing/material/camera_bridge.log",
+      "sha256": "a48cd6591c6a98a8906ce5850510a9e1602a93eca4b3675626cca9b72813d6bc"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/mowing/material/shutdown_compat.json",
+      "sha256": "55fa16ce515680bf6e95f92be1f9de215f80f76229641977e7e09f1e264b1145"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/mowing/material/server.log",
+      "sha256": "2d76a2eee358ca367cb6a3986381c2515cbebe6201944e16a857900d42b215fd"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/mowing/material/capture.json",
+      "sha256": "508aea05b05084d23beaaf296b3a1c75cc9b9c73d59bcb302bb5e886d27dbd1e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/mowing/material/preview.png",
+      "sha256": "d453b6989c0f7f1a905b16c0e6ad7b28a866bbb0e4c356f9cc152c3dffa7a409"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/mowing/material/world.sdf",
+      "sha256": "fd661823bbe77238d19a30709aff70b5e7e5ee37cecf81192073bf6d2de218b0"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/mowing/material/result.json",
+      "sha256": "8a7059300d6741f59cfea2dc3798958eb45491c3a569dee6cf1a8f3a7536c42b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/mowing/original/capture.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/mowing/original/camera_bridge.log",
+      "sha256": "9fdd6293b5c3c0d6308704c277c1c038f0b0f2d09d6299fd0ee4003b44836017"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/mowing/original/shutdown_compat.json",
+      "sha256": "55fa16ce515680bf6e95f92be1f9de215f80f76229641977e7e09f1e264b1145"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/mowing/original/server.log",
+      "sha256": "2d76a2eee358ca367cb6a3986381c2515cbebe6201944e16a857900d42b215fd"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/mowing/original/capture.json",
+      "sha256": "275a4078aec1e812f74357cd772d913b8117eb909ca4b4844af12a413ff81d63"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/mowing/original/preview.png",
+      "sha256": "cdfeab0edcd8bfbd110f8fdf09472a7d42f53ff8580cb96bc6ab94ea841198c6"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/mowing/original/world.sdf",
+      "sha256": "947375e0714f4aa35bac80426d454d9674a4db0dba63e27fb6242a33db777a89"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/mowing/original/result.json",
+      "sha256": "6d221039a0671fbce7cc8f7c7f992d647b54b0d684e82235336397d8d385637c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/inspection/material/capture.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/inspection/material/camera_bridge.log",
+      "sha256": "2ff199d3e34c64ea66dcfd5e967ba824cf51e923b97d40c8f1153c7e09cc04d4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/inspection/material/shutdown_compat.json",
+      "sha256": "55fa16ce515680bf6e95f92be1f9de215f80f76229641977e7e09f1e264b1145"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/inspection/material/server.log",
+      "sha256": "2d76a2eee358ca367cb6a3986381c2515cbebe6201944e16a857900d42b215fd"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/inspection/material/capture.json",
+      "sha256": "6c8df3414752039b7538f4d537e7bc9e998977c4bc8cdda59e29b72fbcfb02ca"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/inspection/material/preview.png",
+      "sha256": "10f323e12bd63ead827263feed8e9bb34ee147fc857635e1bf9edc2abf89d1da"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/inspection/material/world.sdf",
+      "sha256": "b277e1b9f456275fc107a4ba58d330587df81151447a468c80606569fed300b9"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/inspection/material/result.json",
+      "sha256": "6e0d67c002a7951c7f55b7422727bf39bd4df921a9dd1a740a40e655bc41e618"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/inspection/original/capture.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/inspection/original/camera_bridge.log",
+      "sha256": "0f54f38ed2bc8b6fe8475bca37c4f69dbd82b29f695571e64be4a87ee50ecd34"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/inspection/original/shutdown_compat.json",
+      "sha256": "55fa16ce515680bf6e95f92be1f9de215f80f76229641977e7e09f1e264b1145"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/inspection/original/server.log",
+      "sha256": "2d76a2eee358ca367cb6a3986381c2515cbebe6201944e16a857900d42b215fd"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/inspection/original/capture.json",
+      "sha256": "2f94723e74974fb99675c414778a00c0e2ec9d550bf59fd4214c7e6eb6eb37a4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/inspection/original/preview.png",
+      "sha256": "8c66e47c7391a470d4c613775faa42a2e6dbad86d8b179f4665167168419cfc2"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/inspection/original/world.sdf",
+      "sha256": "7fd91b0955e08a484b77e881a1683865f4e8cc801946136470cb9f63d4793b27"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/inspection/original/result.json",
+      "sha256": "2c3f9808767af6c714795b2cddb1f6f1cad74bdeb000cc6d7754f55941a8ccaf"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/spray/material/capture.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/spray/material/camera_bridge.log",
+      "sha256": "455945a5053cc4685438e3c151f4e9db76c19c27355859d69f967b7d668d00b7"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/spray/material/shutdown_compat.json",
+      "sha256": "55fa16ce515680bf6e95f92be1f9de215f80f76229641977e7e09f1e264b1145"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/spray/material/server.log",
+      "sha256": "2d76a2eee358ca367cb6a3986381c2515cbebe6201944e16a857900d42b215fd"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/spray/material/capture.json",
+      "sha256": "feb2488dc6e0b213bcf7d654fdee4e18ae6b972056d51ae0a63f7fab4df27ba4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/spray/material/preview.png",
+      "sha256": "76fff87382bb76a67c0d79195a07076e4477492df1703f8fed4a621dd978be59"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/spray/material/world.sdf",
+      "sha256": "0366adb3fd246a06c3b520940f68cf560b3aa591605f4c2a0f99feee192a4649"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/spray/material/result.json",
+      "sha256": "548ed52406d452906e507d66d4321fd10bec86b141bc72e4b5b6944b20e51810"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/spray/original/capture.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/spray/original/camera_bridge.log",
+      "sha256": "8ee7d499bfa933c360bb390eb1d647f970bf3a26adc64b79706832d0f820714c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/spray/original/shutdown_compat.json",
+      "sha256": "55fa16ce515680bf6e95f92be1f9de215f80f76229641977e7e09f1e264b1145"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/spray/original/server.log",
+      "sha256": "2d76a2eee358ca367cb6a3986381c2515cbebe6201944e16a857900d42b215fd"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/spray/original/capture.json",
+      "sha256": "14b8a6a0762cf10198c497e6a583cc122d32f326b7a2ae249c3d876dfba9dd8f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/spray/original/preview.png",
+      "sha256": "7981032388d56527dc9e52c89b1b0bfd187b9a6bab791763e9c8abb2b6dd0152"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/spray/original/world.sdf",
+      "sha256": "b8409da80143b3d75dcf0352d4bb8dc48199171ac94972a803b00f9d8c600400"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R11/spray/original/result.json",
+      "sha256": "5d6ed42354bc6a614de630f3c4a1b1c8a8c6926a3efa545bb54b353ac0bffaa1"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/preview_r11.py",
+      "sha256": "4b698cc9ee5634dda745c9912d0a9707a00aadf259cdd1c7804ee3f9f0c7d293"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/stage_r11.py",
+      "sha256": "6eea490e1ef132436e24ee834d4b476e272f7b942e525b608dceaa6b09745170"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/visual_r11.py",
+      "sha256": "1849f18e7bc1e7950443ae2669bfda14bcc4f3868332ddd85df2a2f11d45d8e0"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/tests/test_visual_r11.py",
+      "sha256": "ca5a0d2e6cca997481b330edefd7534a6ed4b2cbb620dc37aa98d65354cda7c5"
+    },
+    {
+      "path": "docs/three_tasks/R11/TECHNICAL.md",
+      "sha256": "bce581a403704906216bf952aeb1afcca7f6e930a8d305b358d755e007b36e56"
+    },
+    {
+      "path": "docs/three_tasks/R11/CODE.md",
+      "sha256": "0a768037783ca0be13676ab210660cf8682186b90734c8a7eb2ddfcbc781474d"
+    },
+    {
+      "path": "docs/three_tasks/R11/MANUAL.md",
+      "sha256": "e3f6859723cf44d414b99e61552c39213725f9e1cccef28433deed267a22f15f"
+    },
+    {
+      "path": "docs/three_tasks/R11/RESULTS.md",
+      "sha256": "3bcb4659efef389934ffecff81cb20a63de21b14c14c1e99c11890ccbe6018ec"
+    }
+  ],
+  "next_step": null,
+  "formal_credit": false,
+  "original_S17": "PARTIAL",
+  "original_S18": "PARTIAL",
+  "created_utc": "20261115_075400_407445"
+}

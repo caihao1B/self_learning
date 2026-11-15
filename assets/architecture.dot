@@ -1,0 +1,18 @@
+digraph G {rankdir=TB;graph [bgcolor="#f7fafb",pad="0.3",nodesep="0.35",ranksep="0.55",fontname="Noto Sans CJK SC",fontsize=16];
+node [shape=box,style="rounded,filled",fillcolor="#e8f3f1",color="#39776e",fontcolor="#163d38",fontname="Noto Sans CJK SC",fontsize=13,margin="0.18,0.13"];
+edge [color="#648189",fontname="Noto Sans CJK SC",fontsize=11,arrowsize=0.7];
+ sim[label="Gazebo 场景与车辆\n物理 · 传感器 · 工具反馈"];
+ local[label="定位\nRTAB ICP + 轮速/IMU EKF\n区域地图匹配 + GNSS 监督"];
+ risk[label="感知与通行\n点云地形 · 障碍跟踪\n实时二维代价"];
+ plan[label="离线计划\nMETIS · OR-Tools\nFields2Cover · OMPL"];
+ bt[label="C++ 可解释 BT\n条件 · 原因 · 有界恢复"];
+ task[label="Python 任务执行器\n目标 · 路径 · 工具动作"];
+ nav[label="Nav2\n规划与路径跟踪"];
+ gate[label="唯一底盘门控\n时钟 · 定位 · 感知 · 运动约束"];
+ tool[label="工具动作服务器\n准入 · 取消 · 停止确认"];
+ ledger[label="有效作业账本\n工作键 · 确认量 · 残余"];
+ gui[label="只读 GUI\n状态 · 数据 · 决策 · 证据",fillcolor="#fff1dc",color="#ac824a"];
+ sim->local;sim->risk;local->nav;risk->nav;local->bt;risk->bt;plan->task;bt->task;task->nav;task->tool;nav->gate;bt->gate;gate->sim;tool->sim;sim->ledger;ledger->task;
+ task->gui[style=dashed];ledger->gui[style=dashed];local->gui[style=dashed];risk->gui[style=dashed];
+ {rank=same;local;risk;plan} {rank=same;gate;tool;ledger}
+}

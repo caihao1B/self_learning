@@ -1,0 +1,2779 @@
+{
+  "stage": "R09",
+  "automated_status": "PASS",
+  "summary": {
+    "passed": true,
+    "cases": {
+      "nominal": {
+        "passed": true,
+        "checks": {
+          "runtime_clean": true,
+          "original_database_unchanged": true,
+          "no_unexpected_contact": true,
+          "whole_footprint_authorized": true,
+          "map_rmse_under_15cm": true,
+          "unique_actuator": true,
+          "unique_tool": true,
+          "unique_tf": true,
+          "measured_final_stop": true,
+          "feedback_area_consistent": true,
+          "curvature_bounded": true,
+          "source_bound": true,
+          "task_version_bound": true,
+          "selected_segments_traversed": true,
+          "two_work_strips": true,
+          "actual_reverse_travel": true,
+          "tools_off_during_turns": true
+        },
+        "case": "nominal",
+        "task_result": {
+          "passed": true,
+          "terminal": "COMPLETED",
+          "controlled_hold": false,
+          "error": null,
+          "t": 197.692,
+          "selected_segments": 5,
+          "original_segments": 34,
+          "completed_segments": [
+            "B1:segment:0",
+            "B1:segment:1",
+            "B1:segment:2",
+            "B1:segment:3",
+            "B1:segment:4"
+          ],
+          "remaining_selected": [],
+          "not_selected": [
+            "B1:segment:5",
+            "B1:segment:6",
+            "B1:segment:7",
+            "B1:segment:8",
+            "B1:segment:9",
+            "B1:segment:10",
+            "B1:segment:11",
+            "B1:segment:12",
+            "B1:segment:13",
+            "B1:segment:14",
+            "B1:segment:15",
+            "B1:segment:16",
+            "B1:segment:17",
+            "B1:segment:18",
+            "B1:segment:19",
+            "B1:segment:20",
+            "B1:segment:21",
+            "B1:segment:22",
+            "B1:segment:23",
+            "B1:segment:24",
+            "B1:segment:25",
+            "B1:segment:26",
+            "B1:segment:27",
+            "B1:segment:28",
+            "B1:segment:29",
+            "B1:segment:30",
+            "B1:segment:31",
+            "B1:segment:32",
+            "B1:segment:33"
+          ],
+          "work_results": [
+            {
+              "segment": "B1:segment:0",
+              "state": "CANCELLED",
+              "reason": "USER_CANCEL",
+              "confirmed": 9.818862499999994,
+              "remaining": 0.7426277816742015,
+              "uncertain": false
+            },
+            {
+              "segment": "B1:segment:4",
+              "state": "CANCELLED",
+              "reason": "USER_CANCEL",
+              "confirmed": 6.397312499999998,
+              "remaining": 12.457526927513072,
+              "uncertain": false
+            },
+            {
+              "segment": "B1:segment:4",
+              "state": "CANCELLED",
+              "reason": "USER_CANCEL",
+              "confirmed": 7.440487499999993,
+              "remaining": 11.414351927513078,
+              "uncertain": false
+            },
+            {
+              "segment": "B1:segment:4",
+              "state": "CANCELLED",
+              "reason": "USER_CANCEL",
+              "confirmed": 13.051274999999999,
+              "remaining": 5.803564427513072,
+              "uncertain": false
+            },
+            {
+              "segment": "B1:segment:4",
+              "state": "CANCELLED",
+              "reason": "USER_CANCEL",
+              "confirmed": 14.716962499999992,
+              "remaining": 4.137876927513078,
+              "uncertain": false
+            },
+            {
+              "segment": "B1:segment:4",
+              "state": "CANCELLED",
+              "reason": "USER_CANCEL",
+              "confirmed": 14.716962499999992,
+              "remaining": 4.137876927513078,
+              "uncertain": false
+            },
+            {
+              "segment": "B1:segment:4",
+              "state": "CANCELLED",
+              "reason": "USER_CANCEL",
+              "confirmed": 17.399724999999986,
+              "remaining": 1.4551144275130845,
+              "uncertain": false
+            }
+          ],
+          "replans": 0,
+          "final_gate": {
+            "t": 197.67,
+            "allowed": false,
+            "mode": "STOP",
+            "v": 0.0,
+            "w": 0.0,
+            "reasons": [
+              "NAV_COMMAND_STALE",
+              "TOOL_STATE_FOR_SEGMENT"
+            ],
+            "stopped": true,
+            "tool_stopped": true,
+            "nav_idle": true,
+            "progress_m": 27.723157977893518
+          },
+          "ownership": {
+            "/tf": [
+              "s05_local_odometry",
+              "s08_global_pose_manager"
+            ],
+            "/s03/actuator/request": [
+              "r09_actuator_gate"
+            ],
+            "/s10/tool/command": [
+              "s10_tool_action_server"
+            ]
+          },
+          "wall_seconds": 525.716589240008,
+          "scope": "Selected path segments executed; tool area and residual are separate ledger evidence, never inferred from arrival"
+        },
+        "jobs": [
+          {
+            "key": "16810c484d320666be161569e0ed65505864862eff375c124cc6a988d1b6e261:B1:segment:0",
+            "status": "CANCELLED",
+            "confirmed_m2": 9.818862499999994,
+            "requested_m2": 10.561490281674196,
+            "remaining_m2": 0.7426277816742015,
+            "uncertain": false,
+            "physical_area_m2": 13.054694587186217,
+            "credit_outside_physical_3cm_m2": 0.0,
+            "credit_geometry_area_m2": 9.818862499999994
+          },
+          {
+            "key": "16810c484d320666be161569e0ed65505864862eff375c124cc6a988d1b6e261:B1:segment:4",
+            "status": "CANCELLED",
+            "confirmed_m2": 17.399724999999986,
+            "requested_m2": 18.85483942751307,
+            "remaining_m2": 1.4551144275130845,
+            "uncertain": false,
+            "physical_area_m2": 21.371238327247728,
+            "credit_outside_physical_3cm_m2": 0.0,
+            "credit_geometry_area_m2": 17.399724999999986
+          }
+        ],
+        "map_xy_rmse_m": 0.05739863972900038,
+        "actual_reverse_distance_m": 7.360351604527931,
+        "selected_requested_area_m2": 27.953981706793993,
+        "selected_confirmed_union_m2": 26.584258333333274,
+        "selected_fraction": 0.9510007773551694,
+        "selected_residual_m2": 1.3697233734606726,
+        "original_cluster_area_m2": 195.99438340335297,
+        "original_cluster_confirmed_fraction": 0.1356378579411809,
+        "original_clusters": 3,
+        "unexpected_contacts": {},
+        "scope": "Declared segment subset only; segment arrival is not full coverage credit; formal S17/S18 unchanged",
+        "formal_credit": false
+      },
+      "blocked": {
+        "passed": true,
+        "checks": {
+          "runtime_clean": true,
+          "original_database_unchanged": true,
+          "no_unexpected_contact": true,
+          "whole_footprint_authorized": true,
+          "map_rmse_under_15cm": true,
+          "unique_actuator": true,
+          "unique_tool": true,
+          "unique_tf": true,
+          "measured_final_stop": true,
+          "feedback_area_consistent": true,
+          "curvature_bounded": true,
+          "source_bound": true,
+          "task_version_bound": true,
+          "physical_obstacle_injected": true,
+          "controlled_hold": true,
+          "no_false_completion": true,
+          "residual_retained": true,
+          "bounded_planning": true
+        },
+        "case": "blocked",
+        "task_result": {
+          "passed": false,
+          "terminal": "HUMAN_REQUIRED",
+          "controlled_hold": true,
+          "error": "RuntimeError('ALTERNATE_ROUTE_REQUIRES_COVERAGE_RESEQUENCING_RETAIN_RESIDUAL')",
+          "t": 62.728,
+          "selected_segments": 5,
+          "original_segments": 34,
+          "completed_segments": [],
+          "remaining_selected": [
+            "B1:segment:0",
+            "B1:segment:1",
+            "B1:segment:2",
+            "B1:segment:3",
+            "B1:segment:4"
+          ],
+          "not_selected": [
+            "B1:segment:5",
+            "B1:segment:6",
+            "B1:segment:7",
+            "B1:segment:8",
+            "B1:segment:9",
+            "B1:segment:10",
+            "B1:segment:11",
+            "B1:segment:12",
+            "B1:segment:13",
+            "B1:segment:14",
+            "B1:segment:15",
+            "B1:segment:16",
+            "B1:segment:17",
+            "B1:segment:18",
+            "B1:segment:19",
+            "B1:segment:20",
+            "B1:segment:21",
+            "B1:segment:22",
+            "B1:segment:23",
+            "B1:segment:24",
+            "B1:segment:25",
+            "B1:segment:26",
+            "B1:segment:27",
+            "B1:segment:28",
+            "B1:segment:29",
+            "B1:segment:30",
+            "B1:segment:31",
+            "B1:segment:32",
+            "B1:segment:33"
+          ],
+          "work_results": [
+            {
+              "segment": "B1:segment:0",
+              "state": "CANCELLED",
+              "reason": "USER_CANCEL",
+              "confirmed": 2.5984625000000015,
+              "remaining": 7.963027781674194,
+              "uncertain": false
+            }
+          ],
+          "replans": 1,
+          "final_gate": {
+            "t": 62.7,
+            "allowed": false,
+            "mode": "STOP",
+            "v": 0.0,
+            "w": 0.0,
+            "reasons": [
+              "NAV_COMMAND_STALE",
+              "TOOL_STATE_FOR_SEGMENT",
+              "OBSTRUCTED"
+            ],
+            "stopped": true,
+            "tool_stopped": true,
+            "nav_idle": true,
+            "progress_m": 1.5615746537995912
+          },
+          "ownership": {
+            "/tf": [
+              "s05_local_odometry",
+              "s08_global_pose_manager"
+            ],
+            "/s03/actuator/request": [
+              "r09_actuator_gate"
+            ],
+            "/s10/tool/command": [
+              "s10_tool_action_server"
+            ]
+          },
+          "wall_seconds": 167.72069314299733,
+          "scope": "Selected path segments executed; tool area and residual are separate ledger evidence, never inferred from arrival"
+        },
+        "jobs": [
+          {
+            "key": "16810c484d320666be161569e0ed65505864862eff375c124cc6a988d1b6e261:B1:segment:0",
+            "status": "CANCELLED",
+            "confirmed_m2": 2.5984625000000015,
+            "requested_m2": 10.561490281674196,
+            "remaining_m2": 7.963027781674194,
+            "uncertain": false,
+            "physical_area_m2": 3.5624260931720695,
+            "credit_outside_physical_3cm_m2": 0.0,
+            "credit_geometry_area_m2": 2.5984625000000015
+          }
+        ],
+        "map_xy_rmse_m": 0.049738580303781754,
+        "actual_reverse_distance_m": 0.0,
+        "selected_requested_area_m2": 27.953981706793993,
+        "selected_confirmed_union_m2": 2.5984625000000006,
+        "selected_fraction": 0.09295500466641805,
+        "selected_residual_m2": 25.355519206793986,
+        "original_cluster_area_m2": 195.99438340335297,
+        "original_cluster_confirmed_fraction": 0.013257841652800905,
+        "original_clusters": 3,
+        "unexpected_contacts": {},
+        "scope": "Declared segment subset only; segment arrival is not full coverage credit; formal S17/S18 unchanged",
+        "formal_credit": false
+      }
+    },
+    "pending": [],
+    "scope": "Selected original swaths and headland segments, real feedback accounting, bounded blocked hold; no full B1 or formal S17 credit"
+  },
+  "artifacts": [
+    {
+      "path": "optimization_v2/three_tasks/editions/R09/mission.json",
+      "sha256": "8f7995787f74fb7e54ea5140397518b51315b41b845222de62cde579eb3f61fa"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R09/manager.json",
+      "sha256": "b1661059fcab016f107c9834b3c22f456c99b2ae8a1f3b40192f9a538b554d9a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R09/tool.json",
+      "sha256": "bafdc95a15b5a480ce11f8de6b12ed5508f4e2b66c3a4420375a0c3fdb2afb7a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R09/nav2.yaml",
+      "sha256": "1f182bcfa0bc064f9aa82236c454fcf7dbf4a31d95f57383f6ba003639dda218"
+    },
+    {
+      "path": "optimization_v2/three_tasks/editions/R09/terrain.json",
+      "sha256": "b69bfc6eb14ff58c29ea792026c447eb6ef4f9b7b04c5fa2b42836163b1970fc"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R08/latest.json",
+      "sha256": "087055b8f7e0a51ffee7a65e040cd8051cdac6aeb166276417ba41a47155f46d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/tests.log",
+      "sha256": "5a5e19b48fd6779373c6fba693ed816d4b09fc99daab5702d8ddefbf143ac7b4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/native_tests.json",
+      "sha256": "2ba9e478112a3bbb3a55fb4632ee38b91fb9b21d7b5fcbd96cd67a4c63309269"
+    },
+    {
+      "path": "optimization_v2/three_tasks/build/r09/r09_terrain",
+      "sha256": "8650a0882b81d1d3d809e49e150468be90eb8fc58def2339332a5d9eb023c613"
+    },
+    {
+      "path": "optimization_v2/three_tasks/build/r09/r09_self_filter_test",
+      "sha256": "feb5c5fa094686bc8b022ea49eecb1d3087505ba3886dcdc3878f7caeeee0723"
+    },
+    {
+      "path": "optimization_v2/three_tasks/build/r09/r09_tool_action_server",
+      "sha256": "0c362ed7630120c6ee09d20ddc89bdad6e5196e541d46b0e6ef1cbaf45a2a064"
+    },
+    {
+      "path": "optimization_v2/three_tasks/build/r09/libs10_tool_r09.so",
+      "sha256": "49eb8c4379f14baac389ec52fac9d51827c8cf0aedd70a8fd0f897986336048b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/tool_timing/result.json",
+      "sha256": "8df5c2d6f0a947768fd5734402806f45f4d3f1282709ef79a298e8476c89f105"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing.png",
+      "sha256": "ea86808be957010b673dd42fde9faff16b55e0a235e2d0bb451b4d2825addee3"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/report.html",
+      "sha256": "2b7e8ef9b9f5a8a240b1065c9fb6f553aaaeb6237b31f9fbc0844e20e604b0da"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/nav_shutdown.json",
+      "sha256": "2d89faff75bb7e056d1ca0b56c2ebdd0930492938059cccf59af9acb40a34512"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mission.json",
+      "sha256": "8f7995787f74fb7e54ea5140397518b51315b41b845222de62cde579eb3f61fa"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/generator_motion.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/generator_vision.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/spec.json",
+      "sha256": "672be82a4a002647b97e6614b1fa563795ac1cdfc5c1f3b36d6b92cdfc75ca8e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/evaluator.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/tool_evaluator.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/terrain.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/decisions.jsonl",
+      "sha256": "bddee8adb23ede522a1b48ffe2e35c6bc3cf2a3dbda89328eea7361c70911d98"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/online_bridge.log",
+      "sha256": "ef479b1b4a431db5498059efe1586734d0da869e81f4a25eef731bbd6b080186"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/tool_observer.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/control.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/live.json",
+      "sha256": "de10c6653bed0fb609350d71138348f57cad18691cbeba08e3735cfc107bccca"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/nav_startup.log",
+      "sha256": "a8280aee72b5619bdbc929ea7717efcce29f454c11ecaee93f5623286cc553c4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/controller_server.log",
+      "sha256": "f26fbca3476b504cda1ccf3d9f56c38fc19e1033c55a57974f2548de25b7614f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/wheel_imu.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/tool_server.log",
+      "sha256": "4d017f3aa21fb904827b0eb53c4a361560e4620519e81224c835e8eb19f142c5"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mission_events.jsonl",
+      "sha256": "25dc54fd9701294195033cfb96a5938badcdd4032a59198bc29a2a3f40e3f75d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/risk.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/slam_initial.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/icp.log",
+      "sha256": "1f491ce212dd9a0891e032af64a72b8683f3a4f3a3920b339dbd543e8d93c988"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/observer.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/ledger.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/coverage.geojson",
+      "sha256": "893fc47bf94eeeaabb96e209a874d91eb8c692a6f0e0942d6fc0f54f021ff8e3"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/bt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/map_server.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/planner_server.log",
+      "sha256": "210066b7c350675fc81643eef0a73a19755e7823a665874f8a0a657fca8b24d8"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/shutdown_compat.json",
+      "sha256": "55fa16ce515680bf6e95f92be1f9de215f80f76229641977e7e09f1e264b1145"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/icp_motion_guess.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/inputs.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/fused.log",
+      "sha256": "019cfb66f2f51ea019dd456d8f508a826c83fb8575629dfa334287e8e554acf6"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/observer_ready",
+      "sha256": "349f1362c23ddffdcea623a1b38533ddda0c24037ed1653dbd989acf27416742"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/global_sources.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/fastdds.xml",
+      "sha256": "85a967887507a9efb02ebeaa85c8b928a651b0ec39f811c34d4f260e34158561"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/trajectory.npz",
+      "sha256": "22d14d568d268de8c25ab9fdbacf8d41cd4310d2c5001946747f93887cdb4cfd"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/cloud.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mission_result.json",
+      "sha256": "767d884b81e37e8e1d1740b0256f09673acdc1444c6fcff587a22cd8a9f81d5a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/request.json",
+      "sha256": "da209d6cd81845459e185d00189a70c7c04990461f43d3a46b163f1218197105"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/evaluation_bridge.log",
+      "sha256": "e83d3e7b167034db718ba2755a6e4685eaae380e385a603c628ba042a0fbc592"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/tool_bridge.log",
+      "sha256": "52c0c5b5e18c7c254ba21d0fc37c69c78dfd76ec8e694dde6c80a6bfa628a69f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/bt_navigator.log",
+      "sha256": "6c4fd9dc601af2e7227e7fea6177e005acacf3736837c3ebf0b26c67fe667897"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/analysis_r09.json",
+      "sha256": "959ba2ac5fc68147b2127f07b64291cad0e548468d98b15381eab4a112f71d43"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/raw_bridge.log",
+      "sha256": "f1d5a757d9a389c99fd74f6dbec18220711975380e91b6424ef21520532b7091"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/fanout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/server.log",
+      "sha256": "2d76a2eee358ca367cb6a3986381c2515cbebe6201944e16a857900d42b215fd"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/bt.json",
+      "sha256": "c662d6dd0796aa8662a9af66b6a8685d175d0eb9c812395f031b80b09834a8ae"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/global_manager.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/ros_shutdown.json",
+      "sha256": "788c33e2c0d891aa8e115c364c9ca3ca049669cf8cbe12fbc94339e461a06e92"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/lifecycle_manager.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/runtime.json",
+      "sha256": "cb083d5e435a9559743b84691217bcdedc5a8182f2cef1175a5ea7e05bb65715"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/odom_output.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/reference.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/icp_gate.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/tool_evaluation/physical.jsonl",
+      "sha256": "db2eea65dbd186c670ab341d048a4bb865c751f970feb1ed123b912fd7f899ec"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/tool_evaluation/ready",
+      "sha256": "a7137111345434967d757e65b89db233ebff47e1871a91009861ad95db47ce2d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/tool_evaluation/result.json",
+      "sha256": "dc8b43815407e5be9f2080a3bcdb3c209d0eb3b99c13c70218cefd9d3051b879"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_190.900.npz",
+      "sha256": "a55bfd50fd46df349eec328864fa887e191fec41afaf8efac6b09156f64bb7f1"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_195.900.npz",
+      "sha256": "1b779bc67b0bf93508919f29adea17cd860c9bd06b3c331f21f7fb20a5c3a2c3"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_140.900.npz",
+      "sha256": "4e8211497527dbe4bbdfe3a3a92f90f0e171790caf77cf219e4d5782f32c8c7b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_90.700.npz",
+      "sha256": "7cc94f666d61fa1b1363341d3c0f5e7553e6c0939c86c3a0f95c680f50378d89"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_75.700.npz",
+      "sha256": "8110f3cb01d14b978ba0e19e7e856af94c7dad993e4bec8c1baeb82b312f4cfb"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_80.700.npz",
+      "sha256": "4e730361d8052d471fab5683e57c450810f4aa167c8983efe60820e4e8ebe512"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_175.900.npz",
+      "sha256": "23bbf1e7a7cca549bed015aab393770b6666747611df60cdad6e015a05f79ac5"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/frames.jsonl",
+      "sha256": "04cc21370a1395bd265ce73ac9c7cfd1a39e659fd4080ca5a965c6e03affb48b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/ready",
+      "sha256": "bfc1e7bc31bca16b85264f6c2997341bc09d33c8caebc6faa9e43653b0f90805"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_165.900.npz",
+      "sha256": "f17490417a45b2023567194220512a128f3eb60519d30a950aab3264a93ac27d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_130.900.npz",
+      "sha256": "5e8abfef6fb44bb3a1bce7ad86cb084e6b2f9c2a51cc61aed2806d729974b52f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_145.900.npz",
+      "sha256": "3bed8cada1a18dfee4b20bc8058a99da27922d4cb737ff0e4e7077a8fb78c3e8"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_170.900.npz",
+      "sha256": "043536cd8ce87cf6fca4b57208464695860c8416982271e8dfe7480989788d6d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_20.600.npz",
+      "sha256": "99a6dbf35e93673a01c0573758943142cbf4e91d3d32e66acd73d2006379882c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_40.700.npz",
+      "sha256": "7a402b16ca7c147f94c79f9606b397ec474854715521c95dff19470c2409a936"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_45.700.npz",
+      "sha256": "fc38c67050c9604635cc22bceb92c90a010978152a68cd510f4476c0b99e3a19"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_50.700.npz",
+      "sha256": "ba01bc952e5b9585ce13fd7fce0238062f39c68a6aeda4c750165f958b96aeb4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_105.700.npz",
+      "sha256": "07322e4ff8cc1e26b65cdf011e1f11f12754511241ff6f34520137d3ff102060"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_65.700.npz",
+      "sha256": "a5bbeda816cfca7297f99dd63dfd4fa6762734ec991dbeaebc8b147ebe1dccd5"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_120.700.npz",
+      "sha256": "4919b3c168966c244820d40824daafb95d3a914253b365b2ec8cab1e26eec357"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_100.700.npz",
+      "sha256": "10eafdeee3a749a666e23ab0aa42f295fcf6bc71b2729bbc3ec99311646430ce"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_95.700.npz",
+      "sha256": "927da1b05efb1c4393c37b3b8aba2d943ec6ac8059f25110f0cd8d918c1efec7"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_110.700.npz",
+      "sha256": "f4c83a904008d6dd13aa97cec1b75181aed426b258da741c4fbabdce0ba7788f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_135.900.npz",
+      "sha256": "26788825a13e41ce4f2422b8b33dbd4556826b9c6765f28abe808ee7492d4783"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_15.400.npz",
+      "sha256": "6f8e458a98a7cca593dab24a742010058106a41acff1695d418c7a31a465de0f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_25.600.npz",
+      "sha256": "6636e5b852800a423e6a5c2e149a59da1ad32e418bb012b44e25e6efc20935fe"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_160.900.npz",
+      "sha256": "d51c2c484c9bc6f8c8902288d17ca9c5d302624121f74a00a830cbb8ef55fc75"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_30.600.npz",
+      "sha256": "831cbc009fad76615f4eed6dede5dbd8e74689df042de8186e0fe7551deffda8"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_10.400.npz",
+      "sha256": "94960d7921e4ead4516ca7f86bb57c1480a5fb6686729561b67cca24b9522842"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_70.700.npz",
+      "sha256": "8fa797562bd5d20cf11b2db59e9b5e5af1787a8c210139ee186cbf96823a4c6e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_150.900.npz",
+      "sha256": "73b39b3c64ac330580c55844897904b1f2402eb670fec69e70ba840066ab1d71"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_125.700.npz",
+      "sha256": "478fe2c525cbeb2f51dd4e574eb0a856aaa868e814151af45f9509325459b81c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_155.900.npz",
+      "sha256": "780497eb1162b2a1a8da3b02bc81378f5ec991df70d4cd6c03ea0756f7267ece"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_180.900.npz",
+      "sha256": "18eeaf2453da568a254ff2a3f7c04f570e2a795f42f999489c3b67d57908d13d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_60.700.npz",
+      "sha256": "423e4af3ece9b9292b2014b91fc407d624fa29d83ef8053ea9578dbf106b19bd"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_5.400.npz",
+      "sha256": "e55c38c752a0be9c2889de950e10ccf34532c66c2e93665549b8d04b1d79f7a8"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_55.700.npz",
+      "sha256": "2e6bfc6cd99b57c043ac425b22e95e0e4fb5f5895c933211d2dcc8e21c30b1b9"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_115.700.npz",
+      "sha256": "7bed0a6c5e5848099f81be7042a38c37bb95c64455aeea922649faba6cafb582"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_85.700.npz",
+      "sha256": "cfa800fb5f7db9230630bb836a84c5d664a0465b2d3b726d703266078a033bbc"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_35.600.npz",
+      "sha256": "7666a6ca7d2a690a3c3a3325cc81439abc8a82208830abdb737c6eb6c4305525"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/mapping_inputs/cloud_185.900.npz",
+      "sha256": "b052dc823de88993a743994d398be5a2d5d1f1ae8cce2e2144b4d44b4c2d7a27"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/near/ready",
+      "sha256": "0cf50cc8516000b3a2eb7df68e15d3e62811479e0b6ee9a7f1543abf6621ea93"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/near/near.jsonl",
+      "sha256": "ac913536924f8b1301d23f22ff3be51b727f6dc621815b4ab97f009b7d66ebba"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/global_sources/ready",
+      "sha256": "2aded0c5f3e6a9e5c6a648c1063bda07ded539d751886cd7f2e7051c765f483d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/global_sources/sources.jsonl",
+      "sha256": "992889860ca421b34c6e81ef8197dea6d1d72bd4a122fbc5fe640714a81f199a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/ledger/ready",
+      "sha256": "dd697981c7b9546a908a1c2ad133d69b72a613b061bf1c338a015aafc22c4f9c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/ledger/ledger.sqlite-shm",
+      "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/ledger/events.jsonl",
+      "sha256": "4eb283cf4065048d04de45da6d6e569f77aa8210c123bd612011e2b98d996e93"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/ledger/live.json",
+      "sha256": "54b928638981e5b36825c14ff1c0ebf058a6e09b217b7a71c017c60efd6598b6"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/ledger/ledger.sqlite",
+      "sha256": "c5555da0f3a6bf001c4b1fa6aa9b86dc61b71514ad4787af1224640a8c5a761b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/ledger/ledger.sqlite-wal",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/ledger/summary.json",
+      "sha256": "b194fda4861cda39dc0bc523f6b8d083b51343844f0bbc2b97576651cc5518fc"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/odom_output/ready",
+      "sha256": "2bbbc25148ac689449317a6e92e886a455dba271c08f41f03f1c6854e9afb7df"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/odom_output/result.json",
+      "sha256": "769b18d5127ddba62afb35b57466182a8aa7244605a31ab926ed358d1a511f3e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/tool_observer/ready",
+      "sha256": "c753ebe6f0fc577198231924b05a8603ff8ee5394019dcd492b610ccca8dbfc2"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/tool_observer/observations.jsonl",
+      "sha256": "c71a38d33d9b0e76afd764c4cf361c1aeca55b3d6ca6b3ccd93dfb70e8205c3d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/cloud/ready",
+      "sha256": "8ab5ec63465886b654e635194cc2dcf09567cb2d0688532e40582257b762d1ed"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/cloud/geometry.jsonl",
+      "sha256": "c3b9edc09def5e3966174ba246836de625555ceedf66a51e7588d3dc8c97842e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/icp_motion_guess/ready",
+      "sha256": "afa4545274c6a1d1e4ee01063ff945672fe94c7d77de010a4c85c89c3801a717"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/generation_vision/ready",
+      "sha256": "dd8081fe29bca85b7ef4b082fa2fa5312227d20aaf19ddd1d83a642623dd49d3"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/generation_vision/generation.jsonl",
+      "sha256": "bbe81a473f2537df93531ba7ba59d05e686456628e65e5b1e9aee3a118eebe19"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/generation_vision/result.json",
+      "sha256": "d7fc26646ea78ed1286ea35275d30f62d20cbf5c8719942440f22c5a295ba05b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/evaluation/ready",
+      "sha256": "b24d6d33736ecd5604a4b17bc9c6481039fac362bb7df044ef1c10a2bfd21db6"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/evaluation/contacts.json",
+      "sha256": "af433604297f8b30efa5e2ded02fb3768e3e98ffdc8b330fb7e535d34c3c0014"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/evaluation/truth.jsonl",
+      "sha256": "a83a1dcea7c33b10752c104e98130c41b735d99dfd9bbbdd7ff600ef185df9ca"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_14.json",
+      "sha256": "b2259526a36b7daefafbe9fa6731b4cad81e0c10adbf206e32ff94eb93f64db6"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_00.npz",
+      "sha256": "494d1d9a53693b6ddcd77194318ec33b09b8f21e6308fb11b71a41fca1389deb"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_57.npz",
+      "sha256": "3597a2a999f0edb35810cf5512ff96c48346a15ffea70997d5bd5987d6be811a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_64.npz",
+      "sha256": "fd1594feb0ed51ff3461bc5fdbafacbf72d458a73604a6c14f728bb3ec6e61a4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_39.npz",
+      "sha256": "464866d0f4eae020949242c10280892c9d190b8b3a1372de0c8130eeb2b1b803"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_49.npz",
+      "sha256": "485bf806c6b608cc4c8cff550b4ebe51e94f0c76ec8b93b8d7b2e4d564815718"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_50.json",
+      "sha256": "38158a9ae5ac8e22c1147004e4ffc73eba222437568bac8bc3bff3205e192bef"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_41.json",
+      "sha256": "8b3fb66c311427d33e91e6ae3c8733f030d51587d820d9ecb17e312b3e63de0b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_29.json",
+      "sha256": "d88df3a37391b07112d432082f74b33744a56bed8235a966f20d4bc03b3cc165"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_24.json",
+      "sha256": "f05564f80e58c520b13c3dd3c7169673018b22c52186a98894d6270f9d5fd2a0"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_25.npz",
+      "sha256": "5674f6b28ad24e82e895c6634a252467f9d7f20c8a3898681fc1ccb6b12a5163"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_40.json",
+      "sha256": "04fbea609c2c46b92b0c99bf4d497e9c272c8669d8924a2d7986a23557c79018"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_13.json",
+      "sha256": "bd3a81f79c460be11f0b4bcbc41bb1fa68e3e2bd47190509f79147bb14fbc540"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_19.npz",
+      "sha256": "bccf2d22b2b9b7876d8c467a06b247e9f4ee6ce438da4a41cd2d08cfa508bd0e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_02.npz",
+      "sha256": "b2badfcb8c7926aceb1e13f29a098cae2dc8d00553c736984182a05972b1e8ee"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_68.json",
+      "sha256": "9a6679eae1d2526b0f7b0d803540e5732a0ee08a3b75d7da9816316178ddf4c1"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_02.json",
+      "sha256": "d24cee0213252a1d274f4f470fa39d21f75e08a88237f6e96d6a4c097660e6af"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_45.json",
+      "sha256": "73e9738d4860a6295f748f42df4028a8268c5d338a2264b50340cd39bbec7239"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_22.npz",
+      "sha256": "33d6eaa73225466ba1ef15e53394caf75ff1ff0590fdb9026adfdf712f764859"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_03.npz",
+      "sha256": "3b7bd834d6f40e4faaf61db7da896b76d5445c12dc190090a231d49bfc3f5346"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_38.npz",
+      "sha256": "31e506f400a242ea1f9bf7b1304eb58f779dfdac3061ec87d52cc2751ef54408"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_07.json",
+      "sha256": "820d3a3ca406989a6ed7037d76b05bfa4eb71195efb740223d2748701d8165ca"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_54.npz",
+      "sha256": "02acb1ff133c679bdca7de1984e6e2c5a6bddaa071d2c3be03b66ebc203dd29a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_48.npz",
+      "sha256": "0231e666354f2fd62a69c0374d227b8d439d97f25c461ad7d51241d08b210306"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_02.json",
+      "sha256": "f56a8064e4e2daa4260115db7863762ab1ceeadbfcd139856217782f475164dd"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_12.npz",
+      "sha256": "805740289f8202853b99f35b712e4cdd26ba8267dfe29f421e047a3a1a155ea9"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_01.npz",
+      "sha256": "5619b4236e4000471d9c583f089c21ab5b7d93263bbadf54ed53c4b4ff8f1ce1"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_07.npz",
+      "sha256": "7a1ee2e8024eb9a63ff5c50ab8771d2023fa24ac479747676f184c2b434bc156"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_52.json",
+      "sha256": "39cfa7d20e640087251f1de36e9b8ec16712b8776b0e90cb1f6dfff260554822"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_03.json",
+      "sha256": "f1871bba63e7caa486061cb48b4503b3a8bf5a08c1c30a2648220eb3b9685025"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_50.npz",
+      "sha256": "bd8913f37e835969602a2f8c37599a8eba1b98fe148e1453b95244c8b3794069"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_74.json",
+      "sha256": "3003c1538fc523fcccf908c6ae3b41143cbd927c33af1f27ec223f615a8851fe"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/ready",
+      "sha256": "1a9ad4f1a2e44fba965db99ce9e428c71d6f90696f168b1e06b9701c270e7017"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_22.json",
+      "sha256": "e3c308c545dfb4072327ce4e8f31eb0ca84e812bd1e682f2f95107b748992007"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_21.json",
+      "sha256": "770407de2ce32b160ad606de88339f52503c1fa8132a65a70621832a2cea9feb"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_58.json",
+      "sha256": "3e72a4e0bdf895189ce8d92f08d5863a3151b98ae8d63924140c340ed2b5138b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_75.npz",
+      "sha256": "e3222da95e53ae408b3661b2254eff4a0a2978b0f9348e1470de0fdf6de036cd"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_15.npz",
+      "sha256": "b761490e49be3049630cf87036d3c5a1c6ffec3b2c154a0d4dbf0b337c5eb280"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_12.json",
+      "sha256": "599ee69453c04a3c61d519d4b3bcf6177e15bbca9b89b61b8f0897cd6b5c9328"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_01.json",
+      "sha256": "4ce7bba934960e6ca4c6896aa19a070b3dc1ff7aea0deec4027bfd6487dca138"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_08.json",
+      "sha256": "e738d8a03857324c37bcdfc838be1e96cb3b9adc37fe164f9eb0f67c8f01bd81"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_09.npz",
+      "sha256": "b1cf3617495c75b13f646ae73d58acf6bdd3f7d08a824224f0f9c914b41601bc"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_10.json",
+      "sha256": "fc3ae44e1bee3c8e4dfe636a07016747e810ee2c69f89e99991f42ced9d432b8"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_44.json",
+      "sha256": "e36b66392b4da198f4ce114a96be805cde1dece669a2eb8b2ab33bb3dae51487"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_31.npz",
+      "sha256": "4c23384ece52723c6297769f7b21cb6fd31aaeaf16878083b1fbe8f6c121057a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_06.json",
+      "sha256": "b47fae865e7909fc37fc30e6477be3180aa55aaff2e15eb91709d6274af21b81"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_76.npz",
+      "sha256": "c2ab6f13defd86cd0ffb22b1d9e7eec24dbb6926dd3743fa823ed182fd734b62"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_55.json",
+      "sha256": "c637e2b9e49c80aae78ef604d78deb00d14abc0377db5509f76619ea17b110a3"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_08.json",
+      "sha256": "46b87ad70ab9e7c60dd4a121da1023eaf81e7d199ef1b65707c11ed5692f73f8"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_29.npz",
+      "sha256": "00a020a16d04631a3ce35368cac472cdbb65353f6e9e22cfb657492c4e8e5c03"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_61.json",
+      "sha256": "973c44ca2cded6460c9a4cf0796d9a2d237279bdac33b37239116882383ace6b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_06.npz",
+      "sha256": "eeaa79d682c8c692c6f89e1fc9bac5796315bd08fe45bb84f0f8dc99d2e33f2d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_38.json",
+      "sha256": "0487cd51138aaa85f0ea540451120f05c8dd6a4f3f02a8aea3ed080f3c215ff2"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_05.npz",
+      "sha256": "c6e4af90228c13d0962badf9287bc7e7cf70ec56260bb8afe06df61e49d3e21d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_72.npz",
+      "sha256": "512789eb4c1b1beb87f169d729c01eaa48c873d440094e7960053ab0b80bb918"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_30.json",
+      "sha256": "0e2a28451b37c82824c6914f18e9c6bdcc4d5e80f54eea4256b3e0ff773f8a13"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_54.json",
+      "sha256": "fefa349279a32c50cdbc0dfae188dc0ca080e7c5b72db53e4bb0c32101852bef"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_49.json",
+      "sha256": "ec96fe5335d974099621c727bf5c5d943d76eaa39ef3af8ca417d65afe942959"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_66.npz",
+      "sha256": "5907cec886bfe06c2a493cf523f6384b78a7c43cb984c90a92a9b170f8185a57"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_57.json",
+      "sha256": "a9539551d2f7236ac9171571f943e10962d11272622497889b30417e8dfeb1dc"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_01.npz",
+      "sha256": "c383cf8040d9ada53be597dfac99ad07b58331484040cdd4bd37257586ae3a86"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_41.npz",
+      "sha256": "71b04122fc3fc7a68a8be30088458a9e399d999dc8300cdf8c38d61a14654f52"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_78.json",
+      "sha256": "3520cf102ef811ba50aca0d842bece0e8c852a515af3c1aab1f1c3a04875b20a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_77.json",
+      "sha256": "ee8fd11d50bf8d6a0c9204783dc988c0cea72d528e1945048a65566fa8d09da2"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_04.json",
+      "sha256": "b2c1e2a41ee44eae24c6a77c38c66c083df3d18a18a9c93f1b177b20aab21cc8"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_08.npz",
+      "sha256": "e54f7f498eb6f14a65c224663ec83e2125a18373eeba24b6f8c0635c8d888e40"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_15.json",
+      "sha256": "56350c0a2ba737e318a4be45ad2185ed65b017d875f997088b7d0f940e6ee0c2"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_56.npz",
+      "sha256": "4d0449e5e11bd22844545717d209cfe5b6e51e98c84c6e3fee8140234b6b2eda"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_46.npz",
+      "sha256": "8152b9ed486d8cd80617f3fb51a2c32a7ee2a7d6ff62c6f7da2e6ee9875e95e6"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_75.json",
+      "sha256": "2bfbb804a9999d9fada78976b36ad522aade95fb526da71b094f294499db0dd6"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_28.npz",
+      "sha256": "9b89806cbf137fac15144c18329787b08af0638e459195d8337116c93cd00297"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_18.npz",
+      "sha256": "4e536b23fd1c184d780f2ce54394f75bdcb8ff20dfe64344bf71e1442b795d85"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_26.json",
+      "sha256": "a2d36f9c7b90ca47b4d82b7b06cd1123c943f5572f911b04dd8eb50411d84d48"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_13.npz",
+      "sha256": "51fa958546ed30aa69485ed137706ef799438ae45edc8b0894f2a2dd582089e0"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_37.npz",
+      "sha256": "e51ce8ebc82c73cdfeb8f6eef9eccd4a86a1fa85ef5d8b794cd7fcb3b921a4fe"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_69.json",
+      "sha256": "70ed1d941df3be8001ddd3fa15af4ecbae9a743e1659fc9f51ce3bf1b5b9bd07"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_65.npz",
+      "sha256": "87dda28f1e487796cfc167450871364fc3101f6878725d1e1100237781f69c22"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_34.npz",
+      "sha256": "96a6f59401763dcf5f627fc3dff7d81dc543c4e0e8a2e3098b6e639f9fe8035a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_01.json",
+      "sha256": "40c97b07f72d8995913cc8ce899e32e1baa2ca4fd8fab4d8394c3aa6f2dbef3b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_21.npz",
+      "sha256": "1c9e32364867c6bf3373ca6fcd1bc4c856a4cb264a03771bd4b68f59f59c3b04"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_20.npz",
+      "sha256": "a3c389fb979236569a1e70f98267d6136b07158c558de81a89ee33b4f32912d4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_67.npz",
+      "sha256": "a83fb27c7c18388b95e640c141a9958cbc68a62b3e4725120a2e13f1f1b65f2e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_53.npz",
+      "sha256": "1bfabf61fb8eff8b6898bad32efa5a4ab2757332d82664392eb85e7ca8459610"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_70.json",
+      "sha256": "590cea81952a628211c59deda70983fbaeeb9f0f00d035ff736ad405db26c817"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_00.json",
+      "sha256": "a37d9427d9b457663c7c298958d7a7c2cd9f5fe5122cdda05b39d3585309c65b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_73.npz",
+      "sha256": "60c96afae2df87b11d64b92f5349780422e4ee1489b94d8c5ca7e0892ac0e058"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_47.json",
+      "sha256": "9475caa51f09fb2dd83e7244234441719f71e8b96755d19486820a026ddf7f75"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_46.json",
+      "sha256": "6fe0ac7a8128a9640755b6d883f057b37b0579bb7fd70234a5017119807bc1ae"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_02.npz",
+      "sha256": "fd2d2582213369f13387fb88cbec76188e253a0fc7d11fb003532bfea94a53f6"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_09.json",
+      "sha256": "e22077542241fd6530477d1d97c393fbb9668788ac3f005dad1d872b697b0f66"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_67.json",
+      "sha256": "04b5d51d1e20daa621d9c3ea2981c28f340cef27cfffcf29f3d5c376f0620014"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_73.json",
+      "sha256": "8a21adfe7873df5c43565dde076bc48957f8c906b1b12ab1228ed3b25e6150d8"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_78.npz",
+      "sha256": "d24fc08c1c7907e7dd8e6b1796c5d2a1755c40a0a3003f1e7dddee8758b7be3d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_51.npz",
+      "sha256": "4c1eec72eb2e099a2454a5448319e8247e449ee15c5c6ae6831e4a0f8833f853"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_59.npz",
+      "sha256": "5e0e64b025dfae39d2c67ce894321161d6f3502e3af59c75e3cf6ed3089d424d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_42.npz",
+      "sha256": "81d01e96c6b2aed6ada3b2b1c1b53140c74d1d6d8d691d20a679f518142a2f15"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_05.json",
+      "sha256": "cd0cb3066529134766672feca55041ffc0a28e9a61b338af1f7fa57224efd420"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_58.npz",
+      "sha256": "ac07e39023b216c0de49afc641bfcf530591b2d97bcad5568df00b74837b824a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_30.npz",
+      "sha256": "4b0e548def3319ef36309a0ac77cfd478304b34c362a50139da4b816a5310101"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_19.json",
+      "sha256": "60f6a40800b34b3a5fb66e46d5ebd6463c9bcc09bb3ec3e8d71973a8d26d0350"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_63.json",
+      "sha256": "6f6694202e8e30e7e3fe60a4f6ff10474bf66ca573d4188c513d09826fc5ab8f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_05.npz",
+      "sha256": "06e94cb23eed888ad234394f47cb60ed1df753f04e41e6a5149e292649add51f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_65.json",
+      "sha256": "c39acc7b72fa75492f94837f0d2a1d4739c1f0eb635f98d3fed2e9476358a897"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_35.json",
+      "sha256": "938d7eac0486d6d5164b9935c7e2d0ac31592eef8e880b79944bd2a6aea9d93b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_31.json",
+      "sha256": "3820949934b6875d8c4db162119499322892932f6361b1a4423c5bb5fbc17396"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_77.npz",
+      "sha256": "2b2481dea37d247948984970357bb293724a86ce3e409b6093bbcd89ffd62d56"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_79.npz",
+      "sha256": "5a5355c69ca9180b1da381870b5ff829e43595db2d72d546b5ea88953a46b2c0"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_53.json",
+      "sha256": "2d61f5857887f8e25d05b3640b10ddfd518473c571089d8687fb3462468a4e36"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_62.npz",
+      "sha256": "9d47af80af4d8143301fbfaa9c4f727d01430d6e50b18557efafae70e2054936"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_47.npz",
+      "sha256": "48b6da574c552bb87cb1a1cbbd1ccf9bb829956648eac9f49c164b6dec297dc3"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_36.json",
+      "sha256": "008f3446a27072ab07ab14979afa6919d05bdc7bad670564c52641c71e671db7"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_33.json",
+      "sha256": "5a51709c5a3b1ebf109353212a13fef4264b93304e156fa572b0de8222caea22"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_60.json",
+      "sha256": "557852a29cf3148bdec380dac6618f17302f7a66c141a7276aaaa660678b3a1d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_07.json",
+      "sha256": "edd5f619d0754d513d9340d1fa0d57b156dc5597f778bfabb46f3ee1501f9896"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_23.npz",
+      "sha256": "4c0888bf552dcfd126d8fc8aceab068d19df856a41d6cfa868e06ca778b30cdb"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_68.npz",
+      "sha256": "46428737f9673d92b7012d7b3e409495f0374d6cc8ecd3cb8a74918b7d3575d4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_04.json",
+      "sha256": "c9386b6d7694fa08528d0c993e61f4d9b07e599533da27df37ce50c16424ae5d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_14.npz",
+      "sha256": "19d23f9b9e91ad9b242f0148cee212a817fd998f8e1143154558fc94e5f781c0"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_26.npz",
+      "sha256": "c23b4a6fd875674d4f0654096482304b9561c4489d899021785566602e476f97"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_06.npz",
+      "sha256": "799c378ef1e699f5a0832afcdaa4a0076c3bf853387fff217aadf14ad4b155ba"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_17.npz",
+      "sha256": "258dc993aefa0ab0a69c5da445d2ebcc55248483d3540365ddd48483ade2d629"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/costmap.jsonl",
+      "sha256": "00b90fcb9048e1567ab4840d4d9fe98920dd74ae968c7ecaa03415a2d95a87af"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_35.npz",
+      "sha256": "8a294238b22d6aa1e7d4df7a27c15ebed763996e577052d59462e06b6a8ad0ba"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_07.npz",
+      "sha256": "86d312110b5b3bf675a381708dead7a2ef4af1232ab860cc756552e0516797fe"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/terrain.jsonl",
+      "sha256": "e9e15d113dcc70a21a3508906f530fa53d1d983328da304c64bc8a7feb2dfb48"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_42.json",
+      "sha256": "f9d516e3dddca9d6ec1cca71b4010c0fa268f58dfe49573ce39a020a9559c2da"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_55.npz",
+      "sha256": "b9f684c3ee1b8d507c8380d9e26149251548df19f1945c23a5ddd8ee8dd8db59"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_43.json",
+      "sha256": "4b4b9eb7ba1c66400044fd1aa7b5eaf4e0f464f596cd25608079b3098d53ed38"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_27.npz",
+      "sha256": "edee9ce39dd18bc96c810a26bb5f404d646953a87618cdca6df98a4fab6aa6a7"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_69.npz",
+      "sha256": "110894f311a4fc864ec3b52e4e71aef5c485dd3da459d85e1fee1161b39f4306"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_61.npz",
+      "sha256": "c82587d9fa47c765ecbc19ed81ff7bc8ae0f231220a0c9404e7654fc6ad2a41a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_27.json",
+      "sha256": "19e02ebf16b48b753f4637200b3c37abf651c9dd88bd2b2fda7b43b6b40fec3d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_40.npz",
+      "sha256": "a99970f4ccb8b134d01b493acb48f34d948b5b320721072832f5c60385bc5a66"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_60.npz",
+      "sha256": "7f2eac66ec8e2faf3337f0ac3574a3cac16793960d3b199ce8588ae016f8978a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_28.json",
+      "sha256": "af202a40f18e51ba8ce75f30e2829ad2bbee63aa44b08ba8ce0d7b382681ce78"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_11.npz",
+      "sha256": "1c48acb54f8a90cb2999e7e1c007066f098459a6f7d4f25261a2421498212537"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_00.npz",
+      "sha256": "f4bcddeaa5e7bb506db47d271376c286f820a941067efe846e33606ac648c375"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_16.npz",
+      "sha256": "2740605729fd732189f50f186f657d1629ae31c1f0240d4a73db30caebf553b3"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_51.json",
+      "sha256": "601e7d296b3ffc00e390e453f5a178233de0f78a703b65799328332df9e6c5b1"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_03.npz",
+      "sha256": "73a020c95d33483188577c1c31904fe307228f9f8dc16e3a696a2fbf8c195aa0"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_10.npz",
+      "sha256": "ec5db3bb31a6df454948218d5383624508dc6efaa2c8d9732c42f7cd6999d59a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_48.json",
+      "sha256": "cbc33cf415d5d2f55c898cc5a59b7613e7cb69cfbf3d841213eb861dafb67f41"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_44.npz",
+      "sha256": "c4bfd09d94b8545f16f744099153300e99ff8113242f9580e3f130ee7481c10a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_32.json",
+      "sha256": "3d9ad778536524d46052ec4b6ce88a738a79478fefe47169e0e6db7a22191284"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_39.json",
+      "sha256": "767d99a584499ed668bc9488c55e32c0f1ff9a04a2b49a92b97fa8add1e0b64d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_06.json",
+      "sha256": "4420946eca123acb3bf628f7bfff9b4d22f577ba0be1fc679c096fac4b060922"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_24.npz",
+      "sha256": "085b6cb8552b5ffb993f1dc0e3d427a761e585e4829b38ed4e26ec3f0ce7573e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_36.npz",
+      "sha256": "1e247c632cde170d41071ab939841861452d2b74ddf62dcc18e854721cdba72d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_08.npz",
+      "sha256": "ffc01f4ce5411e71c7c91684ea5fa9274e60c568633dc00681ab172a7ee70e74"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_66.json",
+      "sha256": "33e93b30cfc8960a952ecfb43c62882eaee5c7d68fc1030fbe16284e10c8eedf"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_03.json",
+      "sha256": "a6eafb8f83a06fb5635b1f535a1f6d263d3484c194b57d4505a8b5e4ada1f7a3"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_25.json",
+      "sha256": "02ab2f3518c443cb7d88575a97bb8919b7a00b67092360b65d980bfe6607782e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_17.json",
+      "sha256": "423645ab20f58c92983cbe31ac2c95f8d9f07ff171700e20e3144fada2e1eeaa"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_63.npz",
+      "sha256": "002ec7759dab420a7e623739136df6ad1c55de1cb52477526f1ebd6823aa5ebe"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_43.npz",
+      "sha256": "495806583e333476be121f51342c8abd8b608f3c5ba14cdcf18820ab5e906dc5"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_37.json",
+      "sha256": "e5908f15366b8109c3850f8daf5d26c544aedc7e018e64c6cab36123763382ca"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_74.npz",
+      "sha256": "334ef9dbc4a655ca6fde9ac204992e311944ba417d670f3ad514fe6e7208f10f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_16.json",
+      "sha256": "aeb861c29ae8b29b7e3426fdf6a7b295bcfc17fd68f0c746c05ba18c43f8de16"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_64.json",
+      "sha256": "40fa7da83f9a4c11432a6386fb16cbaaf34f42bd48c8c94bd42216150c6c6952"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_20.json",
+      "sha256": "fb940c805f98397c954a4caca4cd62dc48fd94fedca1b7301ff8cb70f84d91d4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_56.json",
+      "sha256": "6bfe50c5a5d5a03aac18091eae3b066a7fb5f537b059b6a4836ac55886c9e394"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_23.json",
+      "sha256": "cb472b92ced260097cac15d746a181e980538a7a7e95c214a0539fedff6196e4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_70.npz",
+      "sha256": "b4a1108cd2a6c250cd15406660f9cd3780efd4555d69db5c00da92388d5740db"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_76.json",
+      "sha256": "de9f7cf8319850a6a88f205dbd2613e76d9ab00bfb8a217d21176deeed44baf7"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_32.npz",
+      "sha256": "b1200e886bdedf6353667fa2fd81a3ec27c3f080d44b3945963952a7f2f22ff2"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_52.npz",
+      "sha256": "cd02317b87412c049f6bbcd9b3a825d3bc5d2c751f80941f41339a87556cb3a6"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_34.json",
+      "sha256": "500ae6e22efbaa4e1188736cac91598a860f17118116f98959bbd0d1eadaebde"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_04.npz",
+      "sha256": "00703e23b2e7cb3522d503c0075036ee87356d6482b322b631580e1b063deb46"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_72.json",
+      "sha256": "067e7f04ef39c7206c2d8f99acb32e8abf5df93474706c3e01ac783cf3c94103"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_05.json",
+      "sha256": "7fb11d4c71781ba17adb5daaddcaabe70ab5e1ecd4854ec94e5e531a13538176"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_33.npz",
+      "sha256": "ddc538dd33d26d26ccb7033345a32b929819a8eeb9b668ad954893114d9e8298"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_18.json",
+      "sha256": "dfcdd12ee96a55aba7bbe9e52cc93f35f952a706910ecf25fced5d5e99787108"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_62.json",
+      "sha256": "2618b33ff4c7c8552c5160a4d7fdce66c0baf4afbadaea7abd821ac70ae24ac9"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_00.json",
+      "sha256": "03ed3e324935c3473ec3fa55f83726cb6bd79c61c4b34b9fbf1d4c31d8884b81"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_59.json",
+      "sha256": "5fdbe597c184bee9a66936689049b6d7910cd3370431dd59ca2db8506c91ed99"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_71.npz",
+      "sha256": "b5a1b85f490fa95373c1236f8b728fb7d2c68791734a80b400f3bf30e7efe551"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/capture_04.npz",
+      "sha256": "f8ebde8186ce1e63c952169b4f05158986bc74b5e2b3e56e5a8b5e43ed1f11c3"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_45.npz",
+      "sha256": "0b0495c749c6a8d5a51779c2ed64f18bab179df9b81b67ae3d17f4b6d20e545d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_71.json",
+      "sha256": "461e360ecfe63bb6205a24f48c0cfed6472b9c148e23b0a79397fe6ce0a4374b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_11.json",
+      "sha256": "a0d3e0fa7d14d2a376e7a4cd86d3d958fb662211a61e3a5e1fff6f857a0588d4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/diagnostics/risk_79.json",
+      "sha256": "f6bed336b47850bba9458be3c2827a8acd5c4cb42d7ab7618b4f66b27c703554"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/scene/vehicle.json",
+      "sha256": "ea38a5fd01068bbe743f9cadbdb0a790d4288ddffb385b1e953ee89e2fb4f4a8"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/scene/icp.yaml",
+      "sha256": "0d9a2a604dbba7cb251ea5ee562e5bece8b21885823190499dae4eebd5baf749"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/scene/wheel_imu.yaml",
+      "sha256": "36a884b88c64b148248b33be902b67140d6135751cfc27b1cf48258272a9357a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/scene/sensor_manifest.json",
+      "sha256": "d0ed194fbf4e955f6eafcfa77dc9871bb2c3a03a6d422def277de4f0c1e27825"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/scene/assembly.json",
+      "sha256": "8c10c07a1a0852a422e7ef5e9b35bc4cdce4b9d02dbaab4a1b12c335b7451124"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/scene/tool.json",
+      "sha256": "6e3db644ea2b147675722db0a542ac1bc9eca53eb55cc93f6376adc303f78cc3"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/scene/fused.yaml",
+      "sha256": "b19f26bd11896d1a60ded127748ed562e48a8a59eb3a83610f8e7e47f1c5fd1c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/scene/world.sdf",
+      "sha256": "dafc147d8dbe0648435905ca2c3e171292a098fa2ce75a8c4e9e815b4958d309"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/scene/fixture.json",
+      "sha256": "b83176ec57d33efe2935ef440b3e44fabeaac73475490823a7757c84494ddceb"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/generation_motion/ready",
+      "sha256": "dd8081fe29bca85b7ef4b082fa2fa5312227d20aaf19ddd1d83a642623dd49d3"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/generation_motion/generation.jsonl",
+      "sha256": "1edbd5fb50c6f873a983077264a2a846f9af414d2e5f28e82d605248b8743638"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/generation_motion/result.json",
+      "sha256": "3b60a0255d94924ef5dec4bb48f7845371270f313eb6de5f51c56882fad91953"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/quality/ready",
+      "sha256": "30220806326997db5d34d2eedec24b4839d3b85ca001e09394928cf1c38cc564"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/quality/live.json",
+      "sha256": "34df6a756d7b990ecaca0c0afc06e6d6780ea1bfe12b6a505d4575dbc0417393"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/quality/evidence.jsonl",
+      "sha256": "cb7e875ebf1342400b22f46218692a78f1978ac03b10cd7c0cb0b13ae9e9b65d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/quality/result.json",
+      "sha256": "50168ba7efd8ac85cb8781b3c815eb27bc46674a98d1e1c9bc7c8c6c29501187"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/risk/ready",
+      "sha256": "092fa7ce4173f6620339b2adf408d4b2ac42cc7f3fe8339b7755dc709c86da7a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/risk/live.json",
+      "sha256": "171ba3a03b7546d443d5c926f3d9b2e900accaa63aac1a2e5d4527fd945ada31"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/risk/risk.jsonl",
+      "sha256": "14b6a89c1232b22b1ff7f919a2ad2973ccc6503a5e6a4cd0189e0bd9986db08d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/icp_gate/ready",
+      "sha256": "643b83b3028572ea5779eb6c0240c98edc423c11dc0f8e2a77b6c6bd6b4fd2be"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/icp_gate/quality.jsonl",
+      "sha256": "24aee48c4754c4d5aa81315cbdc0be6de822fa950fbb4cecc794da23a7528764"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/inputs/ready",
+      "sha256": "42cd1f1e4f0016702b5290e549074505306fb8c97f6c546683547fd9fc0eb331"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/inputs/inputs.jsonl",
+      "sha256": "76569dda97c3e375c3a5446166ae591acf30aec854bf215dac9b375ab28db02f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/inputs/result.json",
+      "sha256": "1c02569dc44324b7939479ca312021aefedd49fd1deff3a6081dc5ae9a621678"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/overlay/input_adapter.py",
+      "sha256": "9c497a04d69b1b0164a20c4b3dccc78810aa0bdbb51d8c57c97373dd499e78be"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/overlay/adaptation.json",
+      "sha256": "341ae17e553d2342625913378bb8f8a40c0756f7441e18e327633c7dc750fdb0"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/overlay/adapter.py",
+      "sha256": "14de986abb943fb6f16d800335c634450b6d6d9ddde204f7cad38a299a3a99cb"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/overlay/fanout.py",
+      "sha256": "4b92b9595a078be8f33afa39ed5a3178e766fca8fac00cf9051bf7d8e9494417"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/overlay/cloud_filter.py",
+      "sha256": "eb39e4540068fbad424b44e17d68bcfdda984125723cf5760538006ed1ffd629"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/overlay/icp_gate.py",
+      "sha256": "91b98391de4ddd486fbb91731e5e62d1033f874ce01b4eadb584ce18f284043b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/overlay/common.py",
+      "sha256": "193477832aa55456e31d5c519f02bf774605a0f7c7c0581cb9f399ffccc68caa"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/overlay/quality.py",
+      "sha256": "3c2b2733f7488c7aaa3cbff2e7433945f405d0c7c4b5291be350c7b6e0a0092e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/overlay/regional_math.py",
+      "sha256": "8b6f455b2237c9d673b6cfedf719bbd86f20aebc0f413e22594a1f6050c0d640"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/overlay/preprocessor.py",
+      "sha256": "d8eb02a9a8004010e65eb4b7eb3333736b871ef2118b9bb666a64e72fe2ca7b2"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/control/gate.jsonl",
+      "sha256": "d4474f1c5ba1f82357e1e546ba6936809000a0e20e4d48698651d0da9c198b83"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/control/ready",
+      "sha256": "fe3a824c3a3f4cdcb9b6d001389e9c98e7c21f613a412ceb9cae1404ee01dbab"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/reference/ready",
+      "sha256": "05a1cb3b7cfa626d12f3a6bd908e116efc7d46b4274f722beb09433f55d77b37"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/reference/live.json",
+      "sha256": "0576dd5bfeb753818c0fe3b03123d6f5d5c6a2050779b99c8f99055a27f990d4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_141045_985350/reference/reference.jsonl",
+      "sha256": "fa6ff224e8d3afe9ac490ed3211359f60ad92edc843c173044bb53755cd63d17"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/nav_shutdown.json",
+      "sha256": "2d89faff75bb7e056d1ca0b56c2ebdd0930492938059cccf59af9acb40a34512"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mission.json",
+      "sha256": "8f7995787f74fb7e54ea5140397518b51315b41b845222de62cde579eb3f61fa"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/generator_motion.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/generator_vision.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/spec.json",
+      "sha256": "6e7681c5f4f81067cc8216e6ab98f9dc60e027a175ae7102749123b0d21637af"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/evaluator.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/tool_evaluator.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/terrain.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/decisions.jsonl",
+      "sha256": "344c0683a1bfa1ca8d65a2a70a69c4e29f8a2afa336d79c6c713b987258f3320"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/online_bridge.log",
+      "sha256": "dc934a40221499cbf6dd5897da4b6deaa07f44ca6e987f6a8ff051d1b213ade6"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/tool_observer.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/control.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/live.json",
+      "sha256": "bc0e887c2820233fdca1db47a5fa86ff14f00076095e9dde0d0d8c104b8f30e4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/nav_startup.log",
+      "sha256": "a8280aee72b5619bdbc929ea7717efcce29f454c11ecaee93f5623286cc553c4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/controller_server.log",
+      "sha256": "559a2834a8e7d39ea9ed79caedd995c7cd43092d6c2818b5ff535be8526eccba"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/wheel_imu.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/tool_server.log",
+      "sha256": "b10794832cd917daf06008c3a2c493b87ffc639924b564bcf3a3b66a68a73eae"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mission_events.jsonl",
+      "sha256": "35df58af86611e2cea7fcb0b75a1840839a0c9c9cd941240a210c8a53d69598d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/risk.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/slam_initial.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/icp.log",
+      "sha256": "4c28eb621f8021c9e4c0fababb17b9692052dad8598daf430232effa9e79492a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/observer.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/ledger.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/coverage.geojson",
+      "sha256": "f05c787a3bec799a556bc987bf119eacb2a55d77e466e0817f0bacfd1c6a2de4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/bt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/map_server.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/planner_server.log",
+      "sha256": "3b0ffb8d3797af73dbc776c2c3fed636a5d5899a55507a2233fc1f2504884469"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mapping_inputs.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/shutdown_compat.json",
+      "sha256": "55fa16ce515680bf6e95f92be1f9de215f80f76229641977e7e09f1e264b1145"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/icp_motion_guess.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/inputs.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/fused.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/observer_ready",
+      "sha256": "349f1362c23ddffdcea623a1b38533ddda0c24037ed1653dbd989acf27416742"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/global_sources.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/fastdds.xml",
+      "sha256": "85a967887507a9efb02ebeaa85c8b928a651b0ec39f811c34d4f260e34158561"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/trajectory.npz",
+      "sha256": "d7ca983d15a40ea60e1ba6a0d1528070ee9e41e6baa952aa2410510ff951a219"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/cloud.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mission_result.json",
+      "sha256": "5ec0f4fb3be7418aa4de5a38450a1256906b5e5e2e24df665fdb317e6087ef16"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/request.json",
+      "sha256": "da209d6cd81845459e185d00189a70c7c04990461f43d3a46b163f1218197105"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/evaluation_bridge.log",
+      "sha256": "6abfb479f0bec87cdba109f19882c4712213fa3435eaa601bc44211c80125230"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/tool_bridge.log",
+      "sha256": "a81e6c7ca089efcf2fa2035f32db1f9aab65f9c017e6a97b04569403e078e509"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/bt_navigator.log",
+      "sha256": "8ddcd310df2914ccf4e04bce066db14f5461622c54c799154d024ef460bfb0ae"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/analysis_r09.json",
+      "sha256": "17eb7e955ec6af7a216791bdc899a77bd7b1cba83994472e8e83d8b558bc8e35"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/raw_bridge.log",
+      "sha256": "f05381408f7eb73694c212a079b5e6038d6f1d34a37b2a9de4f84efae018d838"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/barrier_injection.json",
+      "sha256": "3159f7a5c55b71e00887360f31578a0cc7ad9df6f72bb1fdfc69f8b69776686c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/fanout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/server.log",
+      "sha256": "2d76a2eee358ca367cb6a3986381c2515cbebe6201944e16a857900d42b215fd"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/bt.json",
+      "sha256": "2ecfd6e6affe7a19cab73f350b736a6f904ffd06bb68d19be3a59e0a63964cb7"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/global_manager.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/ros_shutdown.json",
+      "sha256": "e43331b2eaa9e6f1884ea95f5c33ff83c0a0f278a2a2d1a8c29c33cd1461153c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/lifecycle_manager.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/runtime.json",
+      "sha256": "880d5b37c749224f61a6e457814970b3eeda0c918354aa05dc68a8f89e8de021"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/odom_output.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/reference.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/icp_gate.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/tool_evaluation/physical.jsonl",
+      "sha256": "ea062745b9a25cbb17bb1ed0fe8340f0487febf561245d39d43b4fb68df0ab02"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/tool_evaluation/ready",
+      "sha256": "a7137111345434967d757e65b89db233ebff47e1871a91009861ad95db47ce2d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/tool_evaluation/result.json",
+      "sha256": "84041f64d1e0e3607375154ffee6b91c2361050a843947acc5a19e79151e35e8"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mapping_inputs/cloud_50.600.npz",
+      "sha256": "03e638e8741c87b079475ee622fbe80463a9ee493fc2f7c7d8df2d98050ff47f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mapping_inputs/frames.jsonl",
+      "sha256": "89fc8042eb28854a37ecd0c3628c554ec624e883ef4783705df3f60077232418"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mapping_inputs/ready",
+      "sha256": "bfc1e7bc31bca16b85264f6c2997341bc09d33c8caebc6faa9e43653b0f90805"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mapping_inputs/cloud_20.600.npz",
+      "sha256": "fb70dea353fc4affe20a3524a772fe2b5650a9f05460c7d93ffbf7d13d134c05"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mapping_inputs/cloud_40.600.npz",
+      "sha256": "5fc53484b79ec1b6055ea781706ce129ac443298091c3e0813be8a4964833372"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mapping_inputs/cloud_60.600.npz",
+      "sha256": "5e52316ca9161a0c6abef36e585561bf48b33f06398bdc950aaa13da56a70e61"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mapping_inputs/cloud_55.600.npz",
+      "sha256": "c51a101e530502ce5085a56e5444d7ac65aeffdb5b4c390a93abdb914cde7d72"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mapping_inputs/cloud_15.400.npz",
+      "sha256": "065d33b79342db1224f529a6aa41a85d5393898f8901cf882b0a4f4cdc80ffe1"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mapping_inputs/cloud_25.600.npz",
+      "sha256": "4ac4811a341521d384b37b96a48362208fb247f8083fee455bd0f1254da7d1b5"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mapping_inputs/cloud_45.600.npz",
+      "sha256": "8638cc04a720de48433f22dc920925a191d302837e3b7cef74d3803923db0b4d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mapping_inputs/cloud_30.600.npz",
+      "sha256": "ab2c096926081aeacf7c603c8d2a8a1389a8743daae2c6545065d3d0ad06be2f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mapping_inputs/cloud_10.400.npz",
+      "sha256": "28babced2bc5de5eff9cb50785086281f2c2c8b5c1668d166cb565947bfebe41"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mapping_inputs/cloud_5.400.npz",
+      "sha256": "8546796145fcde6775bcc57db77733eba9d994680e4d90f710bc51d3ae97e552"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/mapping_inputs/cloud_35.600.npz",
+      "sha256": "e122b6496b02e0b8ab5d7b13e3d2cf81278ed9d22a437a7008c7180bf48ab09d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/near/ready",
+      "sha256": "0cf50cc8516000b3a2eb7df68e15d3e62811479e0b6ee9a7f1543abf6621ea93"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/near/near.jsonl",
+      "sha256": "64735854cd5981140d5eff5d78d0b27cb1c954318d807de27edd2723b7c37eab"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/global_sources/ready",
+      "sha256": "2aded0c5f3e6a9e5c6a648c1063bda07ded539d751886cd7f2e7051c765f483d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/global_sources/sources.jsonl",
+      "sha256": "70dd7f1a2ae790a19c41321a42e08e6b27c805ed863474d64b52fa3f30c8feb2"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/ledger/ready",
+      "sha256": "dd697981c7b9546a908a1c2ad133d69b72a613b061bf1c338a015aafc22c4f9c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/ledger/ledger.sqlite-shm",
+      "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/ledger/events.jsonl",
+      "sha256": "49b54ae640c8d5bb09b3c8c23429e6d36e67561777f0c1ede16a847dac3c12e9"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/ledger/live.json",
+      "sha256": "181f12aa3bde94d8dedac5eb1382cd361883710d3cd3d86978a76b616c0eb4f0"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/ledger/ledger.sqlite",
+      "sha256": "bec73ae2872fc4cda40d2a3fc679dd1058e5861442b608ec381f2f304ee8c0cf"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/ledger/ledger.sqlite-wal",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/ledger/summary.json",
+      "sha256": "a09001a810ffa7ad7f9eed729b9ead404490b2c0da838759e3d92f89591d57c5"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/odom_output/ready",
+      "sha256": "2bbbc25148ac689449317a6e92e886a455dba271c08f41f03f1c6854e9afb7df"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/odom_output/result.json",
+      "sha256": "769b18d5127ddba62afb35b57466182a8aa7244605a31ab926ed358d1a511f3e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/tool_observer/ready",
+      "sha256": "c753ebe6f0fc577198231924b05a8603ff8ee5394019dcd492b610ccca8dbfc2"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/tool_observer/observations.jsonl",
+      "sha256": "9c09714b92aaaa89418f4fbe398dc2e5583f0daf49b53b15255bbc863958c076"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/cloud/ready",
+      "sha256": "8ab5ec63465886b654e635194cc2dcf09567cb2d0688532e40582257b762d1ed"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/cloud/geometry.jsonl",
+      "sha256": "48f62bf7ddd7c122f7d9f0e77d5005b50a43f1ef836f4a17161040709c236750"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/icp_motion_guess/ready",
+      "sha256": "afa4545274c6a1d1e4ee01063ff945672fe94c7d77de010a4c85c89c3801a717"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/generation_vision/ready",
+      "sha256": "dd8081fe29bca85b7ef4b082fa2fa5312227d20aaf19ddd1d83a642623dd49d3"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/generation_vision/generation.jsonl",
+      "sha256": "10279a720ecc6966d9c7ff39a7465379ff048698a5e14ea372c3f29074649153"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/generation_vision/result.json",
+      "sha256": "204eba207c0001b700f93ed94cb97646a831a2227b6483af309670e639f9c4ae"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/evaluation/ready",
+      "sha256": "b24d6d33736ecd5604a4b17bc9c6481039fac362bb7df044ef1c10a2bfd21db6"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/evaluation/contacts.json",
+      "sha256": "faa285b85965a0c181fb03a074fa56228c223b4319edd4d04305e136335cfefe"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/evaluation/truth.jsonl",
+      "sha256": "c639674591b56519be0b9a6310ed9623c9069b7d8f3be82ce364e9b82b1bfa9d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_14.json",
+      "sha256": "8523cd9aa7421137a4d2cf1fc85dd8f74b4fef6208c4c4c08db4c2f01bf6e680"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_00.npz",
+      "sha256": "392c6af94c6b3f61885917b7e8604e8ee045f74d42b04c21c19d7d34daac5612"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_24.json",
+      "sha256": "0fb321bbbdd267d538842ff2fd68af720acdc2344098c19400e21911aef71d40"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_25.npz",
+      "sha256": "60c14ca2134361ba7cd78b13ec1510e6dece67f6fd2c0730e84a41b59b662b21"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_13.json",
+      "sha256": "a4a17bd4b5cde85189d38a71feb2834556b551aad71e4bc6a3369f8574bd9c7b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_19.npz",
+      "sha256": "191887d30c40765337e2628d5d636c059bb540ba3613e159bfba3ec286f7f4b2"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_02.npz",
+      "sha256": "c33460800a48ef28bea4818c5aec03522a1574ab263e78054765c9b93f5c1431"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_10.json",
+      "sha256": "657ee73050525bf746a80e7bff6d667667d43c1a2baf70b71fe1606f479901ea"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_02.json",
+      "sha256": "fb381ea6b097947f2232501d63a5b6a7f51e69cc02aaf5d82a13120960ca270d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_22.npz",
+      "sha256": "d683d31e8e8560d376d71575b4249e3faf1813d991b0f23d23f8e96366db71dd"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_03.npz",
+      "sha256": "64bd735ca488862f59965279ccea6e4ae36c726fb21ed0516c7703bbcf0217de"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_07.json",
+      "sha256": "e2ed3a4ed80a9679885cd7e8635003e2bb95e4abe4e5cde629f5255cc8790f8b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_02.json",
+      "sha256": "ed63594d48c4cd61a9746702f1e883c92752af8111bd00f74ce317bb3e6c6647"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_12.npz",
+      "sha256": "dfb383c0e6548fca72495e60191b6fe34a9abac186c9556cd09ea71f2852c57d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_01.npz",
+      "sha256": "46756d32e4665cc9689cae8ff4e822f7b3bf8d5e071db8db28ca513fd6257402"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_07.npz",
+      "sha256": "8aa32cce138f75507ec55151ba18ca3f66ad808a47f8fd0cc72b105c1cb634ef"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_03.json",
+      "sha256": "f1909036cafb86c78942e1478d52c1f5628e6c103af5fdec7215be7415dd557e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/ready",
+      "sha256": "1a9ad4f1a2e44fba965db99ce9e428c71d6f90696f168b1e06b9701c270e7017"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_22.json",
+      "sha256": "b128d0a13a3e543614b422e84fd0d809bc41209ae450eaf14f67ee30aeba24d7"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_21.json",
+      "sha256": "a8fcfc0f1c94027a415a612d6a1f04c5ca5a960d88fdbc5463359da747b87a1e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_15.npz",
+      "sha256": "32188c07a6cec23360aea3e37ffcc6ff50a375089a3e9a85f8f922cd3e09f143"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_12.json",
+      "sha256": "e61b4cd5597def7e43de910fa902723ab1974b010c8fc7d58a7d69122b60503e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_01.json",
+      "sha256": "a904ccd78fba357eb3abece124e2c619fca1ba02380947a84baba7133a755f9d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_08.json",
+      "sha256": "7134fffe0444d8c3e08c63c8b8c39aef9a0d63b998c627019f058847c681fe56"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_09.npz",
+      "sha256": "6f65e8a9fad85fb0e61f703bf1a13d90e78b6d1bbaaa0c503d02d0db37ae77c6"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_10.json",
+      "sha256": "7e6bad4bc2b4942d1261c3f17f93014df90afb54153258b4c166c5a2ffb80653"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_06.json",
+      "sha256": "54b0e51e64fbbae32ece7180372ad0561b42a2c7be68d50d3874357c9e4f5ea7"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_08.json",
+      "sha256": "fec58431333db4068f63433865e03c7671e3ac100e33feec0e1ef7700e290aa7"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_06.npz",
+      "sha256": "24165334ff7cbce2ac91de4792ba4e113eefb408de394046631b434958775183"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_05.npz",
+      "sha256": "780548aaa85a0b0171cfae85472d73dc2bd8fcd7c90b3a161a2d03ba847e6cd2"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_01.npz",
+      "sha256": "8fa6a943ba2aa5c8008c531d5c526db13b355e668375f28aa8ba86eb513cb595"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_04.json",
+      "sha256": "96c4b0381e84a4aba76a292efbb45399b788236192094938a2b95d90c74f716f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_08.npz",
+      "sha256": "959270bc6bdc252bf53317f60070c25d1fad285cd2e9a94918231aaa86cfd9e5"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_15.json",
+      "sha256": "22b81e867f9005a81afe975f72dc6d63323240dd13225b5a652a44fcfb131619"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_18.npz",
+      "sha256": "5038a186708329ae48a477553e8c83b85a773a98dda311ba68aa30aef71ad45b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_26.json",
+      "sha256": "040407915b35a624c0461a1a50cf8c899a9f408ee50496678cddeb3252785308"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_13.npz",
+      "sha256": "e495e58952624d3ea6fadf72d6fe12168b48fdc9355c352be59268c4f881720d"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_01.json",
+      "sha256": "d1024004cc6efefd8177400a316146adcbf64309ea3e3e5a23f488952749c026"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_21.npz",
+      "sha256": "ff7388149bf2dfaa14fb18a338c60c7289dedbc2f6ad1b1229e6f32dfadfcd8f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_20.npz",
+      "sha256": "279888de6e2dbc34fa9b68827d11e366a8db245ced39db321cdf9bfc4e304d31"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_00.json",
+      "sha256": "bcaf431e2a907f54099274754f466005104d8c6ab3ac2b869d9cbe5516545617"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_11.npz",
+      "sha256": "14ddc53d0f8b4e993cf841969e776b268b7ab0330804aa0df199700b076f5788"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_02.npz",
+      "sha256": "f010a63d40baca7d52d37361a3ab84a176c194a005f859af68f98c24078f3e19"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_09.json",
+      "sha256": "cddb33c07d553060e9298f0a34bb4d9db0af74d9f50fca02920d288a849d8975"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_10.npz",
+      "sha256": "6b247c1a8df88607f9406a974693deefd43b4cf5008d28f05979b2cdb4f19b9c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_09.npz",
+      "sha256": "14858da387ce2c657b17ea9b658957b6321acdf779b3bfeaa9a077e31c99b2ae"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_11.json",
+      "sha256": "d53a4a0f0f3eb5cfc64462a611c91a28a05993c1b4c742a1411fbcece73f3e11"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_05.json",
+      "sha256": "9ba866ac5da459a9a0cc65a150ce636bbc05447ceddace55b5ab19308d80782e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_19.json",
+      "sha256": "24f4992f5e513a142a12551c151b86dff8e0180a0c0e2d1bbdbb038411845d4e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_05.npz",
+      "sha256": "6655cc4b0e4fd9612c680447d6390f7216e51a16219c40098a6012f5deadc700"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_07.json",
+      "sha256": "f898d0212a22617ee08f240cb048e84c57aa88fba1370180c23ec26222d25804"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_23.npz",
+      "sha256": "81bc788f3aa3d2b0e8286952bd875da819a65b23ba39eca9134ba90c9a371c97"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_04.json",
+      "sha256": "f35820bc9169006c579a0c7aee13b663fd19802f8c42a597ae858f1d5ba59c11"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_14.npz",
+      "sha256": "a16d650ac35b2d3802085ef117c2a9d9414e907fdcd828c81f00c2f2d7c6fac1"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_26.npz",
+      "sha256": "03680d22896037ce86fc58a7b1f77e6ff1c985b8d7f5d1b35f2801ea59d7c3a1"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_06.npz",
+      "sha256": "750f17fb47c47b47243ab9459162617bf9413a81451a599c8fc37f9c5fe4e27e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_17.npz",
+      "sha256": "a24b8d811ca94c8dabb5a1e73f1e00c6cc56432224b9fb1ae7a26686bd4e56c6"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/costmap.jsonl",
+      "sha256": "cc558e83b8cd36ea0c42f64c47ae110b86dbd68e80faa9af8746a013372e4c7c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_07.npz",
+      "sha256": "eb454a5f9b169f132ef4b4d8721f2a7a09ee54c38bb0b042510cbdb858fdd303"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/terrain.jsonl",
+      "sha256": "1d2a5aa5f19b163638e31af67cc93dc676d4e9265389d7bfb7ecea5c5a91e945"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_27.npz",
+      "sha256": "ecdfd9c7b534e182465a4e827f1a924471edba6d247a1df820eb1d6af378bbb9"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_27.json",
+      "sha256": "e66f18bedd933c5b9a282486ed67ba192454f01b1112b4650759b38395b13250"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_11.npz",
+      "sha256": "278e34b6d84abeb867f077b93892e67580156a6066e19079652e147147889fb4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_00.npz",
+      "sha256": "d509e2c2abaad7721fdee43a2210792d8dfb6b46f8ffe0430b3d8bfd1be52cb5"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_16.npz",
+      "sha256": "1d792e9d6ae209812f49e594180ecb624018db615705b65f74d21bccc1b00c9e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_03.npz",
+      "sha256": "a9ca66f0e39144606285d4a56efcd4b2e0a238ed87da550e60c8f95890a22973"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_10.npz",
+      "sha256": "3de691ca6d122178cb744f73d845afc7ad240defbbdd4fa435e464d980685610"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_06.json",
+      "sha256": "7fb753618e9b23d91f96d86dda1eb5e9abf33a3ab42e4f010eeb8c9ab9bd99a7"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_24.npz",
+      "sha256": "f378a028d7e07c114fd4584adc5e0c352879a91380fada7276cb66fb4700a29f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_08.npz",
+      "sha256": "0fe7a021943ce0538c6f2e50d233b81cd0a7931e1f0e5a8d2f1215cf5877514e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_03.json",
+      "sha256": "6fb4171460204e967327e1d57355dc3b8cfbd31887caf230c2065df4380ae40f"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_25.json",
+      "sha256": "947ed4e4e7f4a9ad58a28cdb3f386647bfec8c5d952c9689561cb4a7d683ab43"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_17.json",
+      "sha256": "755ef450a785ca613ef3d3b3358fd92a83a548053926a8070a9e0c276bc9cc4b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_16.json",
+      "sha256": "cc9837e85c43c3ae3881cf889c2a3d618c19e28e8dad96f9b67d94a338aaf9d2"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_20.json",
+      "sha256": "700f1ada7a489af4e4bdb7f867a9911f5f1bd6c434252d9a52c1522c9bb1d35c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_23.json",
+      "sha256": "96ab45b06a062a94ad6817a6b40ef6b96e8184f3d2ed64c86febe665ad1982a2"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_04.npz",
+      "sha256": "1d71d604958a30a0fc8f2f5268ed5c3f375406f72ec3c59caab6f204dbf409c4"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_05.json",
+      "sha256": "4b195cb1a6933c05fcaddc9774b9b85a47cb2fb6d0952651243ec19da49cc360"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_18.json",
+      "sha256": "7a61f76093639813ea82a11eea024f5b68ce47b91db22f202c78de8964917dcf"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_09.json",
+      "sha256": "a62dc0bf3146437d7fcad7b8f54e830dcb1444b93b2067a82ec96fd886a3352a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_00.json",
+      "sha256": "51f4bd1348cbdefd9541f52a58b213179f1ca4bd6b78cc7d1041fb98221e2a20"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/capture_04.npz",
+      "sha256": "0fcf641133f071dded7825ba6067bc62e1765865633106ca8d8a8817268ed564"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/diagnostics/risk_11.json",
+      "sha256": "eb322d6c8a2045b46e243c27869e75883bc299ba48a6f4167a8f3ada3484a41a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/scene/vehicle.json",
+      "sha256": "ea38a5fd01068bbe743f9cadbdb0a790d4288ddffb385b1e953ee89e2fb4f4a8"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/scene/icp.yaml",
+      "sha256": "0d9a2a604dbba7cb251ea5ee562e5bece8b21885823190499dae4eebd5baf749"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/scene/wheel_imu.yaml",
+      "sha256": "36a884b88c64b148248b33be902b67140d6135751cfc27b1cf48258272a9357a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/scene/barrier_fixture.json",
+      "sha256": "858735f140830a4955fb10cc166edeb8e90f068bcf64520c10a16f3a741ab9cc"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/scene/sensor_manifest.json",
+      "sha256": "d0ed194fbf4e955f6eafcfa77dc9871bb2c3a03a6d422def277de4f0c1e27825"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/scene/assembly.json",
+      "sha256": "8c10c07a1a0852a422e7ef5e9b35bc4cdce4b9d02dbaab4a1b12c335b7451124"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/scene/tool.json",
+      "sha256": "376ea02180b77a393992c67fba3badc621d42274d42bc40fee1265658442467b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/scene/persistent_barrier.sdf",
+      "sha256": "31dd0e7a0d3868e72cb3ec8064fd43f242ef6ca0e9d0f3436e2a8224580bc5e3"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/scene/fused.yaml",
+      "sha256": "b19f26bd11896d1a60ded127748ed562e48a8a59eb3a83610f8e7e47f1c5fd1c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/scene/world.sdf",
+      "sha256": "280c0c5443d08d673bcc07c68167745bc41ec2cd8d9a6f59bd078274ee85344a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/scene/fixture.json",
+      "sha256": "b83176ec57d33efe2935ef440b3e44fabeaac73475490823a7757c84494ddceb"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/generation_motion/ready",
+      "sha256": "dd8081fe29bca85b7ef4b082fa2fa5312227d20aaf19ddd1d83a642623dd49d3"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/generation_motion/generation.jsonl",
+      "sha256": "2de02244521a8e1f987600f8ee963c228721b5782247c1f6852232bd3ff38133"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/generation_motion/result.json",
+      "sha256": "20f0ee29c0ece7aa76c8b786379f681f9245b8d1f93e775a6d72e8f3a881db5a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/quality/ready",
+      "sha256": "30220806326997db5d34d2eedec24b4839d3b85ca001e09394928cf1c38cc564"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/quality/live.json",
+      "sha256": "0fffa3c8243488e44df326e569a92efba3dfbd9cd791dfa27de8bd92f5bd4bd2"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/quality/evidence.jsonl",
+      "sha256": "a8a0dfdd5b49c60a4daf892473ecf8caffe4edf7da0fd9a1143aed9a4d63ba8c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/quality/result.json",
+      "sha256": "7526c4575089951d1c0046e4c56ce876b4d0330671b2a377dd138f2f503e33ad"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/risk/ready",
+      "sha256": "092fa7ce4173f6620339b2adf408d4b2ac42cc7f3fe8339b7755dc709c86da7a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/risk/live.json",
+      "sha256": "d422b30d0b9399ca7c5ec2c48c80d9af327046f4100e7d953261b2db8f191498"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/risk/risk.jsonl",
+      "sha256": "e9419ea33bc842cbfce923b4e2f56f43882f73c593cd7b12aab28febf630fbb0"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/icp_gate/ready",
+      "sha256": "643b83b3028572ea5779eb6c0240c98edc423c11dc0f8e2a77b6c6bd6b4fd2be"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/icp_gate/quality.jsonl",
+      "sha256": "74d337f192c16196e375f06ce9a4ed8a79ea0c93b8535c903e8be388d3476b50"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/inputs/ready",
+      "sha256": "42cd1f1e4f0016702b5290e549074505306fb8c97f6c546683547fd9fc0eb331"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/inputs/inputs.jsonl",
+      "sha256": "3b9fd35b17d60d801a2f9b5e3858b52c49500e2586518360ffd4ad73dc0b9474"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/inputs/result.json",
+      "sha256": "5d41e77bea0573bab7961335d8b5af755de0cffacc18df8dda2e6e012de92d6a"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/overlay/input_adapter.py",
+      "sha256": "9c497a04d69b1b0164a20c4b3dccc78810aa0bdbb51d8c57c97373dd499e78be"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/overlay/adaptation.json",
+      "sha256": "cfc803a1f6adf8568d47f9ea81d68e688ce5bc859c231db7745697b91b195e88"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/overlay/adapter.py",
+      "sha256": "14de986abb943fb6f16d800335c634450b6d6d9ddde204f7cad38a299a3a99cb"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/overlay/fanout.py",
+      "sha256": "4b92b9595a078be8f33afa39ed5a3178e766fca8fac00cf9051bf7d8e9494417"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/overlay/cloud_filter.py",
+      "sha256": "eb39e4540068fbad424b44e17d68bcfdda984125723cf5760538006ed1ffd629"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/overlay/icp_gate.py",
+      "sha256": "91b98391de4ddd486fbb91731e5e62d1033f874ce01b4eadb584ce18f284043b"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/overlay/common.py",
+      "sha256": "0eae441a1ca08924141a87cf3e7008ad55662153b867dda1c859e5770a9ce4fb"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/overlay/quality.py",
+      "sha256": "3c2b2733f7488c7aaa3cbff2e7433945f405d0c7c4b5291be350c7b6e0a0092e"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/overlay/regional_math.py",
+      "sha256": "8b6f455b2237c9d673b6cfedf719bbd86f20aebc0f413e22594a1f6050c0d640"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/overlay/preprocessor.py",
+      "sha256": "d8eb02a9a8004010e65eb4b7eb3333736b871ef2118b9bb666a64e72fe2ca7b2"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/control/gate.jsonl",
+      "sha256": "798c7d23fb9513229a8e69e0d895dd50c09114dfbfb21b09ac3445443e2fe99c"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/control/ready",
+      "sha256": "fe3a824c3a3f4cdcb9b6d001389e9c98e7c21f613a412ceb9cae1404ee01dbab"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/reference/ready",
+      "sha256": "05a1cb3b7cfa626d12f3a6bd908e116efc7d46b4274f722beb09433f55d77b37"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/reference/live.json",
+      "sha256": "9987193b6ae8171540c3f7ccba59b77b809223a171281d369130abfad1089258"
+    },
+    {
+      "path": "optimization_v2/three_tasks/results/R09/mowing_20261114_140747_354583/reference/reference.jsonl",
+      "sha256": "2dd4ecb8182231345b5eb283bc4c836162f9f62e2bef1c6abeb3fa684ec0ad63"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/r09_backend/self_filter_test.cpp",
+      "sha256": "cc113f5271a3a733d27a0f13a4c98766bd9e5aae4c91281d5091c1d3f0b7c89d"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/r09_backend/self_filter.hpp",
+      "sha256": "fcb035de32d1e43ea92bd545bcb463eaa01444bcad7c38ceb65cd6cd8bac29b6"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/regional_r09.py",
+      "sha256": "79f2ca6288cbb692fa8f48a55088cc724e8aa9e37c43b95c27ee899e36308831"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/control_r09.py",
+      "sha256": "234b2dea1d94c87e2264ec3e9cec2c9c192a5c6e26dc89fba09dc976b69921a4"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/tool_timing_r09.py",
+      "sha256": "154431ef2462e124c6e30bdda6ea2a079b055dbd7ebdb6643934ec70b00bc1ff"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/tool_observer_r09.py",
+      "sha256": "1dca39df5ec6323edec42db8b4fa814813bb78753d0bbc66c055d374d9966ba7"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/terrain_r09.py",
+      "sha256": "41502e0c4a2615edf759fe478ee714211a43458fff0fcc1df812f10e7f657143"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/stability_r09.py",
+      "sha256": "73f122feaf4c9f87bee9cdf24121396f2e25bd62ef1a7c0d3c8b1f943aa16863"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/diagnostics_r09.py",
+      "sha256": "c64f948f2367c36fe2ae7f348431af329ec1aa004c3952c69cf72bcfd969880a"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/runtime_r09.py",
+      "sha256": "cf40b8b8d693ab416e05a7756d4014c3630b7c36398a167d56237d4fd0457857"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/analyze_r09.py",
+      "sha256": "bc02c0475249053fc1198338508ccacc66597c3b1a0d70ef29e3d0dae7eb6e9d"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/scene_r09.py",
+      "sha256": "853023931b12ac7de3896facf6bc613a54468bfca402aad39863f92aad652680"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/stage_r09.py",
+      "sha256": "7b7fa0a9771e2062efbc30b189ba0f217a9e1b2b01df562d2544b3ae9680918e"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/risk_r09.py",
+      "sha256": "3c360c4ece7226352bf8ffa02f2886cfa4f9e7db5dbd12edbb19d767a4f7dd1f"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/prepare_r09.py",
+      "sha256": "673ea0eefe130ef9d3bcca0dd274cdb1ff2c9db77e5461857d83998af803ea68"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/mission_r09.py",
+      "sha256": "cd0838e88b00db8b1a386a6519dda30cf0e3f49d84bbc816d61b16186c1b5981"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/ledger_core_r09.py",
+      "sha256": "6badad22c40c9c2306964236db69239b354042f4d0ae5f4c8157ff43b855444d"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/tool_build_r09.py",
+      "sha256": "ecf3df28b853b3d1c4033f6be6a7fefdf4052c63f452b4e15bc78685326fbd73"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/footprint_r09.py",
+      "sha256": "a57ce883116c6d76252c01aac2464be4cb86ad65ae12af2e2d62cd4f7c9e43b1"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/tool_evaluator_r09.py",
+      "sha256": "650812d9e236c4bda80a7512ca73b745406fce2706482bf57c6c151b29047099"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/scripts/ledger_r09.py",
+      "sha256": "a17bdd9eecd6e3cef0f1c540f7f7110d7a44df71eca6ca1640e488115125f09c"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/tests/test_ledger_r09.py",
+      "sha256": "0a95fbc73ace54626ded34df761fed01a5beebe95dc5accac92049298f89c1b8"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/tests/test_footprint_r09.py",
+      "sha256": "52e9b7d626e5605117dad678e8b079fb8225bffba82f55b49d54cc94324601ae"
+    },
+    {
+      "path": "optimization_v2/ws/src/task_platform/tests/test_stability_r09.py",
+      "sha256": "20cb1aeef956aec40411d7b62d672dc4d4ae27aafbe51c16b703677920cf34f6"
+    },
+    {
+      "path": "docs/three_tasks/R09/TECHNICAL.md",
+      "sha256": "1ecaca6ca57ee9d8e004d0b97ef91142a6150be4e4b542290a69aed70a474763"
+    },
+    {
+      "path": "docs/three_tasks/R09/CODE.md",
+      "sha256": "b0806a9fa4f025dc6b139dc2097cca177dd34dc9709d879f050e760d2449e777"
+    },
+    {
+      "path": "docs/three_tasks/R09/MANUAL.md",
+      "sha256": "e918a49088242e23459563a546920f7139b589ce6eda725c1d07e969a24b99ce"
+    },
+    {
+      "path": "docs/three_tasks/R09/RESULTS.md",
+      "sha256": "99867b9b72a1265576c6da48df883d814ba14bbb5351fedb9157d82c49d2a0f2"
+    }
+  ],
+  "next_step": "R10",
+  "formal_credit": false,
+  "original_S17": "PARTIAL",
+  "original_S18": "PARTIAL",
+  "created_utc": "20261114_141950_776531"
+}

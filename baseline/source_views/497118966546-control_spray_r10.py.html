@@ -1,0 +1,66 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>点喷唯一底盘出口</title><style>body{margin:30px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;border:1px solid #d5e1e5;padding:20px;overflow:auto;font:13px/1.7 Consolas,monospace}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff2b5}.line a{color:#78949b;text-decoration:none}a{color:#076d76}p{overflow-wrap:anywhere}</style><a href="../../index.html#04-code-evidence">← 返回源码导航</a><h1>点喷唯一底盘出口</h1><p>optimization_v2/ws/src/task_platform/scripts/control_spray_r10.py</p><p>固定提交 9aff8337b7794f704c5556a973a5220e73f17808 · SHA-256 4971189665469d4ccafed96c00fd2cc5962775e2a193547996a24eb883734a4e</p><p><a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/control_spray_r10.py">GitHub 固定版本</a> · 生产源码快照；视觉换行不改变原始行号。使用编辑器修改前先了解任务版本绑定。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Only task actuator request owner. Independently gates Nav2 against observed state.&quot;&quot;&quot;</span>
+<span class="line" id="L2"><a href="#L2">   2</a> import argparse,json,time,signal,math</span>
+<span class="line" id="L3"><a href="#L3">   3</a> from pathlib import Path</span>
+<span class="line" id="L4"><a href="#L4">   4</a> import numpy as np</span>
+<span class="line" id="L5"><a href="#L5">   5</a> import rclpy</span>
+<span class="line" id="L6"><a href="#L6">   6</a> from rclpy.qos import qos_profile_sensor_data</span>
+<span class="line" id="L7"><a href="#L7">   7</a> from std_msgs.msg import String</span>
+<span class="line" id="L8"><a href="#L8">   8</a> from geometry_msgs.msg import Twist</span>
+<span class="line" id="L9"><a href="#L9">   9</a> from nav_msgs.msg import Odometry</span>
+<span class="line" id="L10"><a href="#L10">  10</a> from rosgraph_msgs.msg import Clock</span>
+<span class="line" id="L11"><a href="#L11">  11</a> </span>
+<span class="line" id="L12"><a href="#L12">  12</a> def main():</span>
+<span class="line" id="L13"><a href="#L13">  13</a>     ap=argparse.ArgumentParser();ap.add_argument(&#x27;--out&#x27;,type=Path,required=True);ap.add_argument(&#x27;--config&#x27;,type=Path,required=True);ap.add_argument(&#x27;--session&#x27;,required=True);a=ap.parse_args();a.out.mkdir(parents=True,exist_ok=True);c=json.loads(a.config.read_text());v=c[&#x27;vehicle&#x27;];rclpy.init();n=rclpy.create_node(&#x27;r07_actuator_gate&#x27;,parameter_overrides=[rclpy.parameter.Parameter(&#x27;use_sim_time&#x27;,value=True)]);st=dict(t=0.,stop=False,enc=None,odom=None,loc=None,safety=None,tool=None,worker=None,bt=None,cmd=None,cmd_wall=0.,clock_wall=time.monotonic());seq=0;contextseq=0;progress=0.;lastpose=None</span>
+<span class="line" id="L14"><a href="#L14">  14</a>     cmdpub=n.create_publisher(String,&#x27;/s03/actuator/request&#x27;,10);btpub=n.create_publisher(String,&#x27;/r06/context&#x27;,10);statepub=n.create_publisher(String,&#x27;/r07/gate&#x27;,10);log=(a.out/&#x27;gate.jsonl&#x27;).open(&#x27;w&#x27;)</span>
+<span class="line" id="L15"><a href="#L15">  15</a>     def clock(m):</span>
+<span class="line" id="L16"><a href="#L16">  16</a>         t=m.clock.sec+m.clock.nanosec*1e-9</span>
+<span class="line" id="L17"><a href="#L17">  17</a>         if t!=st[&#x27;t&#x27;]:st[&#x27;clock_wall&#x27;]=time.monotonic()</span>
+<span class="line" id="L18"><a href="#L18">  18</a>         if t&lt;st[&#x27;t&#x27;]:st[&#x27;stop&#x27;]=True</span>
+<span class="line" id="L19"><a href="#L19">  19</a>         st[&#x27;t&#x27;]=t</span>
+<span class="line" id="L20"><a href="#L20">  20</a>     n.create_subscription(Clock,&#x27;/clock&#x27;,clock,qos_profile_sensor_data)</span>
+<span class="line" id="L21"><a href="#L21">  21</a>     for topic,key in [(&#x27;/s03/encoders&#x27;,&#x27;enc&#x27;),(&#x27;/r07/localization&#x27;,&#x27;loc&#x27;),(&#x27;/r07/safety&#x27;,&#x27;safety&#x27;),(&#x27;/s10/action/state&#x27;,&#x27;tool&#x27;),(&#x27;/r07/mission&#x27;,&#x27;worker&#x27;),(&#x27;/r06/directive&#x27;,&#x27;bt&#x27;)]:</span>
+<span class="line" id="L22"><a href="#L22">  22</a>         n.create_subscription(String,topic,lambda m,k=key:st.update({k:json.loads(m.data)}),20 if key==&#x27;enc&#x27; else 10)</span>
+<span class="line" id="L23"><a href="#L23">  23</a>     n.create_subscription(Odometry,&#x27;/s05/odometry&#x27;,lambda m:st.update(odom=dict(t=m.header.stamp.sec+m.header.stamp.nanosec*1e-9,v=m.twist.twist.linear.x,w=m.twist.twist.angular.z)),30)</span>
+<span class="line" id="L24"><a href="#L24">  24</a>     n.create_subscription(Twist,&#x27;/r07/nav_cmd_vel&#x27;,lambda m:st.update(cmd=m,cmd_wall=time.monotonic()),10)</span>
+<span class="line" id="L25"><a href="#L25">  25</a>     def fresh(x,age):return bool(x and -.03&lt;=st[&#x27;t&#x27;]-x.get(&#x27;t&#x27;,-100)&lt;age)</span>
+<span class="line" id="L26"><a href="#L26">  26</a>     def tick():</span>
+<span class="line" id="L27"><a href="#L27">  27</a>         nonlocal seq,contextseq,progress,lastpose</span>
+<span class="line" id="L28"><a href="#L28">  28</a>         t=st[&#x27;t&#x27;];loc=st[&#x27;loc&#x27;] or {};s=st[&#x27;safety&#x27;] or {};tool=st[&#x27;tool&#x27;] or {};worker=st[&#x27;worker&#x27;] or {};bt=st[&#x27;bt&#x27;] or {};enc=st[&#x27;enc&#x27;];now=time.monotonic()</span>
+<span class="line" id="L29"><a href="#L29">  29</a>         localized=fresh(loc,.15) and loc.get(&#x27;valid&#x27;,False);healthy=fresh(s,.45) and s.get(&#x27;valid&#x27;,False)</span>
+<span class="line" id="L30"><a href="#L30">  30</a>         odom=st[&#x27;odom&#x27;] or {};stopped=fresh(odom,.15) and abs(odom.get(&#x27;v&#x27;,100))&lt;v[&#x27;safety&#x27;][&#x27;stopped_v_mps&#x27;] and abs(odom.get(&#x27;w&#x27;,100))&lt;v[&#x27;safety&#x27;][&#x27;stopped_w_rad_s&#x27;]</span>
+<span class="line" id="L31"><a href="#L31">  31</a>         tool_stopped=fresh(tool,.15) and tool.get(&#x27;stopped_confirmed&#x27;,False) and not tool.get(&#x27;active&#x27;,True)</span>
+<span class="line" id="L32"><a href="#L32">  32</a>         workerfresh=fresh(worker,.2);nav_idle=workerfresh and worker.get(&#x27;nav_idle&#x27;,False)</span>
+<span class="line" id="L33"><a href="#L33">  33</a>         if localized:</span>
+<span class="line" id="L34"><a href="#L34">  34</a>             p=loc[&#x27;odom&#x27;]</span>
+<span class="line" id="L35"><a href="#L35">  35</a>             if lastpose is not None:progress+=min(.1,math.dist(p[:2],lastpose[:2])+.25*abs(math.atan2(math.sin(p[2]-lastpose[2]),math.cos(p[2]-lastpose[2]))))</span>
+<span class="line" id="L36"><a href="#L36">  36</a>             lastpose=p</span>
+<span class="line" id="L37"><a href="#L37">  37</a>         blocked=healthy and s.get(&#x27;max_speed&#x27;,0)&lt;=0 or bool(worker.get(&#x27;nav_failed&#x27;))</span>
+<span class="line" id="L38"><a href="#L38">  38</a>         contextseq+=1;context=dict(stamp=t,sequence=contextseq,session=a.session,task_version=c[&#x27;version&#x27;],vehicle_hash=v[&#x27;config_hash&#x27;],rig_revision=c[&#x27;rig&#x27;][&#x27;revision&#x27;],localized=localized,sensors_healthy=healthy,stopped=stopped,tool_stopped=tool_stopped,nav_idle=nav_idle,remaining_s=max(0,c[&#x27;task_budget_s&#x27;]-t),next_min_s=3.,blocked=blocked,complete=worker.get(&#x27;complete&#x27;,False),commanded_motion=workerfresh and worker.get(&#x27;phase&#x27;)==&#x27;NAVIGATING&#x27;,progress_m=progress,replans=worker.get(&#x27;replans&#x27;,0),deferrals=worker.get(&#x27;deferrals&#x27;,0),alternative=worker.get(&#x27;alternative&#x27;,False),detour_valid=False,worker_fresh=workerfresh,loc_age=t-loc.get(&#x27;t&#x27;,-100),sensor_age=t-s.get(&#x27;t&#x27;,-100),reference_valid=loc.get(&#x27;valid&#x27;,False))</span>
+<span class="line" id="L39"><a href="#L39">  39</a>         distance=worker.get(&#x27;precision_translation_m&#x27;)</span>
+<span class="line" id="L40"><a href="#L40">  40</a>         if workerfresh and worker.get(&#x27;phase&#x27;)==&#x27;NAVIGATING&#x27; and isinstance(distance,(int,float)) and math.isfinite(distance) and .008&lt;distance&lt;=.15:</span>
+<span class="line" id="L41"><a href="#L41">  41</a>             context.update(motion_scope=&#x27;VALIDATED_LOCAL_DOCKING&#x27;,expected_translation_m=distance)</span>
+<span class="line" id="L42"><a href="#L42">  42</a>         btpub.publish(String(data=json.dumps(context)))</span>
+<span class="line" id="L43"><a href="#L43">  43</a>         reasons=[]</span>
+<span class="line" id="L44"><a href="#L44">  44</a>         for ok,reason in [(localized,&#x27;LOCALIZATION&#x27;),(healthy,&#x27;PERCEPTION&#x27;),(fresh(bt,.15),&#x27;BT_STALE&#x27;),(workerfresh,&#x27;TASK_STALE&#x27;),(now-st[&#x27;clock_wall&#x27;]&lt;.2,&#x27;CLOCK&#x27;),(now-st[&#x27;cmd_wall&#x27;]&lt;.2,&#x27;NAV_COMMAND_STALE&#x27;),(tool_stopped,&#x27;TOOL_NOT_STOPPED&#x27;),(not blocked,&#x27;OBSTRUCTED&#x27;)]:</span>
+<span class="line" id="L45"><a href="#L45">  45</a>             if not ok:reasons.append(reason)</span>
+<span class="line" id="L46"><a href="#L46">  46</a>         allowed=not reasons and bt.get(&#x27;action&#x27;) in [&#x27;EXECUTE&#x27;,&#x27;FOLLOW&#x27;,&#x27;DETOUR&#x27;] and worker.get(&#x27;phase&#x27;)==&#x27;NAVIGATING&#x27;</span>
+<span class="line" id="L47"><a href="#L47">  47</a>         vv=ww=0.;mode=&#x27;STOP&#x27;</span>
+<span class="line" id="L48"><a href="#L48">  48</a>         if allowed and st[&#x27;cmd&#x27;]:</span>
+<span class="line" id="L49"><a href="#L49">  49</a>             vv=st[&#x27;cmd&#x27;].linear.x;ww=st[&#x27;cmd&#x27;].angular.z</span>
+<span class="line" id="L50"><a href="#L50">  50</a>             if not math.isfinite(vv+ww) or vv&lt;-.001 or abs(vv)&gt;c[&#x27;speed_cap_mps&#x27;]+.05 or abs(ww)&gt;c[&#x27;yaw_cap_rps&#x27;]+.05:allowed=False;reasons.append(&#x27;NAV_COMMAND_RANGE&#x27;)</span>
+<span class="line" id="L51"><a href="#L51">  51</a>             else:</span>
+<span class="line" id="L52"><a href="#L52">  52</a>                 cap=min(c[&#x27;speed_cap_mps&#x27;],loc.get(&#x27;max_speed&#x27;,0),s[&#x27;max_speed&#x27;],bt.get(&#x27;speed_cap_mps&#x27;,0));vv=min(max(0,vv),cap);ww=max(-c[&#x27;yaw_cap_rps&#x27;],min(c[&#x27;yaw_cap_rps&#x27;],ww));mode=&#x27;DRIVE&#x27; if enc and enc[&#x27;armed&#x27;] else &#x27;ARM&#x27;</span>
+<span class="line" id="L53"><a href="#L53">  53</a>         if not allowed or mode!=&#x27;DRIVE&#x27;:vv=ww=0.</span>
+<span class="line" id="L54"><a href="#L54">  54</a>         if enc:</span>
+<span class="line" id="L55"><a href="#L55">  55</a>             seq+=1;cmdpub.publish(String(data=json.dumps(dict(session=a.session,revision=v[&#x27;config_hash&#x27;],epoch=enc[&#x27;epoch&#x27;],sequence=seq,stamp=t,mode=mode,v=vv,w=ww))))</span>
+<span class="line" id="L56"><a href="#L56">  56</a>         d=dict(raw_nav_v=st[&#x27;cmd&#x27;].linear.x if st[&#x27;cmd&#x27;] else None,raw_nav_w=st[&#x27;cmd&#x27;].angular.z if st[&#x27;cmd&#x27;] else None,t=t,allowed=allowed,mode=mode,v=vv,w=ww,reasons=reasons,stopped=stopped,tool_stopped=tool_stopped,nav_idle=nav_idle,progress_m=progress);statepub.publish(String(data=json.dumps(d)));log.write(json.dumps(d)+&#x27;\n&#x27;);log.flush()</span>
+<span class="line" id="L57"><a href="#L57">  57</a>     n.create_timer(.03,tick)</span>
+<span class="line" id="L58"><a href="#L58">  58</a>     def stop(s,f):st[&#x27;stop&#x27;]=True</span>
+<span class="line" id="L59"><a href="#L59">  59</a>     for s in [signal.SIGINT,signal.SIGTERM]:signal.signal(s,stop)</span>
+<span class="line" id="L60"><a href="#L60">  60</a>     (a.out/&#x27;ready&#x27;).write_text(&#x27;sole leased actuator request publisher&#x27;)</span>
+<span class="line" id="L61"><a href="#L61">  61</a>     try:</span>
+<span class="line" id="L62"><a href="#L62">  62</a>         while not st[&#x27;stop&#x27;]:rclpy.spin_once(n,timeout_sec=.005)</span>
+<span class="line" id="L63"><a href="#L63">  63</a>     finally:</span>
+<span class="line" id="L64"><a href="#L64">  64</a>         st[&#x27;worker&#x27;]=None;tick();log.close();n.destroy_node();rclpy.try_shutdown()</span>
+<span class="line" id="L65"><a href="#L65">  65</a> if __name__==&#x27;__main__&#x27;:main()</span>
+</code></pre></html>

@@ -1,0 +1,32 @@
+uint8 POINT_SERVICE=1
+uint8 START_WORK=2
+uint8 STOP_WORK=3
+uint8 operation
+string task_id
+string idempotency_key
+string map_id
+string map_revision
+string frame_epoch
+string plan_revision
+string tool_revision
+string segment_id
+geometry_msgs/PoseStamped target
+geometry_msgs/Polygon target_area
+float64 requested_quantity
+float64 timeout_sim_s
+---
+string state
+string error_code
+string reason
+float64 confirmed_quantity
+float64 remaining_quantity
+string residual_geojson
+bool replayed
+bool uncertainty_pending
+---
+string phase
+string reason
+float64 progress
+float64 confirmed_quantity
+float64 health
+float64 elapsed_sim_s

@@ -1,0 +1,60 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>停车重验证 prepare 与 commit</title><style>body{margin:30px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;border:1px solid #d5e1e5;padding:20px;overflow:auto;font:13px/1.7 Consolas,monospace}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff2b5}.line a{color:#78949b;text-decoration:none}a{color:#076d76}p{overflow-wrap:anywhere}</style><a href="../../index.html#04-code-evidence">← 返回源码导航</a><h1>停车重验证 prepare 与 commit</h1><p>optimization_v2/ws/src/task_platform/r10_backend/stopped_revalidation.inc</p><p>固定提交 9aff8337b7794f704c5556a973a5220e73f17808 · SHA-256 bf8529d9e5020ef86d3f1f9f464cae3553bdabb76319734f29b40cc4f53dee05</p><p><a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/r10_backend/stopped_revalidation.inc">GitHub 固定版本</a> · 生产源码快照；视觉换行不改变原始行号。使用编辑器修改前先了解任务版本绑定。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> // Included inside the isolated R10 Supervisor; original driving guards stay active.</span>
+<span class="line" id="L2"><a href="#L2">   2</a> T recovery_candidate_=T::Identity();</span>
+<span class="line" id="L3"><a href="#L3">   3</a> J rejected_map_=J::object(),recovery_worker_=J::object(),recovery_gate_=J::object(),recovery_safety_=J::object(),plan_proof_=J::object();</span>
+<span class="line" id="L4"><a href="#L4">   4</a> double recovery_t_=-100,recovery_first_=0,prepared_t_=-100,matched_odom_t_=-100;</span>
+<span class="line" id="L5"><a href="#L5">   5</a> int recovery_count_=0,recovery_epoch_=0;bool prepared_=false;</span>
+<span class="line" id="L6"><a href="#L6">   6</a> rclcpp::Subscription&lt;std_msgs::msg::String&gt;::SharedPtr recovery_worker_sub_,recovery_gate_sub_,recovery_safety_sub_,plan_proof_sub_;</span>
+<span class="line" id="L7"><a href="#L7">   7</a> rclcpp::Service&lt;std_srvs::srv::Trigger&gt;::SharedPtr prepare_recovery_,commit_recovery_;</span>
+<span class="line" id="L8"><a href="#L8">   8</a> bool recoveryStopped(){</span>
+<span class="line" id="L9"><a href="#L9">   9</a>  const auto wall=Wall::now();</span>
+<span class="line" id="L10"><a href="#L10">  10</a>  return !clock_fault_&amp;&amp;std::chrono::duration&lt;double&gt;(wall-clock_wall_).count()&lt;.6&amp;&amp;</span>
+<span class="line" id="L11"><a href="#L11">  11</a>  std::chrono::duration&lt;double&gt;(wall-odom_wall_).count()&lt;.5&amp;&amp;std::chrono::duration&lt;double&gt;(wall-contract_wall_).count()&lt;.8&amp;&amp;</span>
+<span class="line" id="L12"><a href="#L12">  12</a>  contract_&amp;&amp;fresh(contract_t_,.6)&amp;&amp;fresh(odom_t_,.15)&amp;&amp;stopped()&amp;&amp;</span>
+<span class="line" id="L13"><a href="#L13">  13</a>  fresh(recovery_gate_.value(&quot;t&quot;,-100.),.15)&amp;&amp;recovery_gate_.value(&quot;stopped&quot;,false)&amp;&amp;recovery_gate_.value(&quot;tool_stopped&quot;,false)&amp;&amp;</span>
+<span class="line" id="L14"><a href="#L14">  14</a>  fresh(recovery_worker_.value(&quot;t&quot;,-100.),.2)&amp;&amp;recovery_worker_.value(&quot;nav_idle&quot;,false)&amp;&amp;recovery_worker_.value(&quot;phase&quot;,&quot;&quot;)==&quot;RELOCALIZING&quot;&amp;&amp;</span>
+<span class="line" id="L15"><a href="#L15">  15</a>  recovery_worker_.value(&quot;task_version&quot;,&quot;&quot;)==cfg_.value(&quot;plan_revision&quot;,std::string(&quot;&quot;));</span>
+<span class="line" id="L16"><a href="#L16">  16</a> }</span>
+<span class="line" id="L17"><a href="#L17">  17</a> bool recoveryConsistent(const T&amp; next){</span>
+<span class="line" id="L18"><a href="#L18">  18</a>  return gps_count_&gt;=3&amp;&amp;fresh(gps_t_,c(&quot;gnss_age_s&quot;))&amp;&amp;</span>
+<span class="line" id="L19"><a href="#L19">  19</a>  r08::antennaDisagreement(next,gps_odom_,gps_lever_,gps_antenna_)&lt;=c(&quot;innovation_m&quot;);</span>
+<span class="line" id="L20"><a href="#L20">  20</a> }</span>
+<span class="line" id="L21"><a href="#L21">  21</a> void observeRecovery(const T&amp; next,double t){</span>
+<span class="line" id="L22"><a href="#L22">  22</a>  if(!hold_||!recoveryStopped()||!recoveryConsistent(next)){recovery_count_=0;return;}</span>
+<span class="line" id="L23"><a href="#L23">  23</a>  const V here=odoms_.back().second.translation();</span>
+<span class="line" id="L24"><a href="#L24">  24</a>  if(r08::correctionDisplacement(next,correction_,here)&gt;c(&quot;map_jump_translation_m&quot;)||angle(next,correction_)&gt;cfg_.value(&quot;stopped_recovery_max_yaw_rad&quot;,.10)){recovery_count_=0;return;}</span>
+<span class="line" id="L25"><a href="#L25">  25</a>  if(recovery_count_==0||t-recovery_t_&gt;c(&quot;max_observation_age_s&quot;)||r08::correctionDisplacement(next,recovery_candidate_,here)&gt;c(&quot;stable_translation_m&quot;)||angle(next,recovery_candidate_)&gt;c(&quot;stable_yaw_rad&quot;)){</span>
+<span class="line" id="L26"><a href="#L26">  26</a>   recovery_count_=0;recovery_first_=t;</span>
+<span class="line" id="L27"><a href="#L27">  27</a>  }</span>
+<span class="line" id="L28"><a href="#L28">  28</a>  recovery_candidate_=next;recovery_t_=t;++recovery_count_;</span>
+<span class="line" id="L29"><a href="#L29">  29</a> }</span>
+<span class="line" id="L30"><a href="#L30">  30</a> bool recoveryReady(){</span>
+<span class="line" id="L31"><a href="#L31">  31</a>  return hold_&amp;&amp;recoveryStopped()&amp;&amp;recovery_count_&gt;=cfg_[&quot;confirmation_count&quot;].get&lt;int&gt;()&amp;&amp;</span>
+<span class="line" id="L32"><a href="#L32">  32</a>  recovery_t_-recovery_first_&gt;=c(&quot;confirmation_span_s&quot;)&amp;&amp;fresh(recovery_t_,c(&quot;max_observation_age_s&quot;))&amp;&amp;recoveryConsistent(recovery_candidate_);</span>
+<span class="line" id="L33"><a href="#L33">  33</a> }</span>
+<span class="line" id="L34"><a href="#L34">  34</a> bool previewValid(){</span>
+<span class="line" id="L35"><a href="#L35">  35</a>  return prepared_&amp;&amp;recoveryReady()&amp;&amp;r08::correctionDisplacement(recovery_candidate_,correction_,odoms_.back().second.translation())&lt;=c(&quot;stable_translation_m&quot;)&amp;&amp;angle(recovery_candidate_,correction_)&lt;=c(&quot;stable_yaw_rad&quot;);</span>
+<span class="line" id="L36"><a href="#L36">  36</a> }</span>
+<span class="line" id="L37"><a href="#L37">  37</a> void recordRejected(const T&amp; next,const T&amp; paired,const J&amp; evidence){</span>
+<span class="line" id="L38"><a href="#L38">  38</a>  rejected_map_={{&quot;capture_t&quot;,evidence.at(&quot;t&quot;)},{&quot;received_t&quot;,now().seconds()},{&quot;matched_odom_t&quot;,matched_odom_t_},</span>
+<span class="line" id="L39"><a href="#L39">  39</a>  {&quot;map_pose&quot;,evidence.at(&quot;pose&quot;)},{&quot;paired_odom&quot;,values(paired)},{&quot;candidate&quot;,values(next)},{&quot;previous&quot;,values(correction_)},</span>
+<span class="line" id="L40"><a href="#L40">  40</a>  {&quot;displacement_m&quot;,r08::correctionDisplacement(next,correction_,odoms_.back().second.translation())},{&quot;angle_rad&quot;,angle(next,correction_)}};</span>
+<span class="line" id="L41"><a href="#L41">  41</a> }</span>
+<span class="line" id="L42"><a href="#L42">  42</a> void setupRecovery(){</span>
+<span class="line" id="L43"><a href="#L43">  43</a>  auto sub=[this](const std::string&amp; topic,J&amp; target){return create_subscription&lt;std_msgs::msg::String&gt;(topic,20,[&amp;target](std_msgs::msg::String::SharedPtr m){try{target=J::parse(m-&gt;data);}catch(...){target=J::object();}});};</span>
+<span class="line" id="L44"><a href="#L44">  44</a>  recovery_worker_sub_=sub(&quot;/r07/mission&quot;,recovery_worker_);recovery_gate_sub_=sub(&quot;/r07/gate&quot;,recovery_gate_);recovery_safety_sub_=sub(&quot;/r07/safety&quot;,recovery_safety_);plan_proof_sub_=sub(&quot;/r10/localization/plan_proof&quot;,plan_proof_);</span>
+<span class="line" id="L45"><a href="#L45">  45</a>  prepare_recovery_=create_service&lt;std_srvs::srv::Trigger&gt;(&quot;/r10/localization/prepare_revalidation&quot;,[this](std::shared_ptr&lt;std_srvs::srv::Trigger::Request&gt;,std::shared_ptr&lt;std_srvs::srv::Trigger::Response&gt; r){</span>
+<span class="line" id="L46"><a href="#L46">  46</a>   r-&gt;success=recoveryReady();</span>
+<span class="line" id="L47"><a href="#L47">  47</a>   if(r-&gt;success){correction_=recovery_candidate_;map_=recovery_candidate_;map_t_=heading_t_=recovery_t_;map_bad_=false;prepared_=true;prepared_t_=now().seconds();++recovery_epoch_;plan_proof_=J::object();allow_=false;count_=0;}</span>
+<span class="line" id="L48"><a href="#L48">  48</a>   r-&gt;message=J({{&quot;reason&quot;,r-&gt;success?&quot;STOPPED_CANDIDATE_PREPARED_HOLD_RETAINED&quot;:&quot;CANDIDATE_NOT_STABLE_OR_NOT_STOPPED&quot;},{&quot;epoch&quot;,recovery_epoch_},{&quot;t&quot;,prepared_t_}}).dump();</span>
+<span class="line" id="L49"><a href="#L49">  49</a>  });</span>
+<span class="line" id="L50"><a href="#L50">  50</a>  commit_recovery_=create_service&lt;std_srvs::srv::Trigger&gt;(&quot;/r10/localization/commit_revalidation&quot;,[this](std::shared_ptr&lt;std_srvs::srv::Trigger::Request&gt;,std::shared_ptr&lt;std_srvs::srv::Trigger::Response&gt; r){</span>
+<span class="line" id="L51"><a href="#L51">  51</a>   const auto&amp; p=plan_proof_;</span>
+<span class="line" id="L52"><a href="#L52">  52</a>   r-&gt;success=previewValid()&amp;&amp;fresh(p.value(&quot;t&quot;,-100.),.4)&amp;&amp;p.value(&quot;t&quot;,-100.)&gt;prepared_t_&amp;&amp;</span>
+<span class="line" id="L53"><a href="#L53">  53</a>    p.value(&quot;epoch&quot;,-1)==recovery_epoch_&amp;&amp;p.value(&quot;plan_revision&quot;,&quot;&quot;)==cfg_.value(&quot;plan_revision&quot;,std::string(&quot;&quot;))&amp;&amp;p.value(&quot;map_revision&quot;,&quot;&quot;)==cfg_.value(&quot;map_revision&quot;,std::string(&quot;&quot;))&amp;&amp;</span>
+<span class="line" id="L54"><a href="#L54">  54</a>    p.value(&quot;path_valid&quot;,false)&amp;&amp;p.value(&quot;footprint_valid&quot;,false)&amp;&amp;p.value(&quot;path_sha256&quot;,std::string(&quot;&quot;)).size()==64&amp;&amp;</span>
+<span class="line" id="L55"><a href="#L55">  55</a>    fresh(recovery_safety_.value(&quot;t&quot;,-100.),.45)&amp;&amp;recovery_safety_.value(&quot;valid&quot;,false)&amp;&amp;recovery_safety_.value(&quot;localization_epoch&quot;,-1)==recovery_epoch_&amp;&amp;recovery_safety_.value(&quot;t&quot;,-100.)&gt;prepared_t_;</span>
+<span class="line" id="L56"><a href="#L56">  56</a>   if(r-&gt;success){hold_=false;prepared_=false;allow_=false;count_=0;recovery_count_=0;map_reason_=&quot;STOPPED_PLAN_REVALIDATED&quot;;}</span>
+<span class="line" id="L57"><a href="#L57">  57</a>   r-&gt;message=r-&gt;success?&quot;PLAN_REVALIDATED_WAIT_FOR_ORIGINAL_CONFIRMATION&quot;:&quot;REVALIDATION_PROOF_MISSING_STALE_OR_MISMATCHED&quot;;</span>
+<span class="line" id="L58"><a href="#L58">  58</a>  });</span>
+<span class="line" id="L59"><a href="#L59">  59</a> }</span>
+</code></pre></html>

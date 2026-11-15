@@ -1,0 +1,80 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GUI 传感器只读订阅</title><style>body{margin:30px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;border:1px solid #d5e1e5;padding:20px;overflow:auto;font:13px/1.7 Consolas,monospace}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff2b5}.line a{color:#78949b;text-decoration:none}a{color:#076d76}p{overflow-wrap:anywhere}</style><a href="../../index.html#04-code-evidence">← 返回源码导航</a><h1>GUI 传感器只读订阅</h1><p>optimization_v2/three_tasks/monitor/ros_observer.py</p><p>固定提交 9aff8337b7794f704c5556a973a5220e73f17808 · SHA-256 e31ce33a40528a56a79338adffa8ff2ec66c18883d261610073957f7cb97371d</p><p><a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/three_tasks/monitor/ros_observer.py">GitHub 固定版本</a> · 生产源码快照；视觉换行不改变原始行号。使用编辑器修改前先了解任务版本绑定。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Optional sensor subscriber. Never publishes TF, goals, commands or tool requests.&quot;&quot;&quot;</span>
+<span class="line" id="L2"><a href="#L2">   2</a> import argparse,json,math,os,signal,time,struct</span>
+<span class="line" id="L3"><a href="#L3">   3</a> from collections import deque</span>
+<span class="line" id="L4"><a href="#L4">   4</a> from pathlib import Path</span>
+<span class="line" id="L5"><a href="#L5">   5</a> from data import Evidence,age,json_value</span>
+<span class="line" id="L6"><a href="#L6">   6</a> </span>
+<span class="line" id="L7"><a href="#L7">   7</a> def main():</span>
+<span class="line" id="L8"><a href="#L8">   8</a>     import rclpy</span>
+<span class="line" id="L9"><a href="#L9">   9</a>     from rclpy.qos import qos_profile_sensor_data</span>
+<span class="line" id="L10"><a href="#L10">  10</a>     from sensor_msgs.msg import Imu,Image,PointCloud2,NavSatFix</span>
+<span class="line" id="L11"><a href="#L11">  11</a>     from geometry_msgs.msg import TwistWithCovarianceStamped</span>
+<span class="line" id="L12"><a href="#L12">  12</a>     from nav_msgs.msg import Odometry</span>
+<span class="line" id="L13"><a href="#L13">  13</a>     from rosgraph_msgs.msg import Clock</span>
+<span class="line" id="L14"><a href="#L14">  14</a>     from std_msgs.msg import String</span>
+<span class="line" id="L15"><a href="#L15">  15</a>     ap=argparse.ArgumentParser();ap.add_argument(&#x27;--app&#x27;,type=Path,required=True);a=ap.parse_args()</span>
+<span class="line" id="L16"><a href="#L16">  16</a>     evidence=Evidence(a.app);out=a.app/&#x27;monitor_state&#x27;;out.mkdir(parents=True,exist_ok=True)</span>
+<span class="line" id="L17"><a href="#L17">  17</a>     rclpy.init();node=rclpy.create_node(&#x27;task_readonly_monitor&#x27;,enable_rosout=False,start_parameter_services=False)</span>
+<span class="line" id="L18"><a href="#L18">  18</a>     st=dict(run=None,t=0.,channels={},camera_run=None);counts={};stop=[False];last_write=0.;last_camera=0.;last_scan=0.;last_cloud=0.;cloud_sample=[];cloud_sample_t=None</span>
+<span class="line" id="L19"><a href="#L19">  19</a>     def stamp(m):return m.header.stamp.sec+m.header.stamp.nanosec*1e-9</span>
+<span class="line" id="L20"><a href="#L20">  20</a>     def vector(v):return [v.x,v.y,v.z]</span>
+<span class="line" id="L21"><a href="#L21">  21</a>     def observe(key,m,data):</span>
+<span class="line" id="L22"><a href="#L22">  22</a>         if st[&#x27;run&#x27;] is None:return</span>
+<span class="line" id="L23"><a href="#L23">  23</a>         t=stamp(m);history=counts.setdefault(key,deque(maxlen=500));history.append(t)</span>
+<span class="line" id="L24"><a href="#L24">  24</a>         while len(history)&gt;2 and history[-1]-history[0]&gt;2:history.popleft()</span>
+<span class="line" id="L25"><a href="#L25">  25</a>         hz=(len(history)-1)/(history[-1]-history[0]) if len(history)&gt;1 and history[-1]&gt;history[0] else None</span>
+<span class="line" id="L26"><a href="#L26">  26</a>         st[&#x27;channels&#x27;][key]=dict(t=t,received_wall=time.time(),frame=m.header.frame_id,observed_sim_hz=hz,**data)</span>
+<span class="line" id="L27"><a href="#L27">  27</a>     def imu(m):observe(&#x27;imu&#x27;,m,dict(gyro=vector(m.angular_velocity),acceleration=vector(m.linear_acceleration),orientation_available=m.orientation_covariance[0]&gt;=0))</span>
+<span class="line" id="L28"><a href="#L28">  28</a>     def wheel(m):observe(&#x27;wheel&#x27;,m,dict(v=m.twist.twist.linear.x,w=m.twist.twist.angular.z,variance=m.twist.covariance[0]))</span>
+<span class="line" id="L29"><a href="#L29">  29</a>     def gnss(m):observe(&#x27;gnss&#x27;,m,dict(status=m.status.status,service=m.status.service,latitude=m.latitude,longitude=m.longitude,altitude=m.altitude,covariance=list(m.position_covariance)))</span>
+<span class="line" id="L30"><a href="#L30">  30</a>     def odom(m):observe(&#x27;odom&#x27;,m,dict(v=m.twist.twist.linear.x,w=m.twist.twist.angular.z,position=vector(m.pose.pose.position)))</span>
+<span class="line" id="L31"><a href="#L31">  31</a>     def cloud(m):</span>
+<span class="line" id="L32"><a href="#L32">  32</a>         nonlocal last_cloud,cloud_sample,cloud_sample_t</span>
+<span class="line" id="L33"><a href="#L33">  33</a>         if time.monotonic()-last_cloud&gt;.5:</span>
+<span class="line" id="L34"><a href="#L34">  34</a>             last_cloud=time.monotonic();cloud_sample=[];cloud_sample_t=stamp(m);fields={f.name:f for f in m.fields}</span>
+<span class="line" id="L35"><a href="#L35">  35</a>             if all(k in fields and fields[k].datatype==7 for k in [&#x27;x&#x27;,&#x27;y&#x27;,&#x27;z&#x27;]) and m.point_step:</span>
+<span class="line" id="L36"><a href="#L36">  36</a>                 reader=struct.Struct(&#x27;&gt;f&#x27; if m.is_bigendian else &#x27;&lt;f&#x27;);buf=memoryview(m.data)</span>
+<span class="line" id="L37"><a href="#L37">  37</a>                 total=m.width*m.height;stride=max(1,math.ceil(total/512))</span>
+<span class="line" id="L38"><a href="#L38">  38</a>                 for i in range(0,total,stride):</span>
+<span class="line" id="L39"><a href="#L39">  39</a>                     offset=(i//m.width)*m.row_step+(i%m.width)*m.point_step</span>
+<span class="line" id="L40"><a href="#L40">  40</a>                     xyz=[reader.unpack_from(buf,offset+fields[k].offset)[0] for k in [&#x27;x&#x27;,&#x27;y&#x27;,&#x27;z&#x27;]]</span>
+<span class="line" id="L41"><a href="#L41">  41</a>                     if all(math.isfinite(x) for x in xyz) and .15&lt;math.sqrt(sum(x*x for x in xyz))&lt;55:cloud_sample.append(xyz)</span>
+<span class="line" id="L42"><a href="#L42">  42</a>         observe(&#x27;lidar&#x27;,m,dict(width=m.width,height=m.height,points=m.width*m.height,point_step=m.point_step,fields=[f.name for f in m.fields],sample_xyz=cloud_sample,sample_t=cloud_sample_t,sample_scope=&#x27;At most 512 observed points in lidar frame; not a free-space or coverage claim&#x27;))</span>
+<span class="line" id="L43"><a href="#L43">  43</a>     def camera(m):</span>
+<span class="line" id="L44"><a href="#L44">  44</a>         nonlocal last_camera</span>
+<span class="line" id="L45"><a href="#L45">  45</a>         observe(&#x27;camera&#x27;,m,dict(width=m.width,height=m.height,encoding=m.encoding,source=&#x27;/s04/perception/left&#x27;))</span>
+<span class="line" id="L46"><a href="#L46">  46</a>         now=time.monotonic()</span>
+<span class="line" id="L47"><a href="#L47">  47</a>         if now-last_camera&lt;1 or st[&#x27;run&#x27;] is None:return</span>
+<span class="line" id="L48"><a href="#L48">  48</a>         last_camera=now</span>
+<span class="line" id="L49"><a href="#L49">  49</a>         try:</span>
+<span class="line" id="L50"><a href="#L50">  50</a>             from PIL import Image as PILImage</span>
+<span class="line" id="L51"><a href="#L51">  51</a>             channels={&#x27;rgb8&#x27;:(&#x27;RGB&#x27;,&#x27;RGB&#x27;),&#x27;bgr8&#x27;:(&#x27;RGB&#x27;,&#x27;BGR&#x27;),&#x27;rgba8&#x27;:(&#x27;RGBA&#x27;,&#x27;RGBA&#x27;),&#x27;mono8&#x27;:(&#x27;L&#x27;,&#x27;L&#x27;)}</span>
+<span class="line" id="L52"><a href="#L52">  52</a>             if m.encoding not in channels:return</span>
+<span class="line" id="L53"><a href="#L53">  53</a>             mode,raw=channels[m.encoding];pic=PILImage.frombytes(mode,(m.width,m.height),bytes(m.data),&#x27;raw&#x27;,raw,m.step,1).convert(&#x27;RGB&#x27;)</span>
+<span class="line" id="L54"><a href="#L54">  54</a>             pic.thumbnail((480,270));temp=out/&#x27;camera.tmp&#x27;;pic.save(temp,format=&#x27;JPEG&#x27;,quality=80);temp.replace(out/&#x27;camera.jpg&#x27;)</span>
+<span class="line" id="L55"><a href="#L55">  55</a>             st[&#x27;camera_run&#x27;]=st[&#x27;run&#x27;];st[&#x27;camera_t&#x27;]=stamp(m)</span>
+<span class="line" id="L56"><a href="#L56">  56</a>         except Exception as ex:st[&#x27;camera_error&#x27;]=type(ex).__name__+&#x27;: &#x27;+str(ex)</span>
+<span class="line" id="L57"><a href="#L57">  57</a>     def clock(m):</span>
+<span class="line" id="L58"><a href="#L58">  58</a>         t=m.clock.sec+m.clock.nanosec*1e-9</span>
+<span class="line" id="L59"><a href="#L59">  59</a>         if t&lt;st[&#x27;t&#x27;]-.1:st[&#x27;channels&#x27;]={};counts.clear();st[&#x27;camera_run&#x27;]=None</span>
+<span class="line" id="L60"><a href="#L60">  60</a>         st[&#x27;t&#x27;]=t</span>
+<span class="line" id="L61"><a href="#L61">  61</a>     topics=[(Imu,&#x27;/s04/localization/imu&#x27;,imu),(TwistWithCovarianceStamped,&#x27;/s04/localization/wheel&#x27;,wheel),</span>
+<span class="line" id="L62"><a href="#L62">  62</a>             (NavSatFix,&#x27;/s04/localization/gnss&#x27;,gnss),(PointCloud2,&#x27;/s04/localization/points&#x27;,cloud),</span>
+<span class="line" id="L63"><a href="#L63">  63</a>             (Image,&#x27;/s04/perception/left&#x27;,camera),(Odometry,&#x27;/s05/odometry&#x27;,odom),(Clock,&#x27;/clock&#x27;,clock)]</span>
+<span class="line" id="L64"><a href="#L64">  64</a>     for typ,topic,cb in topics:node.create_subscription(typ,topic,cb,qos_profile_sensor_data)</span>
+<span class="line" id="L65"><a href="#L65">  65</a>     def end(*_):stop[0]=True</span>
+<span class="line" id="L66"><a href="#L66">  66</a>     signal.signal(signal.SIGINT,end);signal.signal(signal.SIGTERM,end)</span>
+<span class="line" id="L67"><a href="#L67">  67</a>     try:</span>
+<span class="line" id="L68"><a href="#L68">  68</a>         while not stop[0]:</span>
+<span class="line" id="L69"><a href="#L69">  69</a>             rclpy.spin_once(node,timeout_sec=.02);now=time.monotonic()</span>
+<span class="line" id="L70"><a href="#L70">  70</a>             if now-last_scan&gt;1:</span>
+<span class="line" id="L71"><a href="#L71">  71</a>                 p,rid=evidence.resolve();active=bool(p and not (p/&#x27;runtime.json&#x27;).exists() and (age(p/&#x27;live.json&#x27;) or 1e9)&lt;8)</span>
+<span class="line" id="L72"><a href="#L72">  72</a>                 chosen=rid if active else None</span>
+<span class="line" id="L73"><a href="#L73">  73</a>                 if chosen!=st[&#x27;run&#x27;]:</span>
+<span class="line" id="L74"><a href="#L74">  74</a>                     st.update(run=chosen,channels={},camera_run=None);counts.clear();cloud_sample=[];cloud_sample_t=None;last_cloud=0.</span>
+<span class="line" id="L75"><a href="#L75">  75</a>                 last_scan=now</span>
+<span class="line" id="L76"><a href="#L76">  76</a>             if now-last_write&gt;.5:</span>
+<span class="line" id="L77"><a href="#L77">  77</a>                 temp=out/&#x27;live.tmp&#x27;;temp.write_text(json.dumps(json_value(dict(st,wall=time.time(),pid=os.getpid(),readonly=True,domain=119,topics=[t for _,t,_ in topics])),allow_nan=False));temp.replace(out/&#x27;live.json&#x27;);last_write=now</span>
+<span class="line" id="L78"><a href="#L78">  78</a>     finally:node.destroy_node();rclpy.try_shutdown()</span>
+<span class="line" id="L79"><a href="#L79">  79</a> if __name__==&#x27;__main__&#x27;:main()</span>
+</code></pre></html>

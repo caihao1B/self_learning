@@ -1,0 +1,9 @@
+usage: dispatch.py [-h] stage [command] ...
+
+positional arguments:
+  stage
+  command
+  args
+
+options:
+  -h, --help  show this help message and exit

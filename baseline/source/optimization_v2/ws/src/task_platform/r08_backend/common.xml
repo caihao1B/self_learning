@@ -1,0 +1,27 @@
+<root BTCPP_format="4" main_tree_to_execute="CommonSupervisor">
+  <BehaviorTree ID="CommonSupervisor">
+    <ReactiveFallback name="EvidencePrioritySupervisor">
+      <Sequence name="ImmediateSafety"><Emergency/><EmergencyStop/></Sequence>
+      <Sequence name="VersionContract"><WrongVersion/><VersionStop/></Sequence>
+      <Sequence name="ObservationFreshness"><InputStale/><StaleStop/></Sequence>
+      <Sequence name="LocalizationAdmission"><LocalizationMissing/><LocalizationWait/></Sequence>
+      <Sequence name="ParkingReserve"><BudgetLow/><BudgetStop/></Sequence>
+      <Sequence name="HumanInterventionLatch"><ManualHold/><ReportLatched/></Sequence>
+      <Sequence name="FeedbackCompletion"><CompleteFeedback/><Complete/></Sequence>
+      <Sequence name="ObservedReplannedMotion"><ActiveObservedPatch/><ExecuteObservedPatch/></Sequence>
+      <Sequence name="ObstacleInteraction">
+        <Blocked/>
+        <ReactiveFallback name="BoundedObstacleOptions">
+          <Sequence name="BoundedRetryLimit"><BlockExhausted/><ReportBlocked/></Sequence>
+          <Sequence name="SameDirectionLeader"><LeaderSuitable/><FollowLeader/></Sequence>
+          <Sequence name="WaitAndHysteresis"><ShortWait/><WaitClear/></Sequence>
+          <Sequence name="CertifiedLocalAlternative"><ValidDetour/><UseDetour/></Sequence>
+          <Sequence name="PersistentGlobalReplan"><CanReplan/><Replan/></Sequence>
+          <Sequence name="OtherObligation"><CanDefer/><Defer/></Sequence>
+          <WaitBounded/>
+        </ReactiveFallback>
+      </Sequence>
+      <Execute name="TaskSpecificDispatcher"/>
+    </ReactiveFallback>
+  </BehaviorTree>
+</root>

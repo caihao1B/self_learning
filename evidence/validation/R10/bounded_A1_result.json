@@ -1,0 +1,48 @@
+{
+  "run": "optimization_v2/three_tasks/results/R12/spray_20261115_060145_047614",
+  "task_passed": false,
+  "completed_points": 28,
+  "original_points": 56,
+  "sim_seconds": 1402.732,
+  "stop_reason": "RuntimeError('LOCALIZATION_REVALIDATION_BOUND')",
+  "map_xy_rmse_m": 0.039565299137372376,
+  "completed_jobs_individually_agree": true,
+  "completed_job_count": 28,
+  "cancelled_job": {
+    "key": "a349307eebbcce8a9362d4eebdd72090f83bbdfd83eb006221dc6327b653bbf4:point_11_21",
+    "state": "CANCELLED",
+    "confirmed": 3.0039999999999054,
+    "uncertain": false,
+    "physical_dose": 3.2256666666659477,
+    "maximum_physical_docking_error_m": 0.029555333777285506,
+    "requested": 3.0
+  },
+  "checks": {
+    "runtime_clean": false,
+    "map_database_unchanged": true,
+    "mission_completed": false,
+    "qualified_three_points": true,
+    "no_unexpected_contact": true,
+    "sensor_render_configuration_valid": true,
+    "four_real_near_sensors": true,
+    "map_pose_rmse_under_15cm": true,
+    "feedback_and_independent_physics_agree": false,
+    "idempotent_replay_no_extra_flow": true,
+    "measured_final_stop": true,
+    "unique_actuator_owner": true,
+    "unique_tool_owner": true,
+    "unique_transform_owners": true,
+    "implementation_bound": true,
+    "probe_source_bound": true,
+    "runtime_source_bound": true,
+    "task_version_bound": true
+  },
+  "recording": {
+    "video_valid": true,
+    "mission_timeline_complete": true,
+    "active_video_quality": true,
+    "max_active_image_age_wall_s": 0.32825749000767246,
+    "max_active_frame_gap_sim_s": 0.12600000000000477
+  },
+  "scope": "Current bound full-A1 attempt; partial completion with retained cancelled meter evidence; does not assign original cluster PASS"
+}

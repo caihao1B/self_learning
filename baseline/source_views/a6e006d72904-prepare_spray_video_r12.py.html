@@ -1,0 +1,24 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>录制运行器确定性派生</title><style>body{margin:30px;background:#f4f7f8;color:#18343e;font:16px/1.7 system-ui}pre{background:white;border:1px solid #d5e1e5;padding:20px;overflow:auto;font:13px/1.7 Consolas,monospace}.line{white-space:pre-wrap;overflow-wrap:anywhere}.line:target{background:#fff2b5}.line a{color:#78949b;text-decoration:none}a{color:#076d76}p{overflow-wrap:anywhere}</style><a href="../../index.html#04-code-evidence">← 返回源码导航</a><h1>录制运行器确定性派生</h1><p>optimization_v2/ws/src/task_platform/scripts/prepare_spray_video_r12.py</p><p>固定提交 9aff8337b7794f704c5556a973a5220e73f17808 · SHA-256 a6e006d7290490000f6feb5481261c9f1cabac336d3bdd90420f9c103205d48a</p><p><a href="https://github.com/caihao1B/ROS2_BT-/blob/9aff8337b7794f704c5556a973a5220e73f17808/optimization_v2/ws/src/task_platform/scripts/prepare_spray_video_r12.py">GitHub 固定版本</a> · 生产源码快照；视觉换行不改变原始行号。使用编辑器修改前先了解任务版本绑定。</p><pre><code><span class="line" id="L1"><a href="#L1">   1</a> &quot;&quot;&quot;Independent spray observer transport edition; preserve older runtime files.&quot;&quot;&quot;</span>
+<span class="line" id="L2"><a href="#L2">   2</a> from common import *</span>
+<span class="line" id="L3"><a href="#L3">   3</a> from prepare_r12 import recording_source</span>
+<span class="line" id="L4"><a href="#L4">   4</a> </span>
+<span class="line" id="L5"><a href="#L5">   5</a> def derive(source):</span>
+<span class="line" id="L6"><a href="#L6">   6</a>     text=recording_source(source,&#x27;scene_spray_r10&#x27;,&#x27;R10&#x27;)</span>
+<span class="line" id="L7"><a href="#L7">   7</a>     old=&#x27;from transport_r08 import configure_transport,transport_environment&#x27;</span>
+<span class="line" id="L8"><a href="#L8">   8</a>     assert text.count(old)==1</span>
+<span class="line" id="L9"><a href="#L9">   9</a>     text=text.replace(old,&#x27;from transport_video_r12 import configure_transport,transport_environment&#x27;,1)</span>
+<span class="line" id="L10"><a href="#L10">  10</a>     marker=&quot;bound += [Path(__file__),PKG/&#x27;scripts/record_r12.py&#x27;&quot;</span>
+<span class="line" id="L11"><a href="#L11">  11</a>     assert text.count(marker)==1</span>
+<span class="line" id="L12"><a href="#L12">  12</a>     return text.replace(marker,&quot;bound += [PKG/&#x27;scripts/transport_video_r12.py&#x27;,PKG/&#x27;scripts/prepare_spray_video_r12.py&#x27;,PKG/&#x27;scripts/prepare_r12.py&#x27;,Path(__file__),PKG/&#x27;scripts/record_r12.py&#x27;&quot;,1)</span>
+<span class="line" id="L13"><a href="#L13">  13</a> </span>
+<span class="line" id="L14"><a href="#L14">  14</a> def build():</span>
+<span class="line" id="L15"><a href="#L15">  15</a>     source=PKG/&#x27;scripts/runtime_spray_r10.py&#x27;;text=derive(source.read_text())</span>
+<span class="line" id="L16"><a href="#L16">  16</a>     path=edition(&#x27;R12&#x27;)/&#x27;runtime_spray_video.py&#x27;;compile(text,str(path),&#x27;exec&#x27;)</span>
+<span class="line" id="L17"><a href="#L17">  17</a>     if not path.exists() or path.read_text()!=text:path.write_text(text)</span>
+<span class="line" id="L18"><a href="#L18">  18</a>     binding=dict(task=&#x27;spray&#x27;,source=str(source.relative_to(ROOT)),source_sha256=sha(source),</span>
+<span class="line" id="L19"><a href="#L19">  19</a>                  derived_runtime=str(path.relative_to(ROOT)),derived_sha256=sha(path),</span>
+<span class="line" id="L20"><a href="#L20">  20</a>                  changes=[&#x27;same observer-only derivation&#x27;,&#x27;64 MiB session SHM segment for observer image writer only&#x27;],</span>
+<span class="line" id="L21"><a href="#L21">  21</a>                  scope=&#x27;No control, physics, perception, map or work admission change; existing recording runtime retained&#x27;)</span>
+<span class="line" id="L22"><a href="#L22">  22</a>     dump(edition(&#x27;R12&#x27;)/&#x27;spray_video_derivation.json&#x27;,binding)</span>
+<span class="line" id="L23"><a href="#L23">  23</a>     return path,binding</span>
+</code></pre></html>
