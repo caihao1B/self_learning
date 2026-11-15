@@ -1,0 +1,29 @@
+{
+  "L03": "PASS",
+  "status": "succeeded",
+  "url": "https://ceihao-robot-learning.ceihao.chatgpt.site",
+  "project_id": "appgprj_6af9839f619c81919ef7b6fb0ae5978a",
+  "version_id": "appgprj_6af9839f619c81919ef7b6fb0ae5978a~appgver_56ee351679348191971166e7052514b7",
+  "deployment_id": "appgdep_6af9890307c481919bfb4ca548df60c6",
+  "published_source_commit": "1f52d2a18521017fad7bd8814e8f45531142d20d",
+  "published_at": "2026-11-15T10:27:35.846775+00:00",
+  "audience": "owner-private",
+  "robot_baseline": "9aff8337b7794f704c5556a973a5220e73f17808",
+  "learning_input_commit": "bd1f9c671934a5a523dee2271a5e47a339dcbf57",
+  "browser_checks": 167,
+  "unchanged_learning_files": 274,
+  "unchanged_robot_source_files": 821,
+  "static_package_files": 398,
+  "windows_native_manual": "PENDING_USER",
+  "robot_stage_states": {
+    "R08": "PASS",
+    "R09": "PASS",
+    "R10": "PARTIAL",
+    "R11": "PARTIAL",
+    "R12": "PARTIAL",
+    "S17": "PARTIAL",
+    "S18": "PARTIAL"
+  },
+  "scope": "L03 learning website and offline package. Native Sites deployment succeeded; no new robot simulation or upgraded robot acceptance.",
+  "note": "This post-publication receipt is stored in GitHub; it is not retroactively inserted into the deployed archive."
+}

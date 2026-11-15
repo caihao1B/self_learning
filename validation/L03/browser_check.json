@@ -1,0 +1,849 @@
+{
+  "passed": true,
+  "inputs": {
+    "index.html": "c9aab15d69f0df6f4caff03b930a11410f1524b79a84819cab7ed84c09054ce4",
+    "web/site.js": "84010a874c1d99a497c8c254d9daaad3df2efdd5f18badfe1311e7bfb664bcd2",
+    "web/site.css": "0544de5fbb7a92fcc430e99dab025bd96bc604909aa96ceddbaad0569ddd8eb7",
+    "web/book-data.js": "6306a87f3866dc22fff41874010f3d4ab48e06919ac01e0f4032f94f092ec5ec"
+  },
+  "records": [
+    {
+      "name": "http_home_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "no_body_overflow_home",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "thirty_chapter_cards",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "contents_filter",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "keyboard_ctrl_k",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "keyboard_escape",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "search_dialog_focus",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "multiterm_chapter_result",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "empty_search_state",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "query_html_safe",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_01_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_01_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_01_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_01_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_02_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_02_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_02_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_02_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_03_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_03_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_03_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_03_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_04_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_04_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_04_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_04_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_05_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_05_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_05_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_05_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_06_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_06_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_06_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_06_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_07_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_07_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_07_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_07_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_08_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_08_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_08_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_08_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_09_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_09_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_09_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_09_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_10_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_10_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_10_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_10_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_11_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_11_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_11_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_11_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_12_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_12_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_12_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_12_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_13_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_13_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_13_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_13_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_14_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_14_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_14_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_14_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_15_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_15_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_15_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_15_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_16_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_16_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_16_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_16_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_17_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_17_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_17_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_17_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_18_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_18_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_18_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_18_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_19_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_19_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_19_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_19_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_20_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_20_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_20_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_20_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_21_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_21_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_21_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_21_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_22_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_22_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_22_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_22_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_23_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_23_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_23_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_23_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_24_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_24_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_24_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_24_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_25_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_25_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_25_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_25_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_26_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_26_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_26_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_26_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_27_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_27_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_27_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_27_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_28_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_28_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_28_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_28_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_29_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_29_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_29_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_29_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_30_loaded",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_30_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_30_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "chapter_30_images",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "code_wrap",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "code_collapse",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "copy_exact_block",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "font_preference",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "notes_and_completion",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "notes_persist_reload",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "notebook_text_safe",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "export_actual_download",
+      "passed": true
+    },
+    {
+      "name": "import_ui_merge",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "invalid_import_keeps_data",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "source_count",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "source_filename_filter",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "source_deep_line",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "source_exact_text",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "source_find",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "source_next_match",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "source_copy_exact",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "diagrams_displayed",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "image_lightbox",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "historical_screenshots",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "unbundled_boundary",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "original_partial_retained",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "dark_theme",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "print_hides_navigation",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "print_full_code",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "mobile_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "mobile_menu",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "mobile_close_menu",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "mobile_chapter_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "mobile_source_no_overflow",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "file_url_unicode_spaces",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "storage_unavailable_notice",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "offline_search",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "offline_content",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "offline_no_remote_assets",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "clipboard_denied_manual_guidance",
+      "passed": true,
+      "value": true
+    },
+    {
+      "name": "no_runtime_exceptions",
+      "passed": true,
+      "value": true
+    }
+  ],
+  "errors": [],
+  "runtime_exceptions": [],
+  "scope": "Real UI on Linux Chrome; HTTP nested Unicode/space path, file URL, desktop/mobile/print, notes downloads and file import. No robot simulation.",
+  "windows_native_manual": "PENDING_USER"
+}

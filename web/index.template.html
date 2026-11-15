@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="从 Linux 与编程基础，到农田机器人定位、规划、决策与作业反馈。三十章固定基线教材，可离线学习。">
+<title>农田机器人 · 自学工坊</title>
+<link rel="icon" href="web/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="web/site.css">
+<script defer src="web/book-data.js"></script><script defer src="web/site.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">跳到主要内容</a>
+<div class="app-shell">
+<aside class="sidebar" id="sidebar" aria-label="学习导航">
+<a class="brand" href="#/home"><img src="web/mark.svg" alt="" width="38" height="38"><span>农田机器人<small>自学工坊 / FIELD NOTES</small></span></a>
+<div class="edition">固定基线 <code>9aff8337</code><span>30 章 · 中文教材</span></div>
+<nav class="primary-nav" aria-label="主要栏目">
+<a href="#/home" data-page="home">⌂ <span>学习首页</span></a>
+<a href="#/contents" data-page="contents">☷ <span>三十章目录</span></a>
+<a href="#/sources" data-page="sources">〈/〉 <span>源码工作台</span></a>
+<a href="#/materials" data-page="materials">▧ <span>图解与证据</span></a>
+<a href="#/notebook" data-page="notebook">▤ <span>我的学习记录</span></a>
+<a href="#/guide" data-page="guide">? <span>使用与安装说明</span></a>
+</nav>
+<div class="sidebar-caption">按章节学习 <span id="sidebar-count">0 / 30</span></div>
+<nav id="chapter-nav" class="chapter-nav" aria-label="章节目录"></nav>
+<div class="sidebar-footer">资料与机器人验收分开记录<br><a href="#/status">查看固定状态与发布验收 ↗</a></div>
+</aside>
+<div class="sidebar-scrim" id="sidebar-scrim"></div>
+<div class="workspace">
+<header class="topbar">
+<button id="menu-toggle" class="icon-button mobile-only" aria-label="展开学习导航" aria-expanded="false">☰</button>
+<div class="breadcrumb" id="breadcrumb">学习首页</div>
+<button class="search-launch" id="search-launch"><span>⌕</span><span>搜索章节、函数、故障</span><kbd>Ctrl K</kbd></button>
+<button class="icon-button" id="theme-toggle" aria-label="切换深色模式" title="切换明暗主题">◐</button>
+</header>
+<div id="storage-message" class="storage-message" hidden></div>
+<main id="main" tabindex="-1"></main>
+<footer class="page-footer"><span>从原理到代码，再回到证据。</span><span><a href="#/status">基线与状态</a> · <a href="https://github.com/caihao1B/self_learning">GitHub ↗</a></span></footer>
+</div>
+</div>
+<div id="toast" role="status" class="toast" hidden></div>
+<dialog id="search-dialog" aria-labelledby="search-title"><form method="dialog"><button class="dialog-close" aria-label="关闭搜索">×</button></form><h2 id="search-title">在整本教材中寻找答案</h2><form id="quick-search-form"><label for="quick-query">关键词、函数名或错误码</label><input id="quick-query" type="search" placeholder="例如：精停、GNSS、WAIT_DEADLINE" autocomplete="off"><button class="button primary" type="submit">搜索全部资料 →</button></form><div class="search-suggestions"><button data-query="阿克曼">阿克曼转弯</button><button data-query="START_WORK">工具启动</button><button data-query="localization">定位</button></div><p>支持中文、英文与代码；离线也可以搜索。</p></dialog>
+<noscript><div class="noscript">请在浏览器中启用 JavaScript，或打开 <a href="L02/index.html">L02 静态阅读版</a>。原教材正文仍可完整阅读。</div></noscript>
+</body></html>

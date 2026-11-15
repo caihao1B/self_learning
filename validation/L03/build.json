@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "chapters": 30,
+  "sources": 76,
+  "documents": 27,
+  "resources": 80,
+  "search_sections": 764,
+  "unchanged_learning_inputs": 274,
+  "data_bytes": 2707932,
+  "baseline": "9aff8337b7794f704c5556a973a5220e73f17808"
+}

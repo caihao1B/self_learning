@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "checks": {
+    "unchanged_learning_files": 274,
+    "chapters": 30,
+    "exact_source_files": 76,
+    "resource_and_route_links": 617,
+    "search_sections": 764,
+    "explicit_unbundled_references": 23,
+    "no_runtime_fetch_or_remote_scripts": true,
+    "python_syntax": true,
+    "windows_compatible_filenames": 307,
+    "longest_relative_path_characters": 97,
+    "retained_stage_states": {
+      "R08": "PASS",
+      "R09": "PASS",
+      "R10": "PARTIAL",
+      "R11": "PARTIAL",
+      "R12": "PARTIAL",
+      "S17": "PARTIAL",
+      "S18": "PARTIAL"
+    }
+  },
+  "errors": [],
+  "scope": "L03 static content, links and source identity; no robot simulation.",
+  "windows_native_manual": "PENDING_USER"
+}

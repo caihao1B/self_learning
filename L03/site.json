@@ -1,0 +1,8 @@
+{
+  "project_id": "appgprj_6af9839f619c81919ef7b6fb0ae5978a",
+  "expected_url": "https://ceihao-robot-learning.ceihao.chatgpt.site",
+  "audience": "owner-private",
+  "static_directory": "dist",
+  "canonical_learning_repository": "https://github.com/caihao1B/self_learning",
+  "identity_only": true
+}

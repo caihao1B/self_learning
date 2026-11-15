@@ -41,3 +41,18 @@ python3 -m venv .build_venv
 `browser_check.py` 是作者机的 Linux Chrome 检查脚本，使用临时独立浏览器配置与 websocket-client。它只读取本地教材页面，退出时关闭自己创建的浏览器。当前实际运行时使用原工程 scene 环境中的 websocket-client；该脚本及其验证范围不等于 Windows 原生浏览器已经实测。
 
 所有结果写入 validation。通过教材检查不升级机器人任务的验收状态。`.build_venv`、编译输出和发布中间数据不纳入学习仓库。
+
+## L03 学习站
+
+普通 Windows 读者直接打开根目录 `index.html`。站点运行不需要 Node.js、Python 或 npm；构建器需要已安装 Markdown 3.7 的 Python 环境：
+
+```bash
+.build_venv/bin/python tools/build_l03.py
+.build_venv/bin/python tools/validate_l03.py
+```
+
+`build_l03.py` 会先核对 L03/input_manifest.json 中的 274 个不变输入，再构建跨章索引、源码数据和根首页。不要重新运行 build_l01.py 覆盖当前首页；如需维护历史阅读版，先阅读构建脚本的写入范围。
+
+`browser_l03.py` 使用 Chrome 和 websocket-client，在独立配置与临时目录中检查真实界面：HTTP 中文子目录、断网 file URL、搜索、复制文本、笔记下载/导入、窄屏、键盘与打印。测试结束关闭自己创建的浏览器和服务器；不使用用户的浏览器配置。
+
+`package_l03.py` 将静态阅读资料复制到已注册的独立 Sites 源码工作目录，不包含凭证和本机运行时。正式站点由 Sites 源码/打包/发布辅助流程发布；GitHub 保存同一套教材与站点文件。见 L03/TECHNICAL.md 和 L03/RESULTS.md。
